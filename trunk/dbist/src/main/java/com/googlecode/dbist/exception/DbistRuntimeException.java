@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist;
+package com.googlecode.dbist.exception;
 
-import com.googlecode.dbist.dml.Dao;
-import com.googlecode.dbist.util.Beans;
+@SuppressWarnings("serial")
+public class DbistRuntimeException extends RuntimeException {
+	public DbistRuntimeException() {
+		super();
+	}
+	public DbistRuntimeException(String message) {
+		super(message);
+	}
+	public DbistRuntimeException(Throwable cause) {
+		super(cause);
+	}
+	public DbistRuntimeException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-/**
- * Main util class of Dbist framework
- * 
- * @author Steve Jung
- */
-public class Dbist {
-	public static Dao getDao() throws Exception {
-		return Beans.get("dao", Dao.class);
-	}
-	public static Dao getDao(String name) throws Exception {
-		return Beans.get(name, Dao.class);
-	}
 }

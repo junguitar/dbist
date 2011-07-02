@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist;
+package com.googlecode.dbist.dml;
 
-import com.googlecode.dbist.dml.Dao;
-import com.googlecode.dbist.util.Beans;
+import java.util.List;
 
-/**
- * Main util class of Dbist framework
- * 
- * @author Steve Jung
- */
-public class Dbist {
-	public static Dao getDao() throws Exception {
-		return Beans.get("dao", Dao.class);
-	}
-	public static Dao getDao(String name) throws Exception {
-		return Beans.get(name, Dao.class);
-	}
+public interface Dao {
+	<T> T select(T data) throws Exception;
+	<T> T select(Class<T> clazz, Object id) throws Exception;
+	<T> T insert(T data) throws Exception;
+	<T> T update(T data) throws Exception;
+	<T> T upsert(T data) throws Exception;
+	<T> T delete(T data) throws Exception;
+	<T> T delete(Class<T> clazz, Object id) throws Exception;
+	<T> List<T> list(Class<T> clazz, Object condition) throws Exception;
+	<T> List<T> deleteList(Class<T> clazz, Object condition) throws Exception;
 }

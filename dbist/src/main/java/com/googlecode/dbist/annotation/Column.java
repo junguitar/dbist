@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist;
+package com.googlecode.dbist.annotation;
 
-import com.googlecode.dbist.dml.Dao;
-import com.googlecode.dbist.util.Beans;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-/**
- * Main util class of Dbist framework
- * 
- * @author Steve Jung
- */
-public class Dbist {
-	public static Dao getDao() throws Exception {
-		return Beans.get("dao", Dao.class);
-	}
-	public static Dao getDao(String name) throws Exception {
-		return Beans.get(name, Dao.class);
-	}
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface Column {
+	int length() default -1;
 }

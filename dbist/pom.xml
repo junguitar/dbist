@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.googlecode.dbist</groupId>
+	<groupId>com.googlecode</groupId>
 	<artifactId>dbist</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
@@ -20,6 +20,13 @@
 		<url>http//dbist.googlecode.com/svn/trunk/</url>
 	</scm>
 
+	<repositories>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>http://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -63,4 +70,26 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<extensions>
+			<extension>
+				<groupId>org.jvnet.wagon-svn</groupId>
+				<artifactId>wagon-svn</artifactId>
+				<version>1.9</version>
+			</extension>
+		</extensions>
+	</build>
+	<distributionManagement>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<name>Googlecode Snapshots</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

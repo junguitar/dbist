@@ -17,9 +17,9 @@ package com.googlecode.dbist.dml.impl;
 
 import java.util.List;
 
-import com.googlecode.dbist.dml.Dao;
+import com.googlecode.dbist.dml.Dml;
 
-public class DaoHibernate implements Dao {
+public class DmlJdbc implements Dml {
 
 	@Override
 	public <T> T select(T data) throws Exception {
@@ -28,7 +28,7 @@ public class DaoHibernate implements Dao {
 	}
 
 	@Override
-	public <T> T select(Class<T> clazz, Object id) throws Exception {
+	public <T> T select(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -46,6 +46,12 @@ public class DaoHibernate implements Dao {
 	}
 
 	@Override
+	public <T> T update(T data, String... fieldName) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public <T> T upsert(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
@@ -58,22 +64,22 @@ public class DaoHibernate implements Dao {
 	}
 
 	@Override
-	public <T> T delete(Class<T> clazz, Object id) throws Exception {
+	public <T> T delete(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> list(Class<T> clazz, Object condition) throws Exception {
+	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> deleteList(Class<T> clazz, Object condition)
+	public <T> void deleteList(Class<T> clazz, Object condition)
 			throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
 
 }

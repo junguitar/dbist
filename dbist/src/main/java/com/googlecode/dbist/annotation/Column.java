@@ -20,5 +20,6 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Column {
+	String name() default "";
 	int length() default -1;
 }

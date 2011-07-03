@@ -15,6 +15,48 @@
  */
 package com.googlecode.dbist.dml;
 
-public class Query {
+import java.util.ArrayList;
+import java.util.List;
 
+public class Query extends Filters {
+	private int pageNo;
+	private int pageSize;
+	private List<Order> order;
+	private List<String> group;
+	public int getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(int pageNo) {
+		this.pageNo = pageNo;
+	}
+	public int getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+	public List<Order> getOrder() {
+		return order;
+	}
+	public void setOrder(List<Order> order) {
+		this.order = order;
+	}
+	public Order addOrder(Order order) {
+		if (this.order == null)
+			this.order = new ArrayList<Order>();
+		this.order.add(order);
+		return order;
+	}
+	public List<String> getGroup() {
+		return group;
+	}
+	public void setGroup(List<String> group) {
+		this.group = group;
+	}
+	public String addGroup(String group) {
+		if (this.group == null)
+			this.group = new ArrayList<String>();
+		this.group.add(group);
+		return group;
+	}
 }

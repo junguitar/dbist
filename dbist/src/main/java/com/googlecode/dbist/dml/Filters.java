@@ -15,9 +15,49 @@
  */
 package com.googlecode.dbist.dml;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Filters {
 	private String operator;
 	private List<Filter> filter;
+	private List<Filters> filters;
+	public String getOperator() {
+		return operator;
+	}
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+	public List<Filter> getFilter() {
+		return filter;
+	}
+	public void setFilter(List<Filter> filter) {
+		this.filter = filter;
+	}
+	public Filter addFilter(Filter filter) {
+		if (this.filter == null)
+			this.filter = new ArrayList<Filter>();
+		this.filter.add(filter);
+		return filter;
+	}
+	public Filters addFilter(String leftOperand, Object rightOperand) {
+		addFilter(new Filter(leftOperand, rightOperand));
+		return this;
+	}
+	public Filters addFilter(String leftOperand, String operator, Object rightOperand) {
+		addFilter(new Filter(leftOperand, operator, rightOperand));
+		return this;
+	}
+	public List<Filters> getFilters() {
+		return filters;
+	}
+	public void setFilters(List<Filters> filters) {
+		this.filters = filters;
+	}
+	public Filters addFilters(Filters filters) {
+		if (this.filters == null)
+			this.filters = new ArrayList<Filters>();
+		this.filters.add(filters);
+		return filters;
+	}
 }

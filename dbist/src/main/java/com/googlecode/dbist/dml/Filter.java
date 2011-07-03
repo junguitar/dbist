@@ -15,10 +15,50 @@
  */
 package com.googlecode.dbist.dml;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Filter {
 	private String leftOperand;
 	private String operator;
-	private List<?> rightOperand;
+	private List<Object> rightOperand;
+	public Filter() {
+		super();
+	}
+	public Filter(String leftOperand) {
+		this();
+		this.leftOperand = leftOperand;
+	}
+	public Filter(String leftOperand, Object rightOperand) {
+		this(leftOperand);
+		addRightOperand(rightOperand);
+	}
+	public Filter(String leftOperand, String operator, Object rightOperand) {
+		this(leftOperand, rightOperand);
+		this.operator = operator;
+	}
+	public String getLeftOperand() {
+		return leftOperand;
+	}
+	public void setLeftOperand(String leftOperand) {
+		this.leftOperand = leftOperand;
+	}
+	public String getOperator() {
+		return operator;
+	}
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+	public List<?> getRightOperand() {
+		return rightOperand;
+	}
+	public void setRightOperand(List<Object> rightOperand) {
+		this.rightOperand = rightOperand;
+	}
+	public <T> T addRightOperand(T rightOperand) {
+		if (this.rightOperand == null)
+			this.rightOperand = new ArrayList<Object>();
+		this.rightOperand.add(rightOperand);
+		return rightOperand;
+	}
 }

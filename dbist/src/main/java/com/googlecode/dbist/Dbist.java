@@ -15,19 +15,19 @@
  */
 package com.googlecode.dbist;
 
-import com.googlecode.dbist.dml.Dao;
+import com.googlecode.dbist.dml.Dml;
 import com.googlecode.dbist.util.Beans;
 
 /**
- * Main util class of Dbist framework
+ * The main factory and util class of Dbist framework
  * 
  * @author Steve Jung
  */
 public class Dbist {
-	public static Dao getDao() throws Exception {
-		return Beans.get("dao", Dao.class);
+	public static Dml getDml() throws Exception {
+		return Beans.get("dml", Dml.class);
 	}
-	public static Dao getDao(String name) throws Exception {
-		return Beans.get(name, Dao.class);
+	public static Dml getDml(String name) throws Exception {
+		return Beans.get(name, Dml.class);
 	}
 }

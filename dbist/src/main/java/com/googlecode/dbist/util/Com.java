@@ -15,8 +15,19 @@
  */
 package com.googlecode.dbist.util;
 
+import java.util.Collection;
+import java.util.Map;
+
 public class Com {
 	public static boolean isEmpty(Object value) {
+		if (value == null)
+			return true;
+		if (value instanceof String)
+			return ((String) value).isEmpty();
+		else if (value instanceof Collection)
+			return ((Collection<?>) value).isEmpty();
+		else if (value instanceof Map)
+			return ((Map<?, ?>) value).isEmpty();
 		return false;
 	}
 }

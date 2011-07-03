@@ -1,5 +1,3 @@
-#Why Dbist?
-
 = Introduction =
 
 It's an easiest way to do database programming

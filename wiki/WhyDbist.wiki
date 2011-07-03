@@ -1,0 +1,16 @@
+#Why Dbist?
+
+= Introduction =
+
+It's an easiest way to do database programming
+
+
+= Details =
+
+== Examples ==
+
+=== Select a data from database ===
+
+{{{
+Post post = Dbist.select(Post.class, "1");
+}}}

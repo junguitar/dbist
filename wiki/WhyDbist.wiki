@@ -2,7 +2,7 @@
 
 The Dbist is an easy Java programming framework to manage dababase.<br>
 It's truly an easiest way to do database programming.<br>
-You may already know about many other ORM Frameworks (Hibernate, MyBatis, Active Record ...).<br>
+You may already know about many other ORM Frameworks (Hibernate, mybatis, Active Record ...).<br>
 But it's easier.
 
 Now, you can see why we must use Dbist instead of them.

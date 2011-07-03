@@ -11,20 +11,20 @@ It's an easiest way to do database programming
 
 Select by primary key value
 {{{
-Post post = Dbist.select(Post.class, "1");
+Post post = Dbist.getDml().select(Post.class, "1");
 }}}
 Select by composite key value array
 {{{
-Post post = Dbist.select(Post.class, toArray("public", "1"));
+Post post = Dbist.getDml().select(Post.class, toArray("public", "1"));
 }}}
 Select by composite key value List
 {{{
 List<Object> id = new ArrayList<Object>();
 id.add("public");
 id.add("1");
-Post post = Dbist.select(Post.class, id);
+Post post = Dbist.getDml().select(Post.class, id);
 }}}
 Select by composite key value HttpServletRequest
 {{{
-Post post = Dbist.select(Post.class, request);
+Post post = Dbist.getDml().select(Post.class, request);
 }}}

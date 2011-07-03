@@ -15,16 +15,6 @@
  */
 package com.googlecode.dbist.dml;
 
-import java.util.List;
-
-public interface Dao {
-	<T> T select(T data) throws Exception;
-	<T> T select(Class<T> clazz, Object id) throws Exception;
-	<T> T insert(T data) throws Exception;
-	<T> T update(T data) throws Exception;
-	<T> T upsert(T data) throws Exception;
-	<T> T delete(T data) throws Exception;
-	<T> T delete(Class<T> clazz, Object id) throws Exception;
-	<T> List<T> list(Class<T> clazz, Object condition) throws Exception;
-	<T> List<T> deleteList(Class<T> clazz, Object condition) throws Exception;
+public class Order {
+//	private String 
 }

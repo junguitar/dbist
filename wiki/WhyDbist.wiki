@@ -3,7 +3,7 @@
 = An Easy Database Management Framework for Java =
 
 The Dbist is an easy Java programming framework to manage dababase.<br>
-It's truly an easiest way to do database programming.<br>
+It's truly the easiest way to do database programming.<br>
 You may already know about many other ORM Frameworks (Hibernate, mybatis, Active Record ...).<br>
 But it's easier.
 

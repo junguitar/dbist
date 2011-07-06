@@ -18,12 +18,13 @@ package org.dbist.dml.impl;
 import java.util.List;
 
 import org.dbist.dml.Dml;
+import org.springframework.orm.jdo.support.JdoDaoSupport;
 
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
  */
-public class DmlJdo implements Dml {
+public class DmlJdo extends JdoDaoSupport implements Dml {
 
 	@Override
 	public <T> T select(T data) throws Exception {

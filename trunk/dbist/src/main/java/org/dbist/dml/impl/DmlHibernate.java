@@ -18,12 +18,13 @@ package org.dbist.dml.impl;
 import java.util.List;
 
 import org.dbist.dml.Dml;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
  */
-public class DmlHibernate implements Dml {
+public class DmlHibernate extends HibernateDaoSupport implements Dml {
 
 	@Override
 	public <T> T select(T data) throws Exception {

@@ -22,18 +22,6 @@
 		<developerConnection>scm:svn:https://dbist.googlecode.com/svn/trunk/</developerConnection>
 	</scm>
 
-	<repositories>
-		<repository>
-			<id>googlecode-repo-m2-releases</id>
-			<name>Googlecode Releases</name>
-			<url>http://repo-m2.googlecode.com/svn/releases</url>
-		</repository>
-		<repository>
-			<id>googlecode-repo-m2-snapshots</id>
-			<name>Googlecode Snapshots</name>
-			<url>http://repo-m2.googlecode.com/svn/snapshots</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>

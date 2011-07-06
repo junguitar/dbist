@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.util;
+package org.dbist.util;
 
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
 public class Com {
 	public static boolean isEmpty(Object value) {
 		if (value == null)

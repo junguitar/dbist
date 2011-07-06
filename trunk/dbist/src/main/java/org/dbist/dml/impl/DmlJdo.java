@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.dml.impl;
+package org.dbist.dml.impl;
 
 import java.util.List;
 
-import com.googlecode.dbist.dml.Dml;
+import org.dbist.dml.Dml;
 
+/**
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
 public class DmlJdo implements Dml {
 
 	@Override

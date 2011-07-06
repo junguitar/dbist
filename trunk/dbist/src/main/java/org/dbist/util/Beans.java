@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.util;
+package org.dbist.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +22,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+/**
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
 public class Beans implements ApplicationContextAware {
 	public static <T> T get(Class<T> requiredType) {
 		return getApplicationContext().getBean(requiredType);

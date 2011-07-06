@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>dbist</name>
-	<url>http://dbist.googlecode.com</url>
+	<url>http://dbist.org</url>
 	<description>Easy database management framework</description>
 
 	<properties>
@@ -19,7 +19,9 @@
 	</properties>
 
 	<scm>
-		<url>http//dbist.googlecode.com/svn/trunk/</url>
+		<url>http://dbist.googlecode.com/svn</url>
+		<connection>scm:svn:http://dbist.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://dbist.googlecode.com/svn/trunk/</developerConnection>
 	</scm>
 
 	<build>
@@ -69,7 +71,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>RELEASE</version>
+			<version>4.8.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -110,7 +112,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
+			<artifactId>spring-orm</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
 	</dependencies>

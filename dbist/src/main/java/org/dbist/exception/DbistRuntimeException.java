@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.exception;
+package org.dbist.exception;
 
+/**
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
 @SuppressWarnings("serial")
 public class DbistRuntimeException extends RuntimeException {
 	public DbistRuntimeException() {

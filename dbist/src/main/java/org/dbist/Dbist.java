@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.annotation;
+package org.dbist;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import org.dbist.dml.Dml;
+import org.dbist.util.Beans;
 
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface Column {
-	String name() default "";
-	int length() default -1;
+/**
+ * The main factory and util class of Dbist framework
+ * 
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
+public class Dbist {
+	public static Dml getDml() throws Exception {
+		return Beans.get("dml", Dml.class);
+	}
+	public static Dml getDml(String name) throws Exception {
+		return Beans.get(name, Dml.class);
+	}
 }

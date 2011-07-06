@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist.exception;
+package org.dbist.dml;
 
-@SuppressWarnings("serial")
-public class DbistException extends Exception {
-	public DbistException() {
-		super();
-	}
-	public DbistException(String message) {
-		super(message);
-	}
-	public DbistException(Throwable cause) {
-		super(cause);
-	}
-	public DbistException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
+/**
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
+ */
+public class Order {
+//	private String 
 }

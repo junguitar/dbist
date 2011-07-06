@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist;
-
-import com.googlecode.dbist.dml.Dml;
-import com.googlecode.dbist.util.Beans;
+package org.dbist.exception;
 
 /**
- * The main factory and util class of Dbist framework
- * 
- * @author Steve Jung
+ * @author Steve M. Jung
+ * @since 2 June 2011 (version 0.0.1)
  */
-public class Dbist {
-	public static Dml getDml() throws Exception {
-		return Beans.get("dml", Dml.class);
+@SuppressWarnings("serial")
+public class DbistException extends Exception {
+	public DbistException() {
+		super();
 	}
-	public static Dml getDml(String name) throws Exception {
-		return Beans.get(name, Dml.class);
+	public DbistException(String message) {
+		super(message);
 	}
+	public DbistException(Throwable cause) {
+		super(cause);
+	}
+	public DbistException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 }

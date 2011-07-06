@@ -19,7 +19,8 @@ Post post = Dbist.getDml().select(Post.class, "1");
 }}}
 Select by composite key value array
 {{{
-Post post = Dbist.getDml().select(Post.class, toArray("public", "1"));
+Object[] id = new Object[] {"public", "1"}
+Post post = Dbist.getDml().select(Post.class, id);
 }}}
 Select by composite key value List
 {{{

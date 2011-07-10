@@ -18,6 +18,8 @@ package org.dbist.util;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.util.StringUtils;
+
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
@@ -33,5 +35,22 @@ public class Com {
 		else if (value instanceof Map)
 			return ((Map<?, ?>) value).isEmpty();
 		return false;
+	}
+	
+	public static String toUnderscoreCase(String value) {
+		// TODO String toUnderscoreCase(String value)
+		return value;
+	}
+	
+	public static String toCamelCase(String value) {
+		// TODO String toCamelCase(String value)
+		return value;
+	}
+	
+	public static String capitalize(String value) {
+		return StringUtils.capitalize(value);
+	}
+	public static String uncapitalize(String value) {
+		return StringUtils.uncapitalize(value);
 	}
 }

@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dbist.annotation;
+package org.dbist.util;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Steve M. Jung
- * @since 2 June 2011 (version 0.0.1)
+ * @since 9 June 2011 (version 0.0.1)
  */
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface Column {
-	String name() default "";
-	int length() default -1;
+public class Monitor {
+	private static Map<String, Object> cache = new ConcurrentHashMap<String, Object>();
+	public static Object get(String name) {
+		if (cache.containsKey(name))
+			return cache.get(name);
+		synchronized (cache) {
+			if (cache.containsKey(name))
+				return cache.get(name);
+			Object obj = new Object();
+			cache.put(name, obj);
+			return obj;
+		}
+	}
+	public static void remove(String name) {
+		cache.remove(name);
+	}
 }

@@ -63,6 +63,12 @@ public class DmlJpa extends JpaDaoSupport implements Dml {
 	}
 
 	@Override
+	public <T> int count(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
 	public <T> T delete(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;

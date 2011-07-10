@@ -15,8 +15,8 @@
  */
 package org.dbist.util;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -44,14 +44,14 @@ public class Beans implements ApplicationContextAware {
 			Beans.applicationContextName = name;
 			return;
 		}
-		acMap.put(name, Beans.applicationContext);
+		acCache.put(name, Beans.applicationContext);
 		Beans.applicationContext = null;
 	}
-	private static Map<String, ApplicationContext> acMap = new HashMap<String, ApplicationContext>();
+	private static Map<String, ApplicationContext> acCache = new ConcurrentHashMap<String, ApplicationContext>();
 	private static ApplicationContext getApplicationContext() {
 		if (Com.isEmpty(Beans.applicationContextName))
 			return Beans.applicationContext;
-		return acMap.get(Beans.applicationContextName);
+		return acCache.get(Beans.applicationContextName);
 	}
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
@@ -60,7 +60,7 @@ public class Beans implements ApplicationContextAware {
 			Beans.applicationContext = applicationContext;
 			return;
 		}
-		acMap.put(Beans.applicationContextName, applicationContext);
+		acCache.put(Beans.applicationContextName, applicationContext);
 		Beans.applicationContextName = null;
 	}
 }

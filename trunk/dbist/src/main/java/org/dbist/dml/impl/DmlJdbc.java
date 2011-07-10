@@ -18,6 +18,7 @@ package org.dbist.dml.impl;
 import java.util.List;
 
 import org.dbist.dml.Dml;
+import org.dbist.table.Table;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 /**
@@ -35,6 +36,14 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> T select(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
+		Table table = Table.get(clazz);
+		StringBuffer buf = new StringBuffer();
+		buf.append("select");
+		int i = 0;
+		for (String columnName : table.getColumnName())
+			buf.append(i++ == 0 ? " " : ", ").append(columnName);
+		buf.append(" from ").append(table.getName());
+		
 		return null;
 	}
 
@@ -72,6 +81,12 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	public <T> T delete(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public <T> int count(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	@Override

@@ -20,5 +20,18 @@ package org.dbist.dml;
  * @since 2 June 2011 (version 0.0.1)
  */
 public class Order {
-//	private String 
+	private String field;
+	private boolean ascending;
+	public String getField() {
+		return field;
+	}
+	public void setField(String field) {
+		this.field = field;
+	}
+	public boolean isAscending() {
+		return ascending;
+	}
+	public void setAscending(boolean ascending) {
+		this.ascending = ascending;
+	}
 }

@@ -75,6 +75,12 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	}
 
 	@Override
+	public <T> int count(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
 	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;

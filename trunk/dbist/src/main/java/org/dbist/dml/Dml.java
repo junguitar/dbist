@@ -26,27 +26,31 @@ import java.util.List;
  */
 public interface Dml {
 	/**
-	 * Select a data from the database table mapped to T class
-	 * by primary key fields' value of data parameter.<br>
+	 * Select a data from the database table mapped to T class by primary key
+	 * fields' value of data parameter.<br>
 	 * The data parameter must be set primary key fields' value.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data The data wanted to select
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            The data wanted to select
 	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T select(T data) throws Exception;
 
 	/**
-	 * Select a data from the database table mapped to T class
-	 * by condition parameter.<br>
-	 * The data type of condition parameter can be 
-	 * primary key value (a value, array, List, or HttpServletRequest), 
-	 * Map, Query, Filters, Filter
+	 * Select a data from the database table mapped to T class by condition
+	 * parameter.<br>
+	 * The data type of condition parameter can be primary key value (a value,
+	 * array, List, or HttpServletRequest), Map, Query, Filters, Filter
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param clazz The object class mapped to a database table
-	 * @param condition The condition wanted to select
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
+	 * @param condition
+	 *            The condition wanted to select
 	 * @return The data selected
 	 * @throws Exception
 	 */
@@ -55,8 +59,10 @@ public interface Dml {
 	/**
 	 * Insert a data to the database table mapped to T class.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data The data to insert
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            The data to insert
 	 * @return The data inserted
 	 * @throws Exception
 	 */
@@ -65,8 +71,10 @@ public interface Dml {
 	/**
 	 * Update a data to the database table mapped to T class.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data The data to update
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            The data to update
 	 * @return The data updated
 	 * @throws Exception
 	 */
@@ -75,9 +83,12 @@ public interface Dml {
 	/**
 	 * Update some fields of data to the database table mapped to T class.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data The data to update
-	 * @param fieldName The fieldName array of the data to update
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            The data to update
+	 * @param fieldName
+	 *            The fieldName array of the data to update
 	 * @return The data updated
 	 * @throws Exception
 	 */
@@ -86,8 +97,10 @@ public interface Dml {
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data data The data to upsert
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            data The data to upsert
 	 * @return The data upserted
 	 * @throws Exception
 	 */
@@ -96,37 +109,56 @@ public interface Dml {
 	/**
 	 * Delete a data to the database table mapped to T class.
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param data The data to delete
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param data
+	 *            The data to delete
 	 * @return The data deleted
 	 * @throws Exception
 	 */
 	<T> T delete(T data) throws Exception;
 
 	/**
-	 * Delete a data to the database table mapped to T class.
-	 * by condition parameter.<br>
-	 * The data type of condition parameter can be 
-	 * primary key value (a value, array, List, or HttpServletRequest), 
-	 * Map, Query, Filters, Filter
+	 * Delete a data to the database table mapped to T class. by condition
+	 * parameter.<br>
+	 * The data type of condition parameter can be primary key value (a value,
+	 * array, List, or HttpServletRequest), Map, Query, Filters, Filter
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param clazz The object class mapped to a database table
-	 * @param condition The condition wanted to delete
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
+	 * @param condition
+	 *            The condition wanted to delete
 	 * @return The data deleted
 	 * @throws Exception
 	 */
 	<T> T delete(Class<T> clazz, Object condition) throws Exception;
 
 	/**
+	 * 
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
+	 * @param condition
+	 *            The condition wanted to delete
+	 * @return The size of data counted
+	 * @throws Exception
+	 */
+	<T> int count(Class<T> clazz, Object condition) throws Exception;
+
+	/**
 	 * Select some data from the database table mapped to T class<br>
 	 * by condition parameter<br>
-	 * The data type of condition parameter can be 
-	 * Map, Query, Filters, Filter
+	 * The data type of condition parameter can be Map, Query, Filters, Filter
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param clazz The object class mapped to a database table
-	 * @param condition The condition wanted to select
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
+	 * @param condition
+	 *            The condition wanted to select
 	 * @return The data list selected
 	 * @throws Exception
 	 */
@@ -135,12 +167,14 @@ public interface Dml {
 	/**
 	 * Delete some data from the database table mappedt to T class<br>
 	 * by condition parameter<br>
-	 * The data type of condition parameter can be 
-	 * Map, Query, Filters, Filter
+	 * The data type of condition parameter can be Map, Query, Filters, Filter
 	 * 
-	 * @param <T> The object class mapped to a database table
-	 * @param clazz The object class mapped to a database table
-	 * @param condition The condition wanted to delete
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
+	 * @param condition
+	 *            The condition wanted to delete
 	 * @throws Exception
 	 */
 	<T> void deleteList(Class<T> clazz, Object condition) throws Exception;

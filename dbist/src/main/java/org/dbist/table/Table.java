@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.dbist.util.Monitor;
-import org.dbist.util.Reflection;
+import net.sf.common.util.MonitorUtil;
+import net.sf.common.util.ReflectionUtil;
 
 public class Table {
 	private String name;
@@ -35,13 +35,13 @@ public class Table {
 
 		String monId = new StringBuffer(clazz.getName()).append(".getTable")
 				.toString();
-		synchronized (Monitor.get(monId)) {
+		synchronized (MonitorUtil.get(monId)) {
 			try {
 				if (cache.containsKey(clazz))
 					return cache.get(clazz);
 				Table table = new Table();
 				table.setName(toName(clazz));
-				for (Field field : Reflection.getFieldList(clazz, false)) {
+				for (Field field : ReflectionUtil.getFieldList(clazz, false)) {
 					String fname = field.getName();
 					String cname = toColumnName(field);
 
@@ -52,7 +52,7 @@ public class Table {
 				cache.put(clazz, table);
 				return table;
 			} finally {
-				Monitor.remove(monId);
+				MonitorUtil.remove(monId);
 			}
 		}
 	}
@@ -89,6 +89,11 @@ public class Table {
 
 	public List<Column> getColumn() {
 		return column;
+	}
+	
+	public String toColumnName(String name) {
+		// TODO String toColumnName(String name)
+		return name;
 	}
 
 	public List<String> getPkColumnName() {

@@ -25,8 +25,8 @@ import java.util.List;
 public class Query extends Filters {
 	private int pageNo;
 	private int pageSize;
+	private List<String> field;
 	private List<Order> order;
-	private List<String> group;
 	public int getPageNo() {
 		return pageNo;
 	}
@@ -39,6 +39,18 @@ public class Query extends Filters {
 	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
 	}
+	public List<String> getField() {
+		return field;
+	}
+	public void setField(List<String> field) {
+		this.field = field;
+	}
+	public String addField(String field) {
+		if (this.field == null)
+			this.field = new ArrayList<String>();
+		this.field.add(field);
+		return field;
+	}
 	public List<Order> getOrder() {
 		return order;
 	}
@@ -50,17 +62,5 @@ public class Query extends Filters {
 			this.order = new ArrayList<Order>();
 		this.order.add(order);
 		return order;
-	}
-	public List<String> getGroup() {
-		return group;
-	}
-	public void setGroup(List<String> group) {
-		this.group = group;
-	}
-	public String addGroup(String group) {
-		if (this.group == null)
-			this.group = new ArrayList<String>();
-		this.group.add(group);
-		return group;
 	}
 }

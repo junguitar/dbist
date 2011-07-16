@@ -22,6 +22,10 @@ package org.dbist.dml;
 public class Order {
 	private String field;
 	private boolean ascending;
+	public Order(String field, boolean ascending) {
+		this.field = field;
+		this.ascending = ascending;
+	}
 	public String getField() {
 		return field;
 	}

@@ -15,8 +15,9 @@
  */
 package org.dbist;
 
+import net.sf.common.util.BeanUtil;
+
 import org.dbist.dml.Dml;
-import org.dbist.util.Beans;
 
 /**
  * The main factory and util class of Dbist framework
@@ -26,9 +27,9 @@ import org.dbist.util.Beans;
  */
 public class Dbist {
 	public static Dml getDml() throws Exception {
-		return Beans.get("dml", Dml.class);
+		return BeanUtil.get("dml", Dml.class);
 	}
 	public static Dml getDml(String name) throws Exception {
-		return Beans.get(name, Dml.class);
+		return BeanUtil.get(name, Dml.class);
 	}
 }

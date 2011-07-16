@@ -18,6 +18,8 @@ package org.dbist.dml;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.common.util.ValueUtil;
+
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
@@ -26,16 +28,13 @@ public class Filter {
 	private String leftOperand;
 	private String operator;
 	private List<Object> rightOperand;
-	public Filter() {
-		super();
-	}
 	public Filter(String leftOperand) {
-		this();
 		this.leftOperand = leftOperand;
 	}
 	public Filter(String leftOperand, Object rightOperand) {
 		this(leftOperand);
-		addRightOperand(rightOperand);
+		if (!ValueUtil.isEmpty(rightOperand))
+			addRightOperand(rightOperand);
 	}
 	public Filter(String leftOperand, String operator, Object rightOperand) {
 		this(leftOperand, rightOperand);

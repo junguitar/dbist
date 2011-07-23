@@ -18,7 +18,7 @@ package org.dbist.dml;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.common.util.ValueUtil;
+import net.sf.common.util.ValueUtils;
 
 /**
  * @author Steve M. Jung
@@ -33,7 +33,7 @@ public class Filter {
 	}
 	public Filter(String leftOperand, Object rightOperand) {
 		this(leftOperand);
-		if (!ValueUtil.isEmpty(rightOperand))
+		if (!ValueUtils.isEmpty(rightOperand))
 			addRightOperand(rightOperand);
 	}
 	public Filter(String leftOperand, String operator, Object rightOperand) {

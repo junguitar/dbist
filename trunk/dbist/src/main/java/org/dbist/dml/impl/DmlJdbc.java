@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.common.util.ValueUtil;
+import net.sf.common.util.ValueUtils;
 
 import org.dbist.dml.Dml;
 import org.dbist.dml.Filter;
@@ -100,7 +100,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 
 		// Select
 		buf.append("select");
-		if (query == null || ValueUtil.isEmpty(query.getField())) {
+		if (query == null || ValueUtils.isEmpty(query.getField())) {
 			int i = 0;
 			for (String columnName : table.getColumnName())
 				buf.append(i++ == 0 ? " " : ", ").append(columnName);
@@ -122,7 +122,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 				for (String lo : map.keySet())
 					query.addFilter(lo, map.get(lo));
 			} else if (condition instanceof Filters) {
-				ValueUtil.populate(condition, query);
+				ValueUtils.populate(condition, query);
 			} else if (condition instanceof List) {
 				query.setFilter((List<Filter>) condition);
 			} else if (condition instanceof Filter) {
@@ -132,7 +132,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 		{
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			int i = 0;
-			if (!ValueUtil.isEmpty(query.getFilter())) {
+			if (!ValueUtils.isEmpty(query.getFilter())) {
 				for (Filter filter : query.getFilter()) {
 					String lo = filter.getLeftOperand();
 					// buf.append(i++ == 0 ? " where " : " and ")
@@ -143,7 +143,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 		}
 
 		// Order by
-		if (!ValueUtil.isEmpty(query.getOrder())) {
+		if (!ValueUtils.isEmpty(query.getOrder())) {
 			buf.append(" order by");
 			int i = 0;
 			for (Order order : query.getOrder()) {

@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.sf.common.util.MonitorUtil;
-import net.sf.common.util.ReflectionUtil;
+import net.sf.common.util.MonitorUtils;
+import net.sf.common.util.ReflectionUtils;
 
 public class Table {
 	private String name;
@@ -35,13 +35,13 @@ public class Table {
 
 		String monId = new StringBuffer(clazz.getName()).append(".getTable")
 				.toString();
-		synchronized (MonitorUtil.get(monId)) {
+		synchronized (MonitorUtils.get(monId)) {
 			try {
 				if (cache.containsKey(clazz))
 					return cache.get(clazz);
 				Table table = new Table();
 				table.setName(toName(clazz));
-				for (Field field : ReflectionUtil.getFieldList(clazz, false)) {
+				for (Field field : ReflectionUtils.getFieldList(clazz, false)) {
 					String fname = field.getName();
 					String cname = toColumnName(field);
 
@@ -52,7 +52,7 @@ public class Table {
 				cache.put(clazz, table);
 				return table;
 			} finally {
-				MonitorUtil.remove(monId);
+				MonitorUtils.remove(monId);
 			}
 		}
 	}

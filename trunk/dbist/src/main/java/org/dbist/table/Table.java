@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.sf.common.util.MonitorUtils;
+import net.sf.common.util.Closure;
+import net.sf.common.util.SyncCtrlUtils;
 import net.sf.common.util.ReflectionUtils;
 
 public class Table {
@@ -27,18 +28,14 @@ public class Table {
 		return get(data.getClass());
 	}
 
-	public static Table get(Class<?> clazz) {
+	public static Table get(final Class<?> clazz) {
 		if (clazz == null)
 			throw new NullPointerException("clazz parameter is null.");
 		if (cache.containsKey(clazz))
 			return cache.get(clazz);
-
-		String monId = new StringBuffer(clazz.getName()).append(".getTable")
-				.toString();
-		synchronized (MonitorUtils.get(monId)) {
-			try {
-				if (cache.containsKey(clazz))
-					return cache.get(clazz);
+		return SyncCtrlUtils.wrap("Table." + clazz.getName(), cache, clazz, new Closure() {
+			@Override
+			public Object execute() {
 				Table table = new Table();
 				table.setName(toName(clazz));
 				for (Field field : ReflectionUtils.getFieldList(clazz, false)) {
@@ -49,14 +46,11 @@ public class Table {
 					table.fieldName.add(fname);
 					table.columnName.add(cname);
 				}
-				cache.put(clazz, table);
 				return table;
-			} finally {
-				MonitorUtils.remove(monId);
 			}
-		}
+		});
 	}
-	
+
 	private static <T> String toName(Class<T> clazz) {
 		// TODO <T> String toName(Class<T> clazz)
 		return clazz.getSimpleName().toLowerCase();
@@ -90,7 +84,7 @@ public class Table {
 	public List<Column> getColumn() {
 		return column;
 	}
-	
+
 	public String toColumnName(String name) {
 		// TODO String toColumnName(String name)
 		return name;

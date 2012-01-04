@@ -38,6 +38,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(T data) throws Exception;
+	<T> T selectForUpdate(T data) throws Exception;
 
 	/**
 	 * Select a data from the database table mapped to T class by condition
@@ -55,6 +56,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(Class<T> clazz, Object condition) throws Exception;
+	<T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.
@@ -67,6 +69,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T insert(T data) throws Exception;
+	<T> void insertBatch(List<T> list) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -79,6 +82,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T update(T data) throws Exception;
+	<T> void updateBatch(List<T> list) throws Exception;
 
 	/**
 	 * Update some fields of data to the database table mapped to T class.
@@ -93,6 +97,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T update(T data, String... fieldName) throws Exception;
+	<T> void updateBatch(List<T> list, String... filedName) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
@@ -105,6 +110,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T upsert(T data) throws Exception;
+	<T> void upsertBatch(List<T> list) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class.
@@ -117,6 +123,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T delete(T data) throws Exception;
+	<T> void deleteBatch(List<T> list) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class. by condition
@@ -163,6 +170,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectList(Class<T> clazz, Object condition) throws Exception;
+	<T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

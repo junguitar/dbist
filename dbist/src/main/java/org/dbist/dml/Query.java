@@ -23,15 +23,15 @@ import java.util.List;
  * @since 2 June 2011 (version 0.0.1)
  */
 public class Query extends Filters {
-	private int pageNo;
+	private int pageIndex;
 	private int pageSize;
 	private List<String> field;
 	private List<Order> order;
-	public int getPageNo() {
-		return pageNo;
+	public int getPageIndex() {
+		return pageIndex;
 	}
-	public void setPageNo(int pageNo) {
-		this.pageNo = pageNo;
+	public void setPageIndex(int pageNo) {
+		this.pageIndex = pageNo;
 	}
 	public int getPageSize() {
 		return pageSize;

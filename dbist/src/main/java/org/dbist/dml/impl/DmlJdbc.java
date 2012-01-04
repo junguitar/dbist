@@ -42,7 +42,19 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	}
 
 	@Override
+	public <T> T selectForUpdate(T data) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public <T> T select(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -54,9 +66,21 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	}
 
 	@Override
+	public <T> void insertBatch(List<T> list) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public <T> T update(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public <T> void updateBatch(List<T> list) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -66,15 +90,33 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	}
 
 	@Override
+	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public <T> T upsert(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
+	public <T> void upsertBatch(List<T> list) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public <T> T delete(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public <T> void deleteBatch(List<T> list) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -91,8 +133,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> List<T> selectList(Class<T> clazz, Object condition)
-			throws Exception {
+	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		Table table = Table.get(clazz);
 		StringBuffer buf = new StringBuffer();
@@ -107,8 +148,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 		} else {
 			int i = 0;
 			for (String fieldName : query.getField())
-				buf.append(i++ == 0 ? " " : ", ").append(
-						table.toColumnName(fieldName));
+				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(fieldName));
 		}
 
 		// From
@@ -147,9 +187,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 			buf.append(" order by");
 			int i = 0;
 			for (Order order : query.getOrder()) {
-				buf.append(i++ == 0 ? " " : ", ")
-						.append(table.toColumnName(order.getField()))
-						.append(order.isAscending() ? " asc" : " desc");
+				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(order.getField())).append(order.isAscending() ? " asc" : " desc");
 			}
 		}
 
@@ -157,10 +195,15 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	}
 
 	@Override
-	public <T> void deleteList(Class<T> clazz, Object condition)
-			throws Exception {
+	public <T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

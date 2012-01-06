@@ -17,14 +17,14 @@ package org.dbist.dml.impl;
 
 import java.util.List;
 
+import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
-import org.springframework.orm.jpa.support.JpaDaoSupport;
 
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
  */
-public class DmlJpa extends JpaDaoSupport implements Dml {
+public class DmlJpa extends AbstractDml implements Dml {
 
 	@Override
 	public <T> T select(T data) throws Exception {

@@ -25,6 +25,8 @@ import java.util.List;
  * @since 2 June 2011 (version 0.0.1)
  */
 public interface Dml {
+	String getDbType();
+	
 	/**
 	 * Select a data from the database table mapped to T class by primary key
 	 * fields' value of data parameter.<br>

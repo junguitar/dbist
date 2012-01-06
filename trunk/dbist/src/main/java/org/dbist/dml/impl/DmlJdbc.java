@@ -21,19 +21,23 @@ import java.util.Map;
 
 import net.sf.common.util.ValueUtils;
 
+import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
 import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
 import org.dbist.dml.Query;
 import org.dbist.table.Table;
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
  */
-public class DmlJdbc extends JdbcDaoSupport implements Dml {
+public class DmlJdbc extends AbstractDml implements Dml {
+	private JdbcTemplate jdbcTemplate;
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	@Override
 	public <T> T select(T data) throws Exception {
@@ -68,7 +72,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -80,7 +84,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -92,7 +96,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -104,7 +108,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void upsertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -116,7 +120,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void deleteBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -135,7 +139,7 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		Table table = Table.get(clazz);
+		Table table = Table.get(clazz, getDbType());
 		StringBuffer buf = new StringBuffer();
 		Query query = condition instanceof Query ? (Query) condition : null;
 
@@ -203,7 +207,27 @@ public class DmlJdbc extends JdbcDaoSupport implements Dml {
 	@Override
 	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+		ValueUtils.assertNotEmpty("jdbcTemplate", getJdbcTemplate());
+		ValueUtils.assertNotEmpty("namedParameterJdbcTemplate", getNamedParameterJdbcTemplate());
+	}
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
+		return namedParameterJdbcTemplate;
+	}
+	public void setNamedParameterJdbcTemplate(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+		this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
 	}
 
 }

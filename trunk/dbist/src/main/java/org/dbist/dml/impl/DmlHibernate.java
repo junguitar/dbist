@@ -17,14 +17,14 @@ package org.dbist.dml.impl;
 
 import java.util.List;
 
+import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 /**
  * @author Steve M. Jung
  * @since 2 June 2011 (version 0.0.1)
  */
-public class DmlHibernate extends HibernateDaoSupport implements Dml {
+public class DmlHibernate extends AbstractDml implements Dml {
 
 	@Override
 	public <T> T select(T data) throws Exception {
@@ -59,7 +59,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void upsertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void deleteBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class DmlHibernate extends HibernateDaoSupport implements Dml {
 	@Override
 	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

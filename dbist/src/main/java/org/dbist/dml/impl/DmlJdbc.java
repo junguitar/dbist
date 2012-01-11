@@ -27,6 +27,7 @@ import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
 import org.dbist.dml.Query;
+import org.dbist.table.Column;
 import org.dbist.table.Table;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -36,6 +37,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * @since 2 June 2011 (version 0.0.1)
  */
 public class DmlJdbc extends AbstractDml implements Dml {
+	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
+
 	private JdbcTemplate jdbcTemplate;
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -139,7 +142,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	@Override
 	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		Table table = Table.get(clazz, getDbType());
+		Table table = Table.get(clazz, this);
 		StringBuffer buf = new StringBuffer();
 		Query query = condition instanceof Query ? (Query) condition : null;
 
@@ -147,8 +150,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		buf.append("select");
 		if (query == null || ValueUtils.isEmpty(query.getField())) {
 			int i = 0;
-			for (String columnName : table.getColumnName())
-				buf.append(i++ == 0 ? " " : ", ").append(columnName);
+			for (Column column : table.getColumn())
+				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
 		} else {
 			int i = 0;
 			for (String fieldName : query.getField())

@@ -25,8 +25,12 @@ import java.util.List;
  * @since 2 June 2011 (version 0.0.1)
  */
 public interface Dml {
+	public static final String DBTYPE_MYSQL = "mysql";
+	public static final String DBTYPE_ORACLE = "oracle";
+
 	String getDbType();
-	
+	List<String> getDomain();
+
 	/**
 	 * Select a data from the database table mapped to T class by primary key
 	 * fields' value of data parameter.<br>

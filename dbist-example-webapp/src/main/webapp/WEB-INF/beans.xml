@@ -35,7 +35,8 @@
 	</bean>
 
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
-		<property name="dbType" value="hsqldb" />
+		<property name="dbType" value="dmlJdbc.dbType" />
+		<property name="domain" value="${dmlJdbc.domain}" />
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 		<property name="namedParameterJdbcTemplate" ref="namedParameterJdbcTemplate" />
 	</bean>

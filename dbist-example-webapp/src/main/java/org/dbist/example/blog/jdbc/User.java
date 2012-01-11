@@ -1,5 +1,8 @@
 package org.dbist.example.blog.jdbc;
 
+import org.dbist.annotation.Table;
+
+@Table(name = "USERS")
 public class User {
 	private String username;
 	private String password;

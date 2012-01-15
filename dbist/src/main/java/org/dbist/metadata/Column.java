@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dbist.annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.dbist.metadata;
 
 /**
  * @author Steve M. Jung
- * @since 2011. 7. 10. (version 0.0.1)
+ * @since 2011. 7. 10 (version 0.0.1)
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Column {
-	/**
-	 * (Optional) The name of the column.<br />
-	 * Defaults to the following cases.<br />
-	 * 1. the underscore case name of the field<br />
-	 * 2. the name of the field
-	 */
-	String name() default "";
-	boolean skip() default false;
+public class Column {
+	private String name;
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
 }

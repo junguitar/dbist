@@ -1,11 +1,25 @@
-package org.dbist.table;
+/**
+ * Copyright 2011-2012 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.dbist.metadata;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.sf.common.util.Closure;
@@ -18,9 +32,12 @@ import org.dbist.dml.Dml;
 import org.dbist.dml.impl.DmlJdbc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.PropertyResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+/**
+ * @author Steve M. Jung
+ * @since 2011. 7. 10 (version 0.0.1)
+ */
 public class Table {
 	private static final Logger logger = LoggerFactory.getLogger(Table.class);
 
@@ -99,7 +116,7 @@ public class Table {
 			boolean nameEmpty = ValueUtils.isEmpty(table.getName());
 
 			if (nameEmpty) {
-				String tableNameCandidate = ValueUtils.toUnderscoreCase(clazz.getSimpleName()).toLowerCase();
+				String tableNameCandidate = ValueUtils.toDelimiterCase(clazz.getSimpleName(), '_').toLowerCase();
 				String tableNameCandidate1 = clazz.getSimpleName().toLowerCase();
 				if (domainEmpty) {
 					for (String domain : dml.getDomain()) {

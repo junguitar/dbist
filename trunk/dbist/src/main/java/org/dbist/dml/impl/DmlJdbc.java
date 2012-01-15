@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
 import org.dbist.dml.Query;
-import org.dbist.table.Column;
-import org.dbist.table.Table;
+import org.dbist.metadata.Column;
+import org.dbist.metadata.Table;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * @author Steve M. Jung
- * @since 2 June 2011 (version 0.0.1)
+ * @since 2011. 6. 2. (version 0.0.1)
  */
 public class DmlJdbc extends AbstractDml implements Dml {
 	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");

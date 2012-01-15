@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractDml implements Dml, InitializingBean {
 	private String dbType;
+	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
 
 	@Override
@@ -39,16 +40,20 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		this.dbType = dbType == null ? null : dbType.toLowerCase();
 	}
 	@Override
-	public List<String> getDomain() {
-		return domainList;
+	public String getDomain() {
+		return domain;
 	}
-	public void setDomain(String domains) {
-		if (ValueUtils.isEmpty(domains)) {
+	public void setDomain(String domain) {
+		this.domain = domain;
+		if (ValueUtils.isEmpty(domain)) {
 			domainList.clear();
 			return;
 		}
-		for (String domain : StringUtils.tokenizeToStringArray(domains, ","))
-			domainList.add(domain);
+		for (String d : StringUtils.tokenizeToStringArray(domain, ","))
+			domainList.add(d);
+	}
+	public List<String> getDomainList() {
+		return domainList;
 	}
 
 	@Override

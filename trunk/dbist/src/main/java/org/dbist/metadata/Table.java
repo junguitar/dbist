@@ -119,7 +119,7 @@ public class Table {
 				String tableNameCandidate = ValueUtils.toDelimiterCase(clazz.getSimpleName(), '_').toLowerCase();
 				String tableNameCandidate1 = clazz.getSimpleName().toLowerCase();
 				if (domainEmpty) {
-					for (String domain : dml.getDomain()) {
+					for (String domain : dmlJdbc.getDomainList()) {
 						String sql = StringUtils.replace(query, "${domain}", domain.toLowerCase());
 						if (jdbcTemplate.queryForInt(sql, tableNameCandidate) > 0) {
 							table.setDomain(domain);
@@ -133,7 +133,7 @@ public class Table {
 					}
 					String errMsg = ValueUtils.populate(
 							MSG_TABLENOTFOUND,
-							ValueUtils.toMap("class:" + clazz.getSimpleName(), "domain:" + dml.getDomain().toArray(), "tableNameCandidate:"
+							ValueUtils.toMap("class:" + clazz.getSimpleName(), "domain:" + dml.getDomain(), "tableNameCandidate:"
 									+ tableNameCandidate + ", " + tableNameCandidate1));
 					throw new IllegalArgumentException(errMsg);
 				} else {

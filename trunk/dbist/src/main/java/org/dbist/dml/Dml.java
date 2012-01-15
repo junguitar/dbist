@@ -29,7 +29,7 @@ public interface Dml {
 	public static final String DBTYPE_ORACLE = "oracle";
 
 	String getDbType();
-	List<String> getDomain();
+	String getDomain();
 
 	/**
 	 * Select a data from the database table mapped to T class by primary key

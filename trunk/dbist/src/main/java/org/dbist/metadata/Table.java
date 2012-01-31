@@ -62,9 +62,9 @@ public class Table {
 			return cache.get(clazz);
 		}
 
-		return SyncCtrlUtils.wrap("Table." + clazz.getName(), cache, clazz, new Closure() {
+		return SyncCtrlUtils.wrap("Table." + clazz.getName(), cache, clazz, new Closure<Table, RuntimeException>() {
 			@Override
-			public Object execute() {
+			public Table execute() {
 				if (debug)
 					logger.debug("make table metadata by class: " + clazz.getName());
 				Table table = new Table();

@@ -15,9 +15,17 @@
  */
 package com.googlecode.dbist;
 
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.junit.Test;
+
 /**
  * @author Steve Jung
  */
 public class DbistTest {
-
+	@Test
+	public void test() throws Exception {
+		Velocity.init();
+		VelocityContext context = new VelocityContext();
+	}
 }

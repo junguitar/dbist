@@ -11,7 +11,7 @@
 	<context:property-placeholder location="/WEB-INF/*.properties" />
 	<context:annotation-config />
 
-	<bean id="beanUtils" class="net.sf.common.util.BeanUtils">
+	<bean class="net.sf.common.util.BeanUtils">
 		<property name="applicationContextName" value="dbist-example-webapp" />
 	</bean>
 

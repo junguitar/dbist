@@ -15,17 +15,50 @@
  */
 package com.googlecode.dbist;
 
+import java.io.StringWriter;
+
+import junit.framework.Assert;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.util.ResourceUtils;
 
 /**
  * @author Steve Jung
  */
 public class DbistTest {
-	@Test
-	public void test() throws Exception {
+	@BeforeClass
+	public static final void beforClass() {
 		Velocity.init();
-		VelocityContext context = new VelocityContext();
+	}
+
+	@Test
+	public final void test() throws Exception {
+		StringWriter writer1 = new StringWriter();
+		VelocityContext vc = new VelocityContext();
+		vc.put("name", "World");
+		Velocity.evaluate(vc, writer1, "test", "Hello $name! Welcome to Velocity!");
+
+		StringWriter writer2 = new StringWriter();
+		vc = new VelocityContext();
+		Velocity.evaluate(vc, writer2, "test", "Hello World! Welcome to Velocity!");
+
+		Assert.assertEquals(writer1.toString(), writer2.toString());
+	}
+
+	@Test
+	public final void testQuery() throws Exception {
+		String query = FileUtils.readFileToString(ResourceUtils.getFile("classpath:com/googlecode/dbist/query.vm"));
+
+		StringWriter writer = new StringWriter();
+		VelocityContext vc = new VelocityContext();
+		vc.put("name", "junguitar");
+		vc.put("name1", "junguitar");
+		Velocity.evaluate(vc, writer, query, query);
+
+		System.out.println(writer);
 	}
 }

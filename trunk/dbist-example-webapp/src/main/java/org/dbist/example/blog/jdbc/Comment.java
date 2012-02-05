@@ -2,6 +2,9 @@ package org.dbist.example.blog.jdbc;
 
 import java.util.Date;
 
+import org.dbist.annotation.Table;
+
+@Table(name = "COMMENTS")
 public class Comment {
 	private String id;
 	private String postId;

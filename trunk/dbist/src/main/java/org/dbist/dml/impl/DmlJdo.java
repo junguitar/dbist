@@ -16,6 +16,7 @@
 package org.dbist.dml.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
@@ -39,18 +40,6 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T select(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public <T> T insert(T data) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
@@ -59,7 +48,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -71,7 +60,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -83,7 +72,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	@Override
 	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -95,7 +84,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	@Override
 	public <T> void upsertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -107,7 +96,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	@Override
 	public <T> void deleteBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -135,9 +124,21 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
+	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

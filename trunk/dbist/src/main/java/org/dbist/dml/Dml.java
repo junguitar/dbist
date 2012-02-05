@@ -16,6 +16,9 @@
 package org.dbist.dml;
 
 import java.util.List;
+import java.util.Map;
+
+import org.dbist.processor.Processor;
 
 /**
  * DML (Data Manipulation Languge) operator or DAO (Data Access Object)
@@ -30,6 +33,7 @@ public interface Dml {
 
 	String getDbType();
 	String getDomain();
+	Processor getPreprocessor();
 
 	/**
 	 * Select a data from the database table mapped to T class by primary key
@@ -63,6 +67,12 @@ public interface Dml {
 	 */
 	<T> T select(Class<T> clazz, Object condition) throws Exception;
 	<T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception;
+
+	<T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+
+	<T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> T selectForUpdateByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.
@@ -177,6 +187,12 @@ public interface Dml {
 	 */
 	<T> List<T> selectList(Class<T> clazz, Object condition) throws Exception;
 	<T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception;
+
+	<T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+
+	<T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

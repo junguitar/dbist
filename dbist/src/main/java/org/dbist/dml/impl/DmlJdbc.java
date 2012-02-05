@@ -42,28 +42,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private JdbcTemplate jdbcTemplate;
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T select(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		ValueUtils.assertNotNull("data", data);
+		return select(selectList((Class<T>) data.getClass(), data));
 	}
-
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T selectForUpdate(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T select(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		ValueUtils.assertNotNull("data", data);
+		return select(selectListForUpdate((Class<T>) data.getClass(), data));
 	}
 
 	@Override
@@ -203,6 +192,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	@Override
 	public <T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -17,9 +17,12 @@ package org.dbist.dml;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.common.util.ValueUtils;
 
+import org.dbist.exception.DbistRuntimeException;
+import org.dbist.processor.Processor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.StringUtils;
 
@@ -31,6 +34,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	private String dbType;
 	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
+	private Processor preprocessor;
 
 	@Override
 	public String getDbType() {
@@ -57,8 +61,68 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
+	public Processor getPreprocessor() {
+		return preprocessor;
+	}
+	public void setPreprocessor(Processor preprocessor) {
+		this.preprocessor = preprocessor;
+	}
+
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		ValueUtils.assertNotEmpty("dbType", getDbType());
 		ValueUtils.assertNotEmpty("domains", getDomain());
+	}
+
+	protected <T> T select(List<T> list) {
+		if (ValueUtils.isEmpty(list))
+			return null;
+		else if (list.size() > 1)
+			throw new DbistRuntimeException("Selected data size is not 1: " + list.size());
+		return list.get(0);
+	}
+
+	@Override
+	public <T> T select(Class<T> clazz, Object condition) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		return select(selectList(clazz, condition));
+	}
+
+	@Override
+	public <T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		return select(selectListForUpdate(clazz, condition));
+	}
+
+	@Override
+	public <T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		ValueUtils.assertNotNull("query", query);
+		return select(selectList(query, paramMap, requiredType));
+	}
+
+	@Override
+	public <T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		ValueUtils.assertNotNull("query", query);
+		return select(selectListForUpdate(query, paramMap, requiredType));
+	}
+
+	@Override
+	public <T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		return select(query, paramMap, requiredType);
+	}
+
+	@Override
+	public <T> T selectForUpdateByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		return selectForUpdate(query, paramMap, requiredType);
+	}
+
+	@Override
+	public <T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		return selectList(query, paramMap, requiredType);
+	}
+
+	@Override
+	public <T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		return selectListForUpdate(query, paramMap, requiredType);
 	}
 }

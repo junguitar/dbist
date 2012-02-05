@@ -16,6 +16,7 @@
 package org.dbist.dml.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
@@ -34,18 +35,6 @@ public class DmlHibernate extends AbstractDml implements Dml {
 
 	@Override
 	public <T> T selectForUpdate(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T select(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -130,6 +119,18 @@ public class DmlHibernate extends AbstractDml implements Dml {
 
 	@Override
 	public <T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

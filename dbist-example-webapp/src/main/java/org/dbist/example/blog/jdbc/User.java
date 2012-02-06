@@ -1,10 +1,12 @@
 package org.dbist.example.blog.jdbc;
 
+import org.dbist.annotation.Column;
 import org.dbist.annotation.Table;
 
-@Table(name = "USERS")
+@Table(name = "users")
 public class User {
 	private String username;
+	@Column(name = "pwd")
 	private String password;
 	private String firstName;
 	private String lastName;

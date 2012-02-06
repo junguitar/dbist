@@ -2,6 +2,7 @@ package org.dbist.example.blog.jdo;
 
 import java.util.Date;
 
+import javax.jdo.annotations.Column;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -9,17 +10,23 @@ import javax.jdo.annotations.PrimaryKey;
 @PersistenceCapable(table = "POST")
 public class Post {
 	@PrimaryKey
-	@Persistent(column = "ID")
+	@Persistent
+	@Column(length = 100)
 	private String id;
-	@Persistent(column = "BLOG_ID")
+	@Persistent(column = "blog_id")
+	@Column(length = 100)
 	private String blogId;
-	@Persistent(column = "AUTHOR")
+	@Persistent
+	@Column(length = 200)
+	private String title;
+	@Persistent
+	@Column(length = 100)
 	private String author;
-	@Persistent(column = "CREATED_AT")
+	@Persistent(column = "created_at")
 	private Date createdAt;
-	@Persistent(column = "UPDATED_AT")
+	@Persistent(column = "created_at")
 	private Date updatedAt;
-	@Persistent(column = "CONTENT")
+	@Persistent
 	private String content;
 	public String getId() {
 		return id;
@@ -32,6 +39,12 @@ public class Post {
 	}
 	public void setBlogId(String blogId) {
 		this.blogId = blogId;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
 	}
 	public String getAuthor() {
 		return author;

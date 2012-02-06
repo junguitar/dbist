@@ -8,20 +8,20 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "BLOG")
+@Table
 public class Blog {
 	@Id
-	@Column(name = "ID")
+	@Column(length = 100)
 	private String id;
-	@Column(name = "NAME")
+	@Column(length = 100)
 	private String name;
-	@Column(name = "description")
+	@Column(length = 200)
 	private String description;
-	@Column(name = "OWNER")
+	@Column(length = 100)
 	private String owner;
-	@Column(name = "CREATED_AT")
+	@Column(name = "created_at")
 	private Date createdAt;
-	@Column(name = "UPDATED_AT")
+	@Column(name = "updated_at")
 	private Date updatedAt;
 	public String getId() {
 		return id;

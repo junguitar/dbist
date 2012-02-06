@@ -8,18 +8,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "COMMENT")
+@Table(name = "comments")
 public class Comment {
 	@Id
-	@Column(name = "ID")
+	@Column(length = 100)
 	private String id;
-	@Column(name = "POST_ID")
+	@Column(name = "post_id", length = 100)
 	private String postId;
-	@Column(name = "AUTHOR")
+	@Column(length = 100)
 	private String author;
-	@Column(name = "CREATED_AT")
+	@Column(name = "created_at")
 	private Date createdAt;
-	@Column(name = "CONTENT")
+	@Column(length = 1000)
 	private String content;
 	public String getId() {
 		return id;

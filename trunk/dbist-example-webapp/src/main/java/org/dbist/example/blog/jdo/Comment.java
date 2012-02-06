@@ -2,22 +2,27 @@ package org.dbist.example.blog.jdo;
 
 import java.util.Date;
 
+import javax.jdo.annotations.Column;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-@PersistenceCapable(table = "COMMENT")
+@PersistenceCapable(table = "comments")
 public class Comment {
 	@PrimaryKey
-	@Persistent(column = "ID")
+	@Persistent
+	@Column(length = 100)
 	private String id;
-	@Persistent(column = "POST_ID")
+	@Persistent(column = "post_id")
+	@Column(length = 100)
 	private String postId;
-	@Persistent(column = "AUTHOR")
+	@Persistent
+	@Column(length = 100)
 	private String author;
-	@Persistent(column = "CREATED_AT")
+	@Persistent(column = "created_at")
 	private Date createdAt;
-	@Persistent(column = "CONTENT")
+	@Persistent
+	@Column(length = 1000)
 	private String content;
 	public String getId() {
 		return id;

@@ -7,21 +7,26 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 @Entity
-@Table(name = "POST")
+@Table
 public class Post {
 	@Id
-	@Column(name = "ID")
+	@Column(length = 100)
 	private String id;
-	@Column(name = "BLOG_ID")
+	@Column(name = "blog_id", length = 100)
 	private String blogId;
-	@Column(name = "AUTHOR")
+	@Column(length = 200)
+	private String title;
+	@Column(length = 100)
 	private String author;
-	@Column(name = "CREATED_AT")
+	@Column(name = "created_at")
 	private Date createdAt;
-	@Column(name = "UPDATED_AT")
+	@Column(name = "updated_at")
 	private Date updatedAt;
-	@Column(name = "CONTENT")
+	@Column
+	@Type(type = "text")
 	private String content;
 	public String getId() {
 		return id;
@@ -34,6 +39,12 @@ public class Post {
 	}
 	public void setBlogId(String blogId) {
 		this.blogId = blogId;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
 	}
 	public String getAuthor() {
 		return author;

@@ -28,6 +28,7 @@ import net.sf.common.util.SyncCtrlUtils;
 import net.sf.common.util.ValueUtils;
 
 import org.apache.tools.ant.util.StringUtils;
+import org.dbist.annotation.Ignore;
 import org.dbist.dml.Dml;
 import org.dbist.dml.impl.DmlJdbc;
 import org.slf4j.Logger;
@@ -158,10 +159,11 @@ public class Table {
 	}
 	private static String getColumnName(Field field, Dml dml) {
 		// TODO String toColumnName(Field field)
+		Ignore ignoreAnn = field.getAnnotation(Ignore.class);
+		if (ignoreAnn != null)
+			return null;
 		org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
 		if (columnAnn != null) {
-			if (columnAnn.skip())
-				return null;
 			if (!ValueUtils.isEmpty(columnAnn.name()))
 				return columnAnn.name();
 		}

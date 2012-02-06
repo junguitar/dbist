@@ -1,21 +1,27 @@
 package org.dbist.example.blog.jdo;
 
+import javax.jdo.annotations.Column;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-@PersistenceCapable(table = "USER")
+@PersistenceCapable(table = "users")
 public class User {
 	@PrimaryKey
-	@Persistent(column = "USERNAME")
+	@Persistent
+	@Column(length = 100)
 	private String username;
-	@Persistent(column = "PASSWORD")
+	@Persistent(column = "pwd")
+	@Column(length = 100)
 	private String password;
-	@Persistent(column = "FIRST_NAME")
+	@Persistent(column = "first_name")
+	@Column(length = 100)
 	private String firstName;
-	@Persistent(column = "LAST_NAME")
+	@Persistent(column = "last_name")
+	@Column(length = 100)
 	private String lastName;
-	@Persistent(column = "EMAIL")
+	@Persistent
+	@Column(length = 100)
 	private String email;
 	public String getUsername() {
 		return username;

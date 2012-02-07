@@ -68,9 +68,30 @@ public interface Dml {
 	<T> T select(Class<T> clazz, Object condition) throws Exception;
 	<T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception;
 
+	/**
+	 * Select a data as the requiredType by the query and the paramMap<br>
+	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query
+	 * means HQL query. ...
+	 * 
+	 * @param query
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 	<T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
+	/**
+	 * Select a data as the requiredType by the query (SQL query) and the
+	 * paramMap
+	 * 
+	 * @param query
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 	<T> T selectForUpdateByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 

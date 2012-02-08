@@ -18,20 +18,32 @@
 	<aop:config>
 		<aop:pointcut id="serviceOperation"
 			expression="execution(* org.dbist.example.*Svc.*(..))" />
-		<aop:advisor advice-ref="transactionJdbcAdvice"
+		<aop:advisor advice-ref="jdbcTransactionAdvice"
+			pointcut-ref="serviceOperation" />
+		<aop:advisor advice-ref="hibernateTransactionAdvice"
 			pointcut-ref="serviceOperation" />
 	</aop:config>
 
-	<tx:annotation-driven transaction-manager="transactionJdbcManager" />
-	<tx:advice id="transactionJdbcAdvice" transaction-manager="transactionJdbcManager">
+	<tx:advice id="jdbcTransactionAdvice" transaction-manager="jdbcTransactionManager">
 		<tx:attributes>
-			<tx:method name="get*" read-only="true" />
-			<tx:method name="*" />
+			<tx:method name="get*" timeout="10" read-only="true" />
+			<tx:method name="*" timeout="10" />
 		</tx:attributes>
 	</tx:advice>
-	<bean id="transactionJdbcManager"
+	<bean id="jdbcTransactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<tx:advice id="hibernateTransactionAdvice"
+		transaction-manager="hibernateTransactionManager">
+		<tx:attributes>
+			<tx:method name="get*" timeout="10" read-only="true" />
+			<tx:method name="*" timeout="10" />
+		</tx:attributes>
+	</tx:advice>
+	<bean id="hibernateTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
@@ -54,16 +66,36 @@
 		</property>
 	</bean>
 
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="lobHandler">
+			<bean class="${lobHandler}" />
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+			</props>
+		</property>
+		<property name="mappingResources">
+			<list>
+				<value>org/dbist/example/blog/hibernate/hbm.xml</value>
+			</list>
+		</property>
+	</bean>
+
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="${dataSource.driverClassName}"></property>
-		<property name="url" value="${dataSource.url}"></property>
-		<property name="username" value="${dataSource.username}"></property>
-		<property name="password" value="${dataSource.password}"></property>
-		<property name="maxActive" value="${dataSource.maxActive}"></property>
-		<property name="minIdle" value="${dataSource.minIdle}"></property>
-		<property name="maxIdle" value="${dataSource.maxIdle}"></property>
-		<property name="maxWait" value="${dataSource.maxWait}"></property>
-		<property name="timeBetweenEvictionRunsMillis" value="${dataSource.timeBetweenEvictionRunsMillis}"></property>
+		<property name="driverClassName" value="${dataSource.driverClassName}" />
+		<property name="url" value="${dataSource.url}" />
+		<property name="username" value="${dataSource.username}" />
+		<property name="password" value="${dataSource.password}" />
+		<property name="maxActive" value="${dataSource.maxActive}" />
+		<property name="minIdle" value="${dataSource.minIdle}" />
+		<property name="maxIdle" value="${dataSource.maxIdle}" />
+		<property name="maxWait" value="${dataSource.maxWait}" />
 	</bean>
 
 </beans>

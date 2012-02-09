@@ -15,63 +15,32 @@
  */
 package org.dbist.dml;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.common.util.ValueUtils;
 
 import org.dbist.exception.DbistRuntimeException;
-import org.dbist.processor.Processor;
+import org.dbist.processor.Preprocessor;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Steve M. Jung
  * @since 2012. 1. 5. (version 0.0.1)
  */
 public abstract class AbstractDml implements Dml, InitializingBean {
-	private String dbType;
-	private String domain;
-	private List<String> domainList = new ArrayList<String>(2);
-	private Processor preprocessor;
+	private Preprocessor preprocessor;
 
 	@Override
-	public String getDbType() {
-		return dbType;
-	}
-	public void setDbType(String dbType) {
-		this.dbType = dbType == null ? null : dbType.toLowerCase();
-	}
-	@Override
-	public String getDomain() {
-		return domain;
-	}
-	public void setDomain(String domain) {
-		this.domain = domain;
-		if (ValueUtils.isEmpty(domain)) {
-			domainList.clear();
-			return;
-		}
-		for (String d : StringUtils.tokenizeToStringArray(domain, ","))
-			domainList.add(d);
-	}
-	public List<String> getDomainList() {
-		return domainList;
-	}
-
-	@Override
-	public Processor getPreprocessor() {
+	public Preprocessor getPreprocessor() {
 		return preprocessor;
 	}
-	public void setPreprocessor(Processor preprocessor) {
+	public void setPreprocessor(Preprocessor preprocessor) {
 		this.preprocessor = preprocessor;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		ValueUtils.assertNotEmpty("dbType", getDbType());
-		ValueUtils.assertNotEmpty("domains", getDomain());
 	}
 
 	protected <T> T select(List<T> list) {

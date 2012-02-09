@@ -15,6 +15,7 @@
 		<property name="applicationContextName" value="dbist-example-webapp" />
 	</bean>
 
+	<!-- AOP -->
 	<aop:config>
 		<aop:pointcut id="serviceOperation"
 			expression="execution(* org.dbist.example.*Svc.*(..))" />
@@ -24,6 +25,7 @@
 			pointcut-ref="serviceOperation" />
 	</aop:config>
 
+	<!-- Transaction -->
 	<tx:advice id="jdbcTransactionAdvice" transaction-manager="jdbcTransactionManager">
 		<tx:attributes>
 			<tx:method name="get*" timeout="10" read-only="true" />
@@ -46,11 +48,11 @@
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 
+	<!-- JDBC -->
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
-		<property name="dbType" value="dmlJdbc.dbType" />
 		<property name="domain" value="${dmlJdbc.domain}" />
 		<property name="preprocessor">
-			<bean class="org.dbist.processor.impl.VelocityProcessor" />
+			<bean class="org.dbist.processor.impl.VelocityPreprocessor" />
 		</property>
 		<property name="jdbcTemplate">
 			<bean class="org.springframework.jdbc.core.JdbcTemplate">
@@ -66,9 +68,10 @@
 		</property>
 	</bean>
 
+	<!-- Hibernate -->
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
-		<property name="dataSource" ref="dataSource"></property>
+		<property name="dataSource" ref="dataSource" />
 		<property name="lobHandler">
 			<bean class="${lobHandler}" />
 		</property>
@@ -87,6 +90,7 @@
 		</property>
 	</bean>
 
+	<!-- DataSource -->
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
 		<property name="driverClassName" value="${dataSource.driverClassName}" />
 		<property name="url" value="${dataSource.url}" />

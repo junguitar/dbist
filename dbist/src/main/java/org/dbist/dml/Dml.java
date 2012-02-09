@@ -18,7 +18,7 @@ package org.dbist.dml;
 import java.util.List;
 import java.util.Map;
 
-import org.dbist.processor.Processor;
+import org.dbist.processor.Preprocessor;
 
 /**
  * DML (Data Manipulation Languge) operator or DAO (Data Access Object)
@@ -28,12 +28,7 @@ import org.dbist.processor.Processor;
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public interface Dml {
-	public static final String DBTYPE_MYSQL = "mysql";
-	public static final String DBTYPE_ORACLE = "oracle";
-
-	String getDbType();
-	String getDomain();
-	Processor getPreprocessor();
+	Preprocessor getPreprocessor();
 
 	/**
 	 * Select a data from the database table mapped to T class by primary key
@@ -209,9 +204,30 @@ public interface Dml {
 	<T> List<T> selectList(Class<T> clazz, Object condition) throws Exception;
 	<T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception;
 
+	/**
+	 * Select some data as the requiredType by the query and the paramMap<br>
+	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query
+	 * means HQL query. ...
+	 * 
+	 * @param query
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 	<T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
+	/**
+	 * Select some data as the requiredType by the query (SQL query) and the
+	 * paramMap
+	 * 
+	 * @param query
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 	<T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 

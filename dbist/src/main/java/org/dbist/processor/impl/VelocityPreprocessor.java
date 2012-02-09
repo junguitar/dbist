@@ -20,13 +20,13 @@ import java.util.Map;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.dbist.processor.Processor;
+import org.dbist.processor.Preprocessor;
 
 /**
  * @author Steve M. Jung
  * @since 2012. 2. 5. (version 0.0.1)
  */
-public class VelocityProcessor implements Processor {
+public class VelocityPreprocessor implements Preprocessor {
 	VelocityEngine ve;
 
 	@Override

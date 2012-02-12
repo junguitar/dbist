@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.dbist.annotation.Table;
 
-@Table(name = "COMMENTS")
+@Table(name = "comments")
 public class Comment {
 	private String id;
 	private String postId;

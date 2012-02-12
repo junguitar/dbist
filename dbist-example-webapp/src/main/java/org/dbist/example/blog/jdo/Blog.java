@@ -7,7 +7,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-@PersistenceCapable(table = "BLOG")
+@PersistenceCapable
 public class Blog {
 	@PrimaryKey
 	@Persistent

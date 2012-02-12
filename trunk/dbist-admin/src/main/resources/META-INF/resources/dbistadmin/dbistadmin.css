@@ -1,0 +1,290 @@
+@CHARSET "UTF-8";
+
+* {
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial;
+	font-size: 10pt;
+}
+
+body {
+	background-color: #BFDBFF;
+}
+
+table {
+	width: 100%;
+	border-style: none;
+	border-collapse: collapse;
+}
+
+th {
+	border: solid 1px #6593CF;
+	background-color: #BFDBFF;
+	padding: 3px;
+}
+
+td {
+	border: solid 1px #6593CF;
+	padding: 2px;
+}
+
+a {
+	cursor: pointer;
+	text-decoration: none;
+}
+
+#wrap {
+	width: 100%;
+	margin: auto;
+	font-size: 10pt;
+	background-color: #E3EFFF;
+}
+
+#header {
+	display: block;
+}
+
+#logoTitle {
+	display: block;
+	padding: 3px;
+}
+
+#logoTitle a {
+	color: #4D6174;
+	font-size: 15pt;
+	font-weight: bold;
+	font-style: italic;
+	padding: 3px;
+	text-decoration: none;
+}
+
+#menu {
+	display: block;
+	background-color: #BFDBFF;
+	padding: 5px;
+	border: solid 1px #6593CF;
+	border-left: none;
+	border-right: none;
+}
+
+#menu a {
+	padding: 3px 5px;
+	text-decoration: none;
+	color: black;
+}
+
+#menu a:hover {
+	background-color: #FFE7A2;
+	border: solid 1px #FFBD69;
+	padding: 2px 4px;
+}
+
+.menuSelected {
+	font-weight: bold;
+	background-color: #A0C6E8;
+}
+
+#container {
+	clear: all;
+	display: block;
+	overflow: hidden;
+	background-color: #BFDBFF;
+	padding: 0px;
+	min-width: 1024px;
+}
+
+#submenu {
+	float: left;
+	background-color: #E3EFFF;
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	display: block;
+}
+
+#submenu td {
+	border: 0px;
+	padding: 1px 8px 1px 8px;
+	height: 24px;
+}
+
+#submenu a {
+	text-decoration: none;
+	padding: 2px;
+	margin: 0px;
+	color: black;
+}
+
+#dmlSubmenuPrefix {
+	width: "300px";
+}
+
+.submenuSelected {
+	font-weight: bold;
+	background-color: #E5E5E5;
+}
+
+.scopeTitle {
+	font-weight: bold;
+	display: block;
+	background-color: #E3EFFF;
+	border-bottom: solid 1px #6593CF;
+	padding: 3px;
+	overflow: hidden;
+	text-transform: capitalize;
+}
+
+.scopeTitleButton {
+	float: right;
+}
+
+#content {
+	float: left;
+	width: 1000px;
+	padding: 0px 0px 3px 3px
+}
+
+.scope {
+	margin: 3px 3px 0 0;
+	padding: 5px;
+	background-color: white;
+}
+
+.loginScope {
+	width: 400px;
+	border: solid 1px #6593CF;
+}
+
+.filterScope {
+	width: 100%;
+	border: solid 1px #6593CF;
+}
+
+.listScope {
+	width: 100%;
+	border: solid 1px #6593CF;
+}
+
+.tableWrapper {
+	margin: 2px 1px 1px 2px;
+}
+
+.listHeader {
+	height: 24px;
+}
+
+.listRow {
+	height: 22px;
+}
+
+.listRowSelected {
+	height: 22px;
+	font-weight: bold;
+	background-color: #E5E5E5;
+}
+
+.titleField {
+	text-align: left;
+	cursor: pointer;
+}
+
+.titleFieldHeader {
+	text-align: left;
+}
+
+.shortField {
+	width: 1px;
+	text-align: center;
+}
+
+.shortFieldHeader {
+	width: 1px;
+	text-align: center;
+}
+
+.label {
+	width: 150px;
+	background-color: #BFDBFF;
+	font-weight: bold;
+}
+
+.value {
+	padding: 1px 2px;
+	text-align: left;
+}
+
+.valueRef {
+	color: blue;
+	margin-right: 10px;
+}
+
+.valueRefButton {
+	float: right;
+	width: 80px;
+}
+
+.button {
+	width: 80px;
+}
+
+.textInput {
+	width: 99%;
+}
+
+.select {
+	width: 99%;
+}
+
+.textInputLong {
+	width: 99%;
+	height: 30px;
+}
+
+.textArea {
+	width: 99%;
+	height: 100px;
+}
+
+.dataScope {
+	width: 100%;
+	border: solid 1px #6593CF;
+}
+
+#dataName {
+	float: left;
+}
+
+.pagination {
+	height: 20px;
+	text-align: left;
+	display: block;
+}
+
+.totalSize {
+	float: right;
+}
+
+#content li {
+	margin-left: 50px;
+}
+
+#content li.submenu li {
+	color: #585858;
+	font-size: 8pt;
+	display: none;
+}
+
+#content li.submenu:hover li {
+	display: block;
+}
+
+#footer {
+	clear: both;
+	background-color: #BFDBFF;
+	padding: 10px;
+	margin-top: 2px;
+	border: solid 1px #6593CF;
+	border-left: none;
+	border-right: none;
+	border-bottom: none;
+}

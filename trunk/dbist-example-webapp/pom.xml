@@ -67,11 +67,6 @@
 			<version>1.6.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>2.2.6</version>
-		</dependency>
-		<dependency>
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
@@ -91,11 +86,11 @@
 			<artifactId>hibernate-annotations</artifactId>
 			<version>3.5.6-Final</version>
 		</dependency>
-        <dependency>
-            <groupId>javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.12.1.GA</version>
-        </dependency>
+		<dependency>
+			<groupId>javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.12.1.GA</version>
+		</dependency>
 		<dependency>
 			<groupId>javax.jdo</groupId>
 			<artifactId>jdo2-api</artifactId>
@@ -103,7 +98,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
-			<artifactId>dbist</artifactId>
+			<artifactId>dbist-admin</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

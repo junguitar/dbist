@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <%@page import="net.sf.common.util.ReflectionUtils"%>
-<%@page import="org.springframework.core.io.Resource"%>
-<%@page import="java.io.FileNotFoundException"%>
 <%@page import="org.springframework.util.StringUtils"%>
-<%@page import="java.io.File"%>
-<%@page import="org.springframework.util.ResourceUtils"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.List"%>
 <%@page import="net.sf.common.util.ValueUtils"%>

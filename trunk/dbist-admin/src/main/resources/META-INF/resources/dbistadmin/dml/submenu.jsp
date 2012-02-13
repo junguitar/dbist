@@ -17,20 +17,19 @@
 		List<String> optionList = new ArrayList<String>();
 	}
 
-	String prefix = ValueUtils.toNotNull(request.getParameter("prefix")).trim();
+	String prefix = StringUtils.replace(ValueUtils.toNotNull(request.getParameter("prefix")).trim(), "/", ".");
 	List<Select> selectList = new ArrayList<Select>();
 	if (!ValueUtils.isEmpty(prefix) && !prefix.contains("*")) {
 		String[] paths = request.getParameterValues("path");
 		int pathSize = ValueUtils.isEmpty(paths) ? 0 : paths.length;
 		int i = 0;
-		String location = "classpath*:" + StringUtils.replace(prefix, ".", "/")
-				+ (prefix.endsWith("/") || prefix.endsWith(".") ? "**" : "/**");
+		String location = "classpath*:" + StringUtils.replace(prefix, ".", "/") + (prefix.endsWith(".") ? "**" : "/**");
 		List<String> nameList = new ArrayList<String>();
 		{
-			String prefixRemove = StringUtils.replace(prefix, "/", ".") + (prefix.endsWith(".") ? "" : ".");
+			String prefixReplace = prefix + (prefix.endsWith(".") ? "" : ".");
 			List<String> list = ReflectionUtils.getClassNameList(location, null);
 			for (String className : list)
-				nameList.add(className.replaceFirst(prefixRemove, ""));
+				nameList.add(className.replaceFirst(prefixReplace, ""));
 		}
 		while (!ValueUtils.isEmpty(nameList)) {
 			Select select = new Select();

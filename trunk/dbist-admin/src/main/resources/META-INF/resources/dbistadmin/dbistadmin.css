@@ -124,7 +124,19 @@ a {
 	background-color: #E5E5E5;
 }
 
-.scopeTitle {
+#content {
+	float: left;
+	width: 1000px;
+	padding: 0px 0px 3px 3px
+}
+
+.scope {
+	margin: 3px 3px 0px 0px;
+	padding: 5px;
+	background-color: white;
+}
+
+.titleScoope {
 	font-weight: bold;
 	display: block;
 	background-color: #E3EFFF;
@@ -134,20 +146,8 @@ a {
 	text-transform: capitalize;
 }
 
-.scopeTitleButton {
+.titleButtonScope {
 	float: right;
-}
-
-#content {
-	float: left;
-	width: 1000px;
-	padding: 0px 0px 3px 3px
-}
-
-.scope {
-	margin: 3px 3px 0 0;
-	padding: 5px;
-	background-color: white;
 }
 
 .loginScope {
@@ -156,12 +156,17 @@ a {
 }
 
 .filterScope {
-	width: 100%;
+	width: 975px;
 	border: solid 1px #6593CF;
 }
 
 .listScope {
-	width: 100%;
+	width: 975px;
+	border: solid 1px #6593CF;
+}
+
+.dataScope {
+	width: 975px;
 	border: solid 1px #6593CF;
 }
 
@@ -243,11 +248,6 @@ a {
 .textArea {
 	width: 99%;
 	height: 100px;
-}
-
-.dataScope {
-	width: 100%;
-	border: solid 1px #6593CF;
 }
 
 #dataName {

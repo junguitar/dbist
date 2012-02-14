@@ -12,7 +12,7 @@
 	<context:annotation-config />
 
 	<bean class="net.sf.common.util.BeanUtils">
-		<property name="applicationContextName" value="dbist-example-webapp" />
+		<property name="applicationContextName" value="dbist-example" />
 	</bean>
 
 	<!-- AOP -->
@@ -69,6 +69,11 @@
 	</bean>
 
 	<!-- Hibernate -->
+	<bean id="dmlHibernate" class="org.dbist.dml.impl.DmlHibernate">
+		<property name="preprocessor">
+			<bean class="org.dbist.processor.impl.VelocityPreprocessor" />
+		</property>
+	</bean>
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />

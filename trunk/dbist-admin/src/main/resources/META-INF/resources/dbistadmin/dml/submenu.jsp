@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.dml.Dml"%>
+<%@page import="net.sf.common.util.BeanUtils"%>
 <%@page import="net.sf.common.util.ReflectionUtils"%>
 <%@page import="org.springframework.util.StringUtils"%>
 <%@page import="java.util.ArrayList"%>
@@ -11,6 +13,11 @@
 	response.setDateHeader("Expires", 0);
 	response.setHeader("Pragma", "no-cache");
 	response.setHeader("Cache-Control", request.getProtocol().equals("HTTP/1.1") ? "no-cache" : "no-store");
+
+	String contextName = StringUtils.replace(ValueUtils.toString(request.getContextPath(), "dbist"), "/", "");
+
+	String dml = request.getParameter("dml");
+	String[] dmls = BeanUtils.getInstance(contextName).getNames(Dml.class);
 
 	class Select {
 		String value;
@@ -57,12 +64,23 @@
 	}
 %>
 <form name="submenuForm">
+	<input name="menu" type="hidden"
+		value="<%=ValueUtils.toNotNull(request.getParameter("menu"))%>" />
 	<table>
 		<tr>
-			<td><input name="menu" type="hidden"
-				value="<%=ValueUtils.toNotNull(request.getParameter("menu"))%>" />
-				class: <input id="dmlSubmenuPrefix" name="prefix" type="text"
-				value="<%=prefix%>" /> <%
+			<td>dml: <select name="dml" onchange="submit()">
+					<option value=""></option>
+					<%
+						int dmlSize = dmls.length;
+						for (String d : dmls) {
+					%>
+					<option value="<%=d%>"
+						<%=dmlSize == 1 || d.equals(dml) ? "selected=\"selected\"" : ""%>><%=d%></option>
+					<%
+						}
+					%>
+			</select>&nbsp;&nbsp;&nbsp;&nbsp; class: <input id="dmlSubmenuPrefix"
+				name="prefix" type="text" value="<%=prefix%>" /> <%
  	for (Select select : selectList) {
  %> <select name="path" onchange="submit()">
 					<option value=""></option>

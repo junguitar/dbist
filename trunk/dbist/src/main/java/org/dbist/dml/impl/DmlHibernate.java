@@ -20,12 +20,19 @@ import java.util.Map;
 
 import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
+import org.dbist.metadata.Table;
 
 /**
  * @author Steve M. Jung
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public class DmlHibernate extends AbstractDml implements Dml {
+
+	@Override
+	public Table getTable(Object obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public <T> T select(T data) throws Exception {

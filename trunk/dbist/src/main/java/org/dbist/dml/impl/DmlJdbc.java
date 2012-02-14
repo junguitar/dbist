@@ -280,6 +280,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private static Map<Class<?>, Table> cache = new ConcurrentHashMap<Class<?>, Table>();
+	@Override
 	public Table getTable(Object obj) {
 		final Class<?> clazz = obj instanceof Class ? (Class<?>) obj : obj.getClass();
 
@@ -315,7 +316,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 						continue;
 					Column column = table.addColumn(new Column());
 					column.setName(cname);
-					table.addField(field);
+					column.setField(field);
 				}
 				return table;
 			}

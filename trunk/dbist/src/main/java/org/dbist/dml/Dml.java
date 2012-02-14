@@ -18,6 +18,7 @@ package org.dbist.dml;
 import java.util.List;
 import java.util.Map;
 
+import org.dbist.metadata.Table;
 import org.dbist.processor.Preprocessor;
 
 /**
@@ -28,6 +29,7 @@ import org.dbist.processor.Preprocessor;
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public interface Dml {
+	Table getTable(Object obj);
 	Preprocessor getPreprocessor();
 
 	/**

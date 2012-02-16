@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.slf4j.LoggerFactory"%>
+<%@page import="org.slf4j.Logger"%>
 <%@page import="java.util.HashSet"%>
 <%@page import="java.util.Set"%>
 <%@page import="org.dbist.metadata.Column"%>
@@ -17,12 +19,13 @@
 	response.setHeader("Cache-Control", request.getProtocol().equals("HTTP/1.1") ? "no-cache" : "no-store");
 
 	String contextName = StringUtils.replace(ValueUtils.toString(request.getContextPath(), "dbist"), "/", "");
+	BeanUtils beanUtils = BeanUtils.getInstance(contextName);
 
 	Dml dml = null;
 	Class<?> clazz = null;
 	String dmlName = ValueUtils.toNull(request.getParameter("dml"));
 	if (dmlName != null) {
-		dml = BeanUtils.getInstance(contextName).get(dmlName, Dml.class);
+		dml = beanUtils.get(dmlName, Dml.class);
 		String prefix = StringUtils.replace(ValueUtils.toNotNull(request.getParameter("prefix")).trim(), "/", ".");
 		if (!ValueUtils.isEmpty(prefix)) {
 			StringBuffer buf = new StringBuffer(prefix);
@@ -41,10 +44,18 @@
 		}
 	}
 
-	Table table = dml == null || clazz == null ? null : dml.getTable(clazz);
+	Exception ex = null;
+	Table table = null;
+	try {
+		table = dml == null || clazz == null ? null : dml.getTable(clazz);
+	} catch (Exception e) {
+		ex = e;
+		//Logger logger = LoggerFactory.getLogger(this.getClass());
+		//logger.error(e.getMessage(), e);
+	}
 	if (table == null) {
 %>
-<div class="scope">no content</div>
+<div class="scope"><%=ex == null ? "no content" : ex.getMessage()%></div>
 <%
 	} else {
 %>

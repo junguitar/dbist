@@ -29,7 +29,8 @@ public class Column {
 
 	private String name;
 	private Field field;
-	String type;
+	private String type;
+	private boolean multiLine;
 	public String getName() {
 		return name;
 	}
@@ -47,6 +48,12 @@ public class Column {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+	public boolean isMultiLine() {
+		return multiLine;
+	}
+	public void setMultiLine(boolean multiLine) {
+		this.multiLine = multiLine;
 	}
 	public boolean isPrimaryKey() {
 		return TYPE_PRIMARYKEY.equals(type);

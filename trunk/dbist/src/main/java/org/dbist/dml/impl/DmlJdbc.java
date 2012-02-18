@@ -17,6 +17,8 @@ package org.dbist.dml.impl;
 
 import java.lang.reflect.Field;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,11 +37,13 @@ import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
 import org.dbist.dml.Query;
+import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
 import org.dbist.metadata.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.util.StringUtils;
 
@@ -307,23 +311,21 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					if (!ValueUtils.isEmpty(tableAnn.name()))
 						table.setName(tableAnn.name().toLowerCase());
 				}
-				populateDomainAndName(table, clazz);
+				checkAndPopulateDomainAndName(table, clazz);
+
+				// PkColumns
 
 				// Columns
-				for (Field field : ReflectionUtils.getFieldList(clazz, false)) {
-					String cname = getColumnName(field);
-					if (cname == null)
-						continue;
-					Column column = table.addColumn(new Column());
-					column.setName(cname);
-					column.setField(field);
-				}
+				for (Field field : ReflectionUtils.getFieldList(clazz, false))
+					addColumn(table, field);
+
 				return table;
 			}
 		});
 	}
-	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_name) = ? and lcase(table_schema) = '${domain}'";
-	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(table_name) = ? and lower(owner) = '${domain}'";
+
+	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
+	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
 	private static final Map<String, String> QUERY_NUMBEROFTABLE_MAP;
 	static {
 		QUERY_NUMBEROFTABLE_MAP = new HashMap<String, String>();
@@ -331,64 +333,154 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_ORACLE, QUERY_NUMBEROFTABLE_ORACLE);
 	}
 
-	private static final String MSG_TABLENOTFOUND = "Couldn't find table of class: ${class} from these dml.domain: ${domain}. The tableNameCandidate(s) was(were) ${tableNameCandidate}.";
-	private <T> void populateDomainAndName(Table table, Class<T> clazz) {
+	// TODO QUERY_PKCOLUMNS_MYSQL
+	private static final String QUERY_PKCOLUMNS_MYSQL = "";
+	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
+			+ " where cons.constraint_name = conscol.constraint_name and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P'";
+	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;
+	static {
+		QUERY_PKCOLUMNS_MAP = new HashMap<String, String>();
+		QUERY_PKCOLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_PKCOLUMNS_MYSQL);
+		QUERY_PKCOLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_PKCOLUMNS_ORACLE);
+	}
+
+	private static final String MSG_QUERYNOTFOUND = "Couldn't find ${queryName} query of dbType: ${dbType}. this type maybe unsupported yet.";
+
+	//	private static final
+	private <T> Table checkAndPopulateDomainAndName(Table table, Class<T> clazz) {
+		// Check table existence and populate
 		String query = QUERY_NUMBEROFTABLE_MAP.get(dbType);
 		if (query == null)
-			throw new IllegalArgumentException("Couldn't find table query of dml.dbType: " + dbType + ". this type maybe unsupported yet.");
+			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
+					ValueUtils.toMap("queryName: number of table", "dbType:" + dbType)));
 
-		boolean domainEmpty = ValueUtils.isEmpty(table.getDomain());
-		boolean nameEmpty = ValueUtils.isEmpty(table.getName());
+		String simpleName = clazz.getSimpleName();
 
-		if (nameEmpty) {
-			String tableNameCandidate = ValueUtils.toDelimiterCase(clazz.getSimpleName(), '_').toLowerCase();
-			String tableNameCandidate1 = clazz.getSimpleName().toLowerCase();
-			if (domainEmpty) {
-				for (String domain : domainList) {
-					String sql = StringUtils.replace(query, "${domain}", domain.toLowerCase());
-					if (jdbcTemplate.queryForInt(sql, tableNameCandidate) > 0) {
-						table.setDomain(domain);
-						table.setName(tableNameCandidate);
-						return;
-					} else if (jdbcTemplate.queryForInt(sql, tableNameCandidate1) > 0) {
-						table.setDomain(domain);
-						table.setName(tableNameCandidate1);
-						return;
-					}
-				}
-				String errMsg = ValueUtils.populate(
-						MSG_TABLENOTFOUND,
-						ValueUtils.toMap("class:" + clazz.getSimpleName(), "domain:" + domain, "tableNameCandidate:" + tableNameCandidate + ", "
-								+ tableNameCandidate1));
-				throw new IllegalArgumentException(errMsg);
-			} else {
-				String sql = StringUtils.replace(query, "${domain}", table.getDomain());
-				if (jdbcTemplate.queryForInt(sql, tableNameCandidate1) > 0) {
-					table.setDomain(table.getDomain());
-					table.setName(tableNameCandidate1);
-					return;
+		List<String> domainNameList = ValueUtils.isEmpty(table.getDomain()) ? this.domainList : ValueUtils.toList(table.getDomain());
+		List<String> tableNameList = ValueUtils.isEmpty(table.getName()) ? ValueUtils.toList(ValueUtils.toDelimited(simpleName, '_', false),
+				ValueUtils.toDelimited(simpleName, '_', true), simpleName.toLowerCase()) : ValueUtils.toList(table.getName());
+
+		boolean populated = false;
+		for (String domainName : domainNameList) {
+			domainName = domainName.toLowerCase();
+			String sql = StringUtils.replace(query, "${domain}", domainName);
+			for (String tableName : tableNameList) {
+				if (jdbcTemplate.queryForInt(sql, tableName) > 0) {
+					table.setDomain(domainName);
+					table.setName(tableName);
+					populated = true;
+					break;
 				}
 			}
-		} else if (domainEmpty) {
-
-		} else {
-			String sql = StringUtils.replace(query, "${domain}", table.getDomain());
-			if (jdbcTemplate.queryForInt(sql, table.getName()) > 0)
-				return;
 		}
+
+		if (!populated) {
+			String errMsg = "Couldn't find table[${table}] of class[${class}] from this(these) domain(s)[${domain}]";
+			throw new IllegalArgumentException(ValueUtils.populate(errMsg,
+					ValueUtils.toMap("class:" + clazz.getSimpleName(), "domain:" + mapOr(domainNameList), "table:" + mapOr(tableNameList))));
+		}
+
+		// populate PK name
+		query = QUERY_PKCOLUMNS_MAP.get(dbType);
+		if (query == null)
+			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND, ValueUtils.toMap("queryName: primary key", "dbType:" + dbType)));
+		query = StringUtils.replace(query, "${domain}", table.getDomain());
+		table.setPkColumnName(jdbcTemplate.queryForList(query, String.class, table.getName()));
+
+		return table;
 	}
-	private String getColumnName(Field field) {
-		// TODO String toColumnName(Field field)
+
+	// TODO QUERY_COLUMNS_MYSQL
+	private static final String QUERY_COLUMNS_MYSQL = "";
+	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, data_type dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	private static final Map<String, String> QUERY_COLUMNS_MAP;
+	static {
+		QUERY_COLUMNS_MAP = new HashMap<String, String>();
+		QUERY_COLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_COLUMNS_MYSQL);
+		QUERY_COLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNS_ORACLE);
+	}
+	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
+	private void addColumn(Table table, Field field) {
 		Ignore ignoreAnn = field.getAnnotation(Ignore.class);
 		if (ignoreAnn != null)
-			return null;
+			return;
+
+		String query = QUERY_COLUMNS_MAP.get(dbType);
+		if (query == null)
+			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
+					ValueUtils.toMap("queryName: table columns", "dbType:" + dbType)));
+		query = StringUtils.replace(query, "${domain}", table.getDomain());
+
+		String tableNamae = table.getName();
+
+		Column column = table.addColumn(new Column());
+		column.setField(field);
 		org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
+		TabColumn tabColumn = null;
+		RowMapper<TabColumn> rowMapper = new RowMapper<TabColumn>() {
+			@Override
+			public TabColumn mapRow(ResultSet rs, int rowNum) throws SQLException {
+				TabColumn tabColumn = new TabColumn();
+				tabColumn.setName(rs.getString("name"));
+				tabColumn.setDataType(rs.getString("dataType"));
+				return tabColumn;
+			}
+		};
 		if (columnAnn != null) {
-			if (!ValueUtils.isEmpty(columnAnn.name()))
-				return columnAnn.name();
+			if (!ValueUtils.isEmpty(columnAnn.name())) {
+				tabColumn = jdbcTemplate.queryForObject(query, rowMapper, tableNamae, columnAnn.name());
+				if (tabColumn == null)
+					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
+							ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableNamae)));
+			}
+			column.setType(ValueUtils.toNull(columnAnn.type().value()));
+		}
+		if (tabColumn == null) {
+			String columnName = ValueUtils.toDelimited(field.getName(), '_').toLowerCase();
+			String columnName1 = field.getName().toLowerCase();
+			tabColumn = jdbcTemplate.queryForObject(query, rowMapper, tableNamae, columnName);
+			if (tabColumn == null) {
+				if (columnName.equals(columnName1))
+					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
+							ValueUtils.toMap("column:" + columnName, "table:" + table.getDomain() + "." + tableNamae)));
+				tabColumn = jdbcTemplate.queryForObject(query, rowMapper, tableNamae, columnName1);
+				if (tabColumn == null)
+					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
+							ValueUtils.toMap("column:" + columnName + " or " + columnName1, "table:" + table.getDomain() + "." + tableNamae)));
+			}
 		}
 
-		return field.getName();
+		column.setName(tabColumn.getName());
+		column.setPrimaryKey(table.getPkColumnName().contains(tabColumn.getName()));
+		column.setDataType(tabColumn.getDataType().toLowerCase());
+	}
+
+	class TabColumn {
+		private String name;
+		private String dataType;
+		public String getName() {
+			return name;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}
+		public String getDataType() {
+			return dataType;
+		}
+		public void setDataType(String type) {
+			this.dataType = type;
+		}
+	}
+
+	private static String mapOr(List<String> values) {
+		StringBuffer buf = new StringBuffer();
+		int i = 0;
+		for (String value : values) {
+			buf.append(i == 0 ? "" : i == values.size() - 1 ? " or " : ", ");
+			buf.append(value);
+			i++;
+		}
+		return buf.toString();
 	}
 
 }

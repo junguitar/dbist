@@ -3,6 +3,10 @@
 	<name>dbist-example-webapp</name>
 	<comment></comment>
 	<projects>
+		<project>common-util</project>
+		<project>dbist</project>
+		<project>dbist-admin-web</project>
+		<project>dbist-admin</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

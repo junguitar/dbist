@@ -2,12 +2,19 @@ package org.dbist.example.blog.hibernate;
 
 import java.util.Date;
 
+import org.dbist.annotation.Column;
+import org.dbist.annotation.ColumnType;
+
 public class Blog {
 	private String id;
 	private String name;
+	@Column(type = ColumnType.TEXT)
 	private String description;
+	@Column(type = ColumnType.LISTED)
 	private String owner;
+	@Column(type = ColumnType.LISTED)
 	private Date createdAt;
+	@Column(type = ColumnType.LISTED)
 	private Date updatedAt;
 	public String getId() {
 		return id;

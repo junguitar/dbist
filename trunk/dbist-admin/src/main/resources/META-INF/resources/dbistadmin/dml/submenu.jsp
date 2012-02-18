@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.admin.ParameterUtils"%>
 <%@page import="org.dbist.dml.Dml"%>
 <%@page import="net.sf.common.util.BeanUtils"%>
 <%@page import="net.sf.common.util.ReflectionUtils"%>
@@ -24,66 +25,66 @@
 	BeanUtils beanUtils = BeanUtils.getInstance(contextName);
 
 	// DML bean to use
-	String dml = request.getParameter("dml");
+	String dml = ParameterUtils.get(request, "dml");
 	// DML beans usable
 	String[] dmls = beanUtils.getNames(Dml.class);
 
 	// prefix of data model class
-	String prefix = StringUtils.replace(ValueUtils.toNotNull(request.getParameter("prefix")).trim(), "/", ".");
+	String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prefix")).trim(), "/", ".");
 	List<Select> selectList = new ArrayList<Select>();
 	if (!ValueUtils.isEmpty(prefix) && !prefix.contains("*")) {
-		String[] paths = request.getParameterValues("path");
+		String[] paths = ParameterUtils.getValues(request, "path");
 
 		int pathSize = ValueUtils.isEmpty(paths) ? 0 : paths.length;
 		int i = 0;
 		// prefix removed className list
-		List<String> classNameList;
+		List<String> classNameList = null;
 		{
-			String prefixReplace = prefix + (prefix.endsWith(".") ? "" : ".");
-			String prevPrefix = StringUtils.replace(ValueUtils.toNotNull(request.getParameter("prevPrefix")).trim(), "/", ".");
-			if (prefix.equals(prevPrefix)) {
-				classNameList = (List<String>) request.getSession().getAttribute("dml.submenu.classNameList");
-			} else {
-				classNameList = new ArrayList<String>();
-				String location = "classpath*:" + StringUtils.replace(prefix, ".", "/") + (prefix.endsWith(".") ? "**" : "/**");
-				List<String> list = ReflectionUtils.getClassNameList(location, null);
-				StringBuffer buf = new StringBuffer();
-				for (String className : list) {
-					String name = className.replaceFirst(prefixReplace, "");
-					classNameList.add(name);
-					buf.append(buf.length() == 0 ? "" : ",").append(name);
-				}
-				request.getSession().setAttribute("dml.submenu.classNameList", classNameList);
-			}
+	String prefixReplace = prefix + (prefix.endsWith(".") ? "" : ".");
+	String prevPrefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prevPrefix")).trim(), "/", ".");
+	if (prefix.equals(prevPrefix))
+		classNameList = (List<String>) request.getSession().getAttribute("dml.submenu.classNameList");
+	if (classNameList == null) {
+		classNameList = new ArrayList<String>();
+		String location = "classpath*:" + StringUtils.replace(prefix, ".", "/") + (prefix.endsWith(".") ? "**" : "/**");
+		List<String> list = ReflectionUtils.getClassNameList(location, null);
+		StringBuffer buf = new StringBuffer();
+		for (String className : list) {
+	String name = className.replaceFirst(prefixReplace, "");
+	classNameList.add(name);
+	buf.append(buf.length() == 0 ? "" : ",").append(name);
+		}
+		request.getSession().setAttribute("dml.submenu.classNameList", classNameList);
+	}
 		}
 		while (!ValueUtils.isEmpty(classNameList)) {
-			Select select = new Select();
-			selectList.add(select);
-			List<String> nextNameList = new ArrayList<String>();
-			String path = pathSize > i ? paths[i++] : null;
-			String pathDot = path + ".";
-			for (String className : classNameList) {
-				if (className.contains(".")) {
-					String name = className.substring(0, className.indexOf("."));
-					if (!select.options.contains(name))
-						select.options.add(name);
-					if (className.startsWith(pathDot)) {
-						select.value = path;
-						nextNameList.add(className.substring(className.indexOf(".") + 1));
-					}
-				} else {
-					select.options.add(className);
-					if (className.equals(path))
-						select.value = path;
-				}
-			}
-			classNameList = nextNameList;
+	Select select = new Select();
+	selectList.add(select);
+	List<String> nextNameList = new ArrayList<String>();
+	String path = pathSize > i ? paths[i++] : null;
+	String pathDot = path + ".";
+	for (String className : classNameList) {
+		if (className.contains(".")) {
+	String name = className.substring(0, className.indexOf("."));
+	if (!select.options.contains(name))
+		select.options.add(name);
+	if (className.startsWith(pathDot)) {
+		select.value = path;
+		nextNameList.add(className.substring(className.indexOf(".") + 1));
+	}
+		} else {
+	select.options.add(className);
+	if (className.equals(path))
+		select.value = path;
+		}
+	}
+	classNameList = nextNameList;
 		}
 	}
 %>
 <form name="submenuForm">
 	<input name="menu" type="hidden"
-		value="<%=ValueUtils.toNotNull(request.getParameter("menu"))%>" /> <input
+		value="<%=ValueUtils.toNotNull(ParameterUtils.get(request, "menu"))%>" /> <input
 		name="prevPrefix" type="hidden" value="<%=prefix%>" />
 	<table>
 		<tr>

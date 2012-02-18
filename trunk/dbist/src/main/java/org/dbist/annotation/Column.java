@@ -34,5 +34,5 @@ public @interface Column {
 	 * 2. the name of the field
 	 */
 	String name() default "";
-	boolean multiLine() default false;
+	ColumnType type() default ColumnType.EMPTY;
 }

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.admin.ParameterUtils"%>
 <%@page import="org.slf4j.LoggerFactory"%>
 <%@page import="org.slf4j.Logger"%>
 <%@page import="java.util.HashSet"%>
@@ -23,13 +24,13 @@
 
 	Dml dml = null;
 	Class<?> clazz = null;
-	String dmlName = ValueUtils.toNull(request.getParameter("dml"));
+	String dmlName = ValueUtils.toNull(ParameterUtils.get(request, "dml"));
 	if (dmlName != null) {
 		dml = beanUtils.get(dmlName, Dml.class);
-		String prefix = StringUtils.replace(ValueUtils.toNotNull(request.getParameter("prefix")).trim(), "/", ".");
+		String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prefix")).trim(), "/", ".");
 		if (!ValueUtils.isEmpty(prefix)) {
 			StringBuffer buf = new StringBuffer(prefix);
-			String[] paths = request.getParameterValues("path");
+			String[] paths = ParameterUtils.getValues(request, "path");
 			if (!ValueUtils.isEmpty(paths)) {
 				for (String path : paths) {
 					if (ValueUtils.isEmpty(path))
@@ -39,7 +40,7 @@
 			}
 			try {
 				clazz = ClassUtils.forName(buf.toString(), null);
-			} catch (ClassNotFoundException e) {
+			} catch (Exception e) {
 			}
 		}
 	}
@@ -50,12 +51,12 @@
 		table = dml == null || clazz == null ? null : dml.getTable(clazz);
 	} catch (Exception e) {
 		ex = e;
-		//Logger logger = LoggerFactory.getLogger(this.getClass());
-		//logger.error(e.getMessage(), e);
+		Logger logger = LoggerFactory.getLogger(this.getClass());
+		logger.error(e.getMessage(), e);
 	}
 	if (table == null) {
 %>
-<div class="scope"><%=ex == null ? "no content" : ex.getMessage()%></div>
+<div class="scope<%=ex == null ? "" : " errorScope"%>"><%=ex == null ? "no content" : "error message: " + ex.getMessage()%></div>
 <%
 	} else {
 %>
@@ -75,104 +76,112 @@
 					type="button" value="Clear" class="button" />
 			</div>
 		</div>
-		<table>
-			<thead>
-				<tr>
-					<th>field (column)</th>
-					<th>value</th>
-				</tr>
-			</thead>
-			<tbody>
-				<%
-					for (String pkColumnName : table.getPkColumnName()) {
-				%>
-				<tr>
-					<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>)
-						- PK</td>
-					<td class="value"></td>
-				</tr>
-				<%
-					}
-				%>
-				<%
-					for (Column column : table.getColumn()) {
-							if (table.isPkColmnName(column.getName()))
-								continue;
-				%>
-				<tr>
-					<td class="label"><%=column.getField().getName()%> (<%=column.getName()%>)</td>
-					<td class="value"></td>
-				</tr>
-				<%
-					}
-				%>
-			</tbody>
-		</table>
+		<form>
+			<table>
+				<thead>
+					<tr>
+						<th>field (column)</th>
+						<th>value</th>
+					</tr>
+				</thead>
+				<tbody>
+					<%
+						for (String pkColumnName : table.getPkColumnName()) {
+					%>
+					<tr>
+						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>)
+							- PK</td>
+						<td class="value"><input
+							name="<%=table.getColumn(pkColumnName).getField().getName()%>"
+							class="textInput" /></td>
+					</tr>
+					<%
+						}
+					%>
+					<%
+						for (Column column : table.getColumn()) {
+								if (table.isPkColmnName(column.getName()))
+									continue;
+					%>
+					<tr>
+						<td class="label"><%=column.getField().getName()%> (<%=column.getName()%>)</td>
+						<td class="value">
+							<%
+								if (column.isText()) {
+							%><textarea name="<%=column.getField().getName()%>"
+								class="textArea"></textarea> <%
+ 	} else {
+ %><input name="<%=column.getField().getName()%>" class="textInput" />
+							<%
+								}
+							%>
+						</td>
+					</tr>
+					<%
+						}
+					%>
+				</tbody>
+			</table>
+		</form>
 	</div>
 
 	<div class="scope listScope">
-		<!--  -->
-		<div class="titleScope">
-			<%=clazz.getSimpleName()%>
-			(<%=table.getName()%>) List
-			<div class="titleButtonScope">
-				<input type="button" value="New" class="button" /> <input
-					type="button" value="Delete" class="button" />
+		<form>
+			<!--  -->
+			<div class="titleScope">
+				<%=clazz.getSimpleName()%>
+				(<%=table.getName()%>) List
+				<div class="titleButtonScope">
+					<input type="button" value="Reload" class="button" /> <input
+						type="button" value="Delete" class="button" />
+				</div>
 			</div>
-		</div>
-		<%
-			boolean created = table.getCreatedColumnName() != null;
-				boolean modified = table.getModifiedColumnName() != null;
-		%>
-		<table>
-			<thead>
-				<tr>
-					<th class="shortFieldHeader">no</th>
-					<th class="shortFieldHeader">!</th>
-					<th class="titleFieldHeader"><%=table.toFieldName(table.getTitleColumnName())%>
-						(<%=table.getTitleColumnName()%>)</th>
-					<%
-						if (created) {
-					%>
-					<th class="shortFieldHeader"><%=table.toFieldName(table.getCreatedColumnName())%>
-						(<%=table.getCreatedColumnName()%>)</th>
-					<%
-						}
-					%>
-					<%
-						if (modified) {
-					%>
-					<th class="shortFieldHeader"><%=table.toFieldName(table.getModifiedColumnName())%>
-						(<%=table.getModifiedColumnName()%>)</th>
-					<%
-						}
-					%>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td class="shortField"></td>
-					<td class="shortField"><input type="checkbox" /></td>
-					<td class="titleField"></td>
-					<%
-						if (created) {
-					%>
-					<td class="shortField"></td>
-					<%
-						}
-					%>
-					<%
-						if (modified) {
-					%>
-					<td class="shortField"></td>
-					<%
-						}
-					%>
-				</tr>
-			</tbody>
-		</table>
+			<table>
+				<thead>
+					<tr>
+						<th class="shortFieldHeader">no</th>
+						<th class="shortFieldHeader">!</th>
+						<%
+							for (String columnName : table.getTitleColumnName()) {
+						%>
+						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%>
+							(<%=columnName%>)</th>
+						<%
+							}
+						%>
+						<%
+							for (String columnName : table.getListedColumnName()) {
+						%>
+						<th class="shortFieldHeader"><%=table.toFieldName(columnName)%>
+							(<%=columnName%>)</th>
+						<%
+							}
+						%>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="shortField"></td>
+						<td class="shortField"><input type="checkbox" /></td>
+						<%
+							for (String columnName : table.getTitleColumnName()) {
+						%>
+						<td class="titleField"></td>
+						<%
+							}
+						%>
+						<%
+							for (String columnName : table.getListedColumnName()) {
+						%>
+						<td class="shortField"></td>
+						<%
+							}
+						%>
+					</tr>
+				</tbody>
+			</table>
+		</form>
 	</div>
-
 </div>
 <%
 	}

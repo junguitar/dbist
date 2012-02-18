@@ -15,7 +15,7 @@
 		<property name="applicationContextName" value="dbist-example" />
 	</bean>
 
-	<!-- AOP -->
+	<!-- AOP
 	<aop:config>
 		<aop:pointcut id="serviceOperation"
 			expression="execution(* org.dbist.example.*Svc.*(..))" />
@@ -23,9 +23,9 @@
 			pointcut-ref="serviceOperation" />
 		<aop:advisor advice-ref="hibernateTransactionAdvice"
 			pointcut-ref="serviceOperation" />
-	</aop:config>
+	</aop:config> -->
 
-	<!-- Transaction -->
+	<!-- Transaction
 	<tx:advice id="jdbcTransactionAdvice" transaction-manager="jdbcTransactionManager">
 		<tx:attributes>
 			<tx:method name="get*" timeout="10" read-only="true" />
@@ -46,7 +46,7 @@
 	<bean id="hibernateTransactionManager"
 		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
 		<property name="sessionFactory" ref="sessionFactory" />
-	</bean>
+	</bean> -->
 
 	<!-- JDBC -->
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">

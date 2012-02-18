@@ -1,6 +1,7 @@
 package org.dbist.example.blog.jdbc;
 
 import org.dbist.annotation.Column;
+import org.dbist.annotation.ColumnType;
 import org.dbist.annotation.Table;
 
 @Table(name = "users")
@@ -8,7 +9,9 @@ public class User {
 	private String username;
 	@Column(name = "pwd")
 	private String password;
+	@Column(type = ColumnType.TITLE)
 	private String firstName;
+	@Column(type = ColumnType.TITLE)
 	private String lastName;
 	private String email;
 	public String getUsername() {

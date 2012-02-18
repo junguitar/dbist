@@ -136,6 +136,10 @@ a {
 	background-color: white;
 }
 
+.errorScope {
+	color: red;
+}
+
 .titleScoope {
 	font-weight: bold;
 	display: block;

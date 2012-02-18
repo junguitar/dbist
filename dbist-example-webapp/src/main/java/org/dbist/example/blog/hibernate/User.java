@@ -1,9 +1,14 @@
 package org.dbist.example.blog.hibernate;
 
+import org.dbist.annotation.Column;
+import org.dbist.annotation.ColumnType;
+
 public class User {
 	private String username;
 	private String password;
+	@Column(type = ColumnType.TITLE)
 	private String firstName;
+	@Column(type = ColumnType.TITLE)
 	private String lastName;
 	private String email;
 	public String getUsername() {

@@ -30,9 +30,8 @@ public class Table {
 	private String domain;
 	private String name;
 	private List<String> pkColumnName;
-	private String titleColumnName;
-	private String createdColumnName;
-	private String modifiedColumnName;
+	private List<String> titleColumnName;
+	private List<String> listedColumnName;
 	private List<Column> column = new ArrayList<Column>();
 
 	public String getDomain() {
@@ -48,23 +47,21 @@ public class Table {
 		this.name = name;
 	}
 	public List<String> getPkColumnName() {
-		populateColumnName();
 		return pkColumnName;
+	}
+	public void setPkColumnName(List<String> pkColumnName) {
+		this.pkColumnName = pkColumnName;
 	}
 	public boolean isPkColmnName(String name) {
 		return getPkColumnName().contains(name);
 	}
-	public String getTitleColumnName() {
+	public List<String> getTitleColumnName() {
 		populateColumnName();
 		return titleColumnName;
 	}
-	public String getCreatedColumnName() {
+	public List<String> getListedColumnName() {
 		populateColumnName();
-		return createdColumnName;
-	}
-	public String getModifiedColumnName() {
-		populateColumnName();
-		return modifiedColumnName;
+		return listedColumnName;
 	}
 	private void populateColumnName() {
 		if (this.titleColumnName != null)
@@ -72,27 +69,23 @@ public class Table {
 		synchronized (this) {
 			if (this.titleColumnName != null)
 				return;
-			List<String> pkColumnName = new ArrayList<String>(1);
-			String titleColumnName = null;
-			String createdColumnName = null;
-			String modifiedColumnName = null;
+			pkColumnName = new ArrayList<String>(1);
+			List<String> titleColumnName = new ArrayList<String>(1);
+			listedColumnName = new ArrayList<String>(1);
+			String titleCandidate = null;
 			for (Column column : this.column) {
-				if (column.isPrimaryKey()) {
+				if (column.isPrimaryKey())
 					pkColumnName.add(column.getName());
-					continue;
-				} else if (column.isTitle()) {
-					titleColumnName = column.getName();
-				} else if (column.isCreated()) {
-					createdColumnName = column.getName();
-				} else if (column.isModified()) {
-					modifiedColumnName = column.getName();
-				} else if (titleColumnName == null) {
-					titleColumnName = column.getName();
+				if (column.isTitle()) {
+					titleColumnName.add(column.getName());
+				} else if (column.isListed()) {
+					listedColumnName.add(column.getName());
+				} else if (!column.isPrimaryKey() && titleCandidate == null) {
+					titleCandidate = column.getName();
 				}
 			}
-			this.pkColumnName = pkColumnName;
-			this.createdColumnName = createdColumnName;
-			this.modifiedColumnName = modifiedColumnName;
+			if (titleColumnName.isEmpty() && titleCandidate != null)
+				titleColumnName.add(titleCandidate);
 			this.titleColumnName = titleColumnName;
 		}
 	}

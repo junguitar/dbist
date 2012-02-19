@@ -16,7 +16,9 @@
 package org.dbist.dml.impl;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import net.sf.common.util.ReflectionUtils;
 import net.sf.common.util.SyncCtrlUtils;
 import net.sf.common.util.ValueUtils;
 
+import org.apache.commons.collections.map.ListOrderedMap;
 import org.dbist.annotation.Ignore;
 import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
@@ -91,63 +94,188 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T insert(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public <T> void insert(T data) throws Exception {
+		ValueUtils.assertNotNull("data", data);
 
+		Table table = getTable(data);
+		String sql = toInsertSql(table);
+		Map<String, ?> paramMap = toParamMap(table, data);
+
+		this.namedParameterJdbcTemplate.update(sql, paramMap);
+	}
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
-		// TODO Auto-generated method stub
+		if (ValueUtils.isEmpty(list))
+			return;
 
+		Table table = getTable(list.get(0));
+		String sql = toInsertSql(table);
+		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
+		for (T data : list)
+			paramMapList.add(toParamMap(table, data));
+
+		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
+	}
+
+	private String toInsertSql(Table table) {
+		StringBuffer buf = new StringBuffer("insert into ").append(table.getDomain()).append(".").append(table.getName()).append("(");
+		int i = 0;
+		for (Column column : table.getColumnList())
+			buf.append(i++ == 0 ? "" : ", ").append(column.getName());
+		buf.append(") values(");
+		i = 0;
+		for (Column column : table.getColumnList())
+			buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
+		buf.append(")");
+		return buf.toString();
+	}
+
+	private <T> Map<String, ?> toParamMap(Table table, T data, String... fieldNames) throws Exception {
+		@SuppressWarnings("unchecked")
+		Map<String, Object> paramMap = new ListOrderedMap();
+		if (ValueUtils.isEmpty(fieldNames)) {
+			for (Column column : table.getColumnList()) {
+				Field field = column.getField();
+				paramMap.put(field.getName(), field.get(data));
+			}
+			return paramMap;
+		}
+
+		for (String fieldName : fieldNames) {
+			Column column = table.getColumnByFieldName(fieldName);
+			if (column == null)
+				throw new DbistRuntimeException("Couldn't find column of table[" + table.getDomain() + "." + table.getName() + "] by fieldName["
+						+ fieldName + "]");
+			Field field = column.getField();
+			paramMap.put(fieldName, field.get(data));
+		}
+		return paramMap;
 	}
 
 	@Override
-	public <T> T update(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public <T> void update(T data) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+
+		Table table = getTable(data);
+		String sql = toUpdateSql(table);
+		Map<String, ?> paramMap = toParamMap(table, data);
+
+		this.namedParameterJdbcTemplate.update(sql, paramMap);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
-		// TODO Auto-generated method stub
+		if (ValueUtils.isEmpty(list))
+			return;
 
+		Table table = getTable(list.get(0));
+		String sql = toUpdateSql(table);
+		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
+		for (T data : list)
+			paramMapList.add(toParamMap(table, data));
+
+		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
+	}
+
+	private String toUpdateSql(Table table, String... fieldNames) {
+		StringBuffer buf = new StringBuffer("update ").append(table.getDomain()).append(".").append(table.getName()).append(" set ");
+		int i = 0;
+
+		// Update all fields
+		if (ValueUtils.isEmpty(fieldNames)) {
+			for (Column column : table.getColumnList())
+				buf.append(i++ == 0 ? "" : ", ").append(column.getName()).append(" = :").append(column.getField().getName());
+			return buf.toString();
+		}
+
+		// Update some fields
+		for (String fieldName : fieldNames)
+			buf.append(i++ == 0 ? "" : ", ").append(table.toColumnName(fieldName)).append(" = :").append(fieldName);
+		return buf.toString();
 	}
 
 	@Override
-	public <T> T update(T data, String... fieldName) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public <T> void update(T data, String... fieldNames) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+
+		Table table = getTable(data);
+		String sql = toUpdateSql(table, fieldNames);
+		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
+
+		this.namedParameterJdbcTemplate.update(sql, paramMap);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> void updateBatch(List<T> list, String... filedNames) throws Exception {
+		if (ValueUtils.isEmpty(list))
+			return;
+
+		Table table = getTable(list.get(0));
+		String sql = toUpdateSql(table, filedNames);
+		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
+		for (T data : list)
+			paramMapList.add(toParamMap(table, data, filedNames));
+
+		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public <T> T upsert(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public <T> void upsert(T data) throws Exception {
+		if (select(data) == null)
+			insert(data);
+		else
+			update(data);
 	}
 
 	@Override
 	public <T> void upsertBatch(List<T> list) throws Exception {
-		// TODO Auto-generated method stub
-
+		List<T> insertList = new ArrayList<T>();
+		List<T> updateList = new ArrayList<T>();
+		for (T data : list) {
+			if (select(data) == null)
+				insertList.add(data);
+			else
+				updateList.add(data);
+		}
+		insertBatch(insertList);
+		updateBatch(updateList);
 	}
 
 	@Override
-	public <T> T delete(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public <T> void delete(T data) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+
+		Table table = getTable(data);
+		String sql = toDeleteSql(table);
+		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
+
+		this.namedParameterJdbcTemplate.update(sql, paramMap);
 	}
 
+	private String toDeleteSql(Table table) {
+		StringBuffer buf = new StringBuffer("delete from ").append(table.getDomain()).append(".").append(table.getName());
+		int i = 0;
+		for (String columnName : table.getPkColumnNameList())
+			buf.append(i++ == 0 ? " where " : " and ").append(columnName).append(" = :").append(table.getColumn(columnName).getField().getName());
+		return buf.toString();
+	}
+
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void deleteBatch(List<T> list) throws Exception {
-		// TODO Auto-generated method stub
+		if (ValueUtils.isEmpty(list))
+			return;
 
+		Table table = getTable(list.get(0));
+		String sql = toDeleteSql(table);
+		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
+		for (T data : list)
+			paramMapList.add(toParamMap(table, data, table.getPkFieldNames()));
+
+		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
 	@Override
@@ -164,28 +292,34 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		Table table = getTable(clazz);
+	public <T> List<T> selectList(final Class<T> clazz, Object condition) throws Exception {
+		final Table table = getTable(clazz);
 		StringBuffer buf = new StringBuffer();
 		Query query = condition instanceof Query ? (Query) condition : null;
+
+		final List<String> columnNameList = new ArrayList<String>();
 
 		// Select
 		buf.append("select");
 		if (query == null || ValueUtils.isEmpty(query.getField())) {
 			int i = 0;
-			for (Column column : table.getColumn())
+			for (Column column : table.getColumnList())
 				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
 		} else {
 			int i = 0;
-			for (String fieldName : query.getField())
-				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(fieldName));
+			for (String fieldName : query.getField()) {
+				String columnName = table.toColumnName(fieldName);
+				if (columnName == null)
+					throw new DbistRuntimeException("Couldn't find fieldName[" + fieldName + "] of class[" + clazz.getName() + "]");
+				buf.append(i++ == 0 ? " " : ", ").append(columnName);
+				columnNameList.add(columnName);
+			}
 		}
 
 		// From
-		buf.append(" from ").append(table.getName());
+		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
 
-		// Where
+		// Query object;
 		if (query == null) {
 			query = new Query();
 			if (condition instanceof Map) {
@@ -200,29 +334,130 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				query.addFilter((Filter) condition);
 			}
 		}
-		{
-			Map<String, Object> paramMap = new HashMap<String, Object>();
-			int i = 0;
-			if (!ValueUtils.isEmpty(query.getFilter())) {
-				for (Filter filter : query.getFilter()) {
-					String lo = filter.getLeftOperand();
-					// buf.append(i++ == 0 ? " where " : " and ")
-					// .append(table.toColumnName(lo)).append(" = :").append(lo);
-					// paramMap.put(lo, );
-				}
-			}
-		}
+
+		// Where
+		Map<String, Object> paramMap = new ListOrderedMap();
+		populateWhere(buf, table, query, 0, paramMap);
 
 		// Order by
 		if (!ValueUtils.isEmpty(query.getOrder())) {
 			buf.append(" order by");
 			int i = 0;
-			for (Order order : query.getOrder()) {
+			for (Order order : query.getOrder())
 				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(order.getField())).append(order.isAscending() ? " asc" : " desc");
+		}
+
+		List<T> list = this.namedParameterJdbcTemplate.query(buf.toString(), paramMap, new RowMapper<T>() {
+			@Override
+			public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+				T data = newInstance(clazz);
+
+				// Select all fields
+				if (columnNameList.isEmpty()) {
+					for (Column column : table.getColumnList())
+						setFieldValue(data, rs, column);
+					return data;
+				}
+
+				// Select some fields
+				for (String columnName : columnNameList)
+					setFieldValue(data, rs, table.getColumn(columnName));
+				return data;
+			}
+		});
+
+		return list;
+	}
+	private static <T> T newInstance(Class<T> clazz) {
+		try {
+			return clazz.newInstance();
+		} catch (InstantiationException e) {
+			throw new DbistRuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new DbistRuntimeException(e);
+		}
+	}
+	private static void setFieldValue(Object data, ResultSet rs, Column column) throws SQLException {
+		Field field = column.getField();
+		try {
+			field.set(data, cast(rs, column.getName(), field.getType()));
+		} catch (IllegalArgumentException e) {
+			throw new DbistRuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new DbistRuntimeException(e);
+		}
+	}
+	private static Object cast(ResultSet rs, String name, Class<?> requiredType) throws SQLException {
+		Object obj = rs.getObject(name);
+		if (obj == null)
+			return obj;
+		if (requiredType.isAssignableFrom(obj.getClass()))
+			return obj;
+		if (requiredType.isAssignableFrom(String.class))
+			return rs.getString(name);
+		if (requiredType.isAssignableFrom(BigDecimal.class))
+			return rs.getBigDecimal(name);
+		if (requiredType.isAssignableFrom(Date.class))
+			return rs.getTimestamp(name);
+		if (requiredType.isAssignableFrom(Double.class))
+			return rs.getDouble(name);
+		if (requiredType.isAssignableFrom(Integer.class))
+			return rs.getInt(name);
+		if (requiredType.isAssignableFrom(Long.class))
+			return rs.getLong(name);
+		if (requiredType.isAssignableFrom(Float.class))
+			return rs.getFloat(name);
+		if (requiredType.isAssignableFrom(Boolean.class))
+			return rs.getBoolean(name);
+		if (requiredType.isAssignableFrom(byte[].class))
+			return rs.getBytes(name);
+		if (requiredType.isAssignableFrom(byte.class))
+			return rs.getByte(name);
+		return obj;
+	}
+	private int populateWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
+		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
+
+		int j = 0;
+		if (!ValueUtils.isEmpty(filters.getFilter())) {
+			for (Filter filter : filters.getFilter()) {
+				String operator = ValueUtils.toString(filter.getOperator(), "=").trim();
+				String lo = filter.getLeftOperand();
+				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator).append(table.toColumnName(lo));
+				j++;
+				List<?> rightOperand = filter.getRightOperand();
+				if (ValueUtils.isEmpty(rightOperand)) {
+					if ("=".equals(operator))
+						operator = "is";
+					else if ("!=".equals(operator))
+						operator = "is not";
+					buf.append(" ").append(operator).append(" null");
+				} else {
+					String key = lo + i;
+					if (rightOperand.size() == 1) {
+						paramMap.put(key, rightOperand.get(0));
+						buf.append(" ").append(operator).append(" :").append(key);
+					} else {
+						paramMap.put(key, rightOperand);
+						if ("=".equals(operator))
+							operator = "in";
+						else if ("!=".equals(operator))
+							operator = "not in";
+					}
+					buf.append(" ").append(operator).append(" :").append(key);
+				}
 			}
 		}
 
-		return null;
+		if (!ValueUtils.isEmpty(filters.getFilters())) {
+			for (Filters subFilters : filters.getFilters()) {
+				buf.append("(");
+				i = populateWhere(buf, table, subFilters, i, paramMap);
+				buf.append(")");
+			}
+		}
+
+		return i;
 	}
 
 	@Override
@@ -302,6 +537,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				if (debug)
 					logger.debug("make table metadata by class: " + clazz.getName());
 				Table table = new Table();
+				table.setClazz(clazz);
 
 				// Domain and Name
 				org.dbist.annotation.Table tableAnn = clazz.getAnnotation(org.dbist.annotation.Table.class);
@@ -385,7 +621,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (query == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND, ValueUtils.toMap("queryName: primary key", "dbType:" + dbType)));
 		query = StringUtils.replace(query, "${domain}", table.getDomain());
-		table.setPkColumnName(jdbcTemplate.queryForList(query, String.class, table.getName()));
+		table.setPkColumnNameList(jdbcTemplate.queryForList(query, String.class, table.getName()));
 
 		return table;
 	}
@@ -415,6 +651,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		Column column = table.addColumn(new Column());
 		column.setField(field);
+		column.setGetter(ReflectionUtils.getGetter(table.getClazz(), field.getName(), field.getType()));
+		column.setSetter(ReflectionUtils.getSetter(table.getClazz(), field.getName(), field.getType()));
 		org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
 		TabColumn tabColumn = null;
 		RowMapper<TabColumn> rowMapper = new RowMapper<TabColumn>() {
@@ -451,7 +689,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		column.setName(tabColumn.getName());
-		column.setPrimaryKey(table.getPkColumnName().contains(tabColumn.getName()));
+		column.setPrimaryKey(table.getPkColumnNameList().contains(tabColumn.getName()));
 		column.setDataType(tabColumn.getDataType().toLowerCase());
 	}
 

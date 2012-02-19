@@ -88,9 +88,8 @@ a {
 	clear: all;
 	display: block;
 	overflow: hidden;
-	background-color: #BFDBFF;
+	background-color: white;
 	padding: 0px;
-	min-width: 1024px;
 }
 
 #submenu {
@@ -131,7 +130,7 @@ a {
 }
 
 .scope {
-	margin: 3px 3px 0px 0px;
+	margin: 0px 3px 0px 0px;
 	padding: 5px;
 	background-color: white;
 }
@@ -140,14 +139,15 @@ a {
 	color: red;
 }
 
-.titleScoope {
+.titleScope {
 	font-weight: bold;
 	display: block;
 	background-color: #E3EFFF;
-	border-bottom: solid 1px #6593CF;
+	border: solid 1px #6593CF;
+	border-bottom: none;
+	margin: 3px 3px 0px 0px;
 	padding: 3px;
 	overflow: hidden;
-	text-transform: capitalize;
 }
 
 .titleButtonScope {
@@ -160,17 +160,17 @@ a {
 }
 
 .filterScope {
-	width: 975px;
+	width: 972px;
 	border: solid 1px #6593CF;
 }
 
 .listScope {
-	width: 975px;
+	width: 972px;
 	border: solid 1px #6593CF;
 }
 
 .dataScope {
-	width: 975px;
+	width: 972px;
 	border: solid 1px #6593CF;
 }
 
@@ -192,23 +192,37 @@ a {
 	background-color: #E5E5E5;
 }
 
-.titleField {
-	text-align: left;
-	cursor: pointer;
-}
-
-.titleFieldHeader {
-	text-align: left;
-}
-
 .shortField {
-	width: 1px;
+	width: 10px;
 	text-align: center;
 }
 
 .shortFieldHeader {
-	width: 1px;
+	width: 10px;
 	text-align: center;
+}
+
+.titleField {
+	text-align: left;
+	cursor: pointer;
+	text-overflow: ellipsis;
+}
+
+.titleFieldHeader {
+	text-align: left;
+	text-overflow: ellipsis;
+}
+
+.listedField {
+	width: 150px;
+	text-align: center;
+	text-overflow: ellipsis;
+}
+
+.listedFieldHeader {
+	width: 150px;
+	text-align: center;
+	text-overflow: ellipsis;
 }
 
 .label {

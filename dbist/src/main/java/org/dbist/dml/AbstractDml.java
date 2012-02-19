@@ -94,4 +94,37 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	public <T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
 		return selectListForUpdate(query, paramMap, requiredType);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T insert(Class<T> clazz, Object data) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotNull("data", data);
+		if (data.getClass().isAssignableFrom(clazz)) {
+			T obj = (T) data;
+			insert(obj);
+			return obj;
+		}
+		T obj = clazz.newInstance();
+		insert(ValueUtils.populate(data, clazz.newInstance()));
+		return obj;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> void update(Class<T> clazz, Object data) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotNull("data", data);
+		if (data.getClass().isAssignableFrom(clazz)) {
+			T obj = (T) data;
+			update(obj);
+		}
+		T obj = select(clazz, data);
+	}
+
+	@Override
+	public <T> T upsert(Class<T> clazz, Object data) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

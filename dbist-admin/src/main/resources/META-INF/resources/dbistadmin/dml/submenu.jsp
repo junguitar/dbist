@@ -100,7 +100,7 @@
 						}
 					%>
 			</select>&nbsp;&nbsp;&nbsp;&nbsp; class: <input id="dmlSubmenuPrefix"
-				name="prefix" type="text" value="<%=prefix%>" /> <%
+				name="prefix" type="text" value="<%=prefix%>" onchange="submit()" /> <%
  	for (Select select : selectList) {
  %> <select name="path" onchange="submit()">
 					<option value=""></option>

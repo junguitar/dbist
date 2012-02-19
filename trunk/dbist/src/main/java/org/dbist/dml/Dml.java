@@ -22,8 +22,7 @@ import org.dbist.metadata.Table;
 import org.dbist.processor.Preprocessor;
 
 /**
- * DML (Data Manipulation Languge) operator or DAO (Data Access Object)
- * executing queries.
+ * DML (Data Manipulation Languge) operator or DAO (Data Access Object) executing queries.
  * 
  * @author Steve M. Jung
  * @since 2011. 6. 2. (version 0.0.1)
@@ -33,8 +32,7 @@ public interface Dml {
 	Preprocessor getPreprocessor();
 
 	/**
-	 * Select a data from the database table mapped to T class by primary key
-	 * fields' value of data parameter.<br>
+	 * Select a data from the database table mapped to T class by primary key fields' value of data parameter.<br>
 	 * The data parameter must be set primary key fields' value.
 	 * 
 	 * @param <T>
@@ -48,10 +46,8 @@ public interface Dml {
 	<T> T selectForUpdate(T data) throws Exception;
 
 	/**
-	 * Select a data from the database table mapped to T class by condition
-	 * parameter.<br>
-	 * The data type of condition parameter can be primary key value (a value,
-	 * array, List, or HttpServletRequest), Map, Query, Filters, Filter
+	 * Select a data from the database table mapped to T class by condition parameter.<br>
+	 * The data type of condition parameter can be primary key value (a value, array, List, or HttpServletRequest), Map, Query, Filters, Filter
 	 * 
 	 * @param <T>
 	 *            The object class mapped to a database table
@@ -67,8 +63,7 @@ public interface Dml {
 
 	/**
 	 * Select a data as the requiredType by the query and the paramMap<br>
-	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query
-	 * means HQL query. ...
+	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query means HQL query. ...
 	 * 
 	 * @param query
 	 * @param paramMap
@@ -80,8 +75,7 @@ public interface Dml {
 	<T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
-	 * Select a data as the requiredType by the query (SQL query) and the
-	 * paramMap
+	 * Select a data as the requiredType by the query (SQL query) and the paramMap
 	 * 
 	 * @param query
 	 * @param paramMap
@@ -102,8 +96,20 @@ public interface Dml {
 	 * @return The data inserted
 	 * @throws Exception
 	 */
-	<T> T insert(T data) throws Exception;
+	<T> void insert(T data) throws Exception;
 	<T> void insertBatch(List<T> list) throws Exception;
+
+	/**
+	 * Insert a data to the database table mapped to T class.
+	 * 
+	 * @param clazz
+	 *            The class mapped to a database table
+	 * @param data
+	 *            The data to insert
+	 * @return The data inserted
+	 * @throws Exception
+	 */
+	<T> T insert(Class<T> clazz, Object data) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -115,8 +121,20 @@ public interface Dml {
 	 * @return The data updated
 	 * @throws Exception
 	 */
-	<T> T update(T data) throws Exception;
+	<T> void update(T data) throws Exception;
 	<T> void updateBatch(List<T> list) throws Exception;
+
+	/**
+	 * Update a data to the database table mapped to T class.
+	 * 
+	 * @param clazz
+	 *            The class mapped to a database table
+	 * @param data
+	 *            The data to update
+	 * @return The data updated
+	 * @throws Exception
+	 */
+	<T> void update(Class<T> clazz, Object data) throws Exception;
 
 	/**
 	 * Update some fields of data to the database table mapped to T class.
@@ -125,13 +143,13 @@ public interface Dml {
 	 *            The object class mapped to a database table
 	 * @param data
 	 *            The data to update
-	 * @param fieldName
+	 * @param fieldNames
 	 *            The fieldName array of the data to update
 	 * @return The data updated
 	 * @throws Exception
 	 */
-	<T> T update(T data, String... fieldName) throws Exception;
-	<T> void updateBatch(List<T> list, String... filedName) throws Exception;
+	<T> void update(T data, String... fieldNames) throws Exception;
+	<T> void updateBatch(List<T> list, String... filedNames) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
@@ -139,12 +157,24 @@ public interface Dml {
 	 * @param <T>
 	 *            The object class mapped to a database table
 	 * @param data
-	 *            data The data to upsert
+	 *            The data to upsert
 	 * @return The data upserted
 	 * @throws Exception
 	 */
-	<T> T upsert(T data) throws Exception;
+	<T> void upsert(T data) throws Exception;
 	<T> void upsertBatch(List<T> list) throws Exception;
+
+	/**
+	 * Upsert (Insert or update) a data to the database table mapped to T class.
+	 * 
+	 * @param clazz
+	 *            The class mapped to a database table
+	 * @param data
+	 *            The data to upsert
+	 * @return The data upserted
+	 * @throws Exception
+	 */
+	<T> T upsert(Class<T> clazz, Object data) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class.
@@ -156,14 +186,12 @@ public interface Dml {
 	 * @return The data deleted
 	 * @throws Exception
 	 */
-	<T> T delete(T data) throws Exception;
+	<T> void delete(T data) throws Exception;
 	<T> void deleteBatch(List<T> list) throws Exception;
 
 	/**
-	 * Delete a data to the database table mapped to T class. by condition
-	 * parameter.<br>
-	 * The data type of condition parameter can be primary key value (a value,
-	 * array, List, or HttpServletRequest), Map, Query, Filters, Filter
+	 * Delete a data to the database table mapped to T class. by condition parameter.<br>
+	 * The data type of condition parameter can be primary key value (a value, array, List, or HttpServletRequest), Map, Query, Filters, Filter
 	 * 
 	 * @param <T>
 	 *            The object class mapped to a database table
@@ -208,8 +236,7 @@ public interface Dml {
 
 	/**
 	 * Select some data as the requiredType by the query and the paramMap<br>
-	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query
-	 * means HQL query. ...
+	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query means HQL query. ...
 	 * 
 	 * @param query
 	 * @param paramMap
@@ -221,8 +248,7 @@ public interface Dml {
 	<T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
-	 * Select some data as the requiredType by the query (SQL query) and the
-	 * paramMap
+	 * Select some data as the requiredType by the query (SQL query) and the paramMap
 	 * 
 	 * @param query
 	 * @param paramMap

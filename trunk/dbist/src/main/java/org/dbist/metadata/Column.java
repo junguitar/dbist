@@ -16,6 +16,7 @@
 package org.dbist.metadata;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * @author Steve M. Jung
@@ -31,6 +32,8 @@ public class Column {
 	private String dataType;
 	private String type;
 	private Field field;
+	private Method getter;
+	private Method setter;
 	public String getName() {
 		return name;
 	}
@@ -66,5 +69,17 @@ public class Column {
 	}
 	public void setField(Field field) {
 		this.field = field;
+	}
+	public Method getGetter() {
+		return getter;
+	}
+	public void setGetter(Method getter) {
+		this.getter = getter;
+	}
+	public Method getSetter() {
+		return setter;
+	}
+	public void setSetter(Method setter) {
+		this.setter = setter;
 	}
 }

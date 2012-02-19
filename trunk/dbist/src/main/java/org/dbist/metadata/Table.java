@@ -15,6 +15,7 @@
  */
 package org.dbist.metadata;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,10 +30,12 @@ import net.sf.common.util.ValueUtils;
 public class Table {
 	private String domain;
 	private String name;
-	private List<String> pkColumnName;
-	private List<String> titleColumnName;
-	private List<String> listedColumnName;
-	private List<Column> column = new ArrayList<Column>();
+	private Class<?> clazz;
+	private List<String> pkColumnNameList;
+	private String[] pkFieldNames;
+	private List<String> titleColumnNameList;
+	private List<String> listedColumnNameList;
+	private List<Column> columnList = new ArrayList<Column>();
 
 	public String getDomain() {
 		return domain;
@@ -46,65 +49,75 @@ public class Table {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public List<String> getPkColumnName() {
-		return pkColumnName;
+	public Class<?> getClazz() {
+		return clazz;
 	}
-	public void setPkColumnName(List<String> pkColumnName) {
-		this.pkColumnName = pkColumnName;
+	public void setClazz(Class<?> clazz) {
+		this.clazz = clazz;
+	}
+	public List<String> getPkColumnNameList() {
+		return pkColumnNameList;
+	}
+	public void setPkColumnNameList(List<String> pkColumnName) {
+		this.pkColumnNameList = pkColumnName;
+	}
+	public String[] getPkFieldNames() {
+		populateColumnName();
+		return pkFieldNames;
 	}
 	public boolean isPkColmnName(String name) {
-		return getPkColumnName().contains(name);
+		return getPkColumnNameList().contains(name);
 	}
-	public List<String> getTitleColumnName() {
+	public List<String> getTitleColumnNameList() {
 		populateColumnName();
-		return titleColumnName;
+		return titleColumnNameList;
 	}
-	public List<String> getListedColumnName() {
+	public List<String> getListedColumnNameList() {
 		populateColumnName();
-		return listedColumnName;
+		return listedColumnNameList;
 	}
 	private void populateColumnName() {
-		if (this.titleColumnName != null)
+		if (this.titleColumnNameList != null)
 			return;
 		synchronized (this) {
-			if (this.titleColumnName != null)
+			if (this.titleColumnNameList != null)
 				return;
-			pkColumnName = new ArrayList<String>(1);
 			List<String> titleColumnName = new ArrayList<String>(1);
-			listedColumnName = new ArrayList<String>(1);
+			listedColumnNameList = new ArrayList<String>(1);
 			String titleCandidate = null;
-			for (Column column : this.column) {
-				if (column.isPrimaryKey())
-					pkColumnName.add(column.getName());
+			for (Column column : this.columnList) {
 				if (column.isTitle()) {
 					titleColumnName.add(column.getName());
 				} else if (column.isListed()) {
-					listedColumnName.add(column.getName());
+					listedColumnNameList.add(column.getName());
 				} else if (!column.isPrimaryKey() && titleCandidate == null) {
 					titleCandidate = column.getName();
 				}
 			}
 			if (titleColumnName.isEmpty() && titleCandidate != null)
 				titleColumnName.add(titleCandidate);
-			this.titleColumnName = titleColumnName;
+			List<String> pkFieldNameList = new ArrayList<String>();
+			for (String columnName : pkColumnNameList)
+				pkFieldNameList.add(toFieldName(columnName));
+			pkFieldNames = pkFieldNameList.toArray(new String[pkFieldNameList.size()]);
+			this.titleColumnNameList = titleColumnName;
 		}
 	}
-	public List<Column> getColumn() {
-		return column;
+	public List<Column> getColumnList() {
+		return columnList;
 	}
 	public Column addColumn(Column column) {
-		this.column.add(column);
+		this.columnList.add(column);
 		return column;
 	}
 	private Map<String, Column> columnMap;
 	public Column getColumn(String name) {
-		if (name == null)
-			ValueUtils.assertNotNull("name", name);
+		ValueUtils.assertNotNull("name", name);
 		if (this.columnMap == null) {
 			synchronized (this) {
 				if (this.columnMap == null) {
-					Map<String, Column> columnMap = new HashMap<String, Column>(this.column.size());
-					for (Column column : this.column)
+					Map<String, Column> columnMap = new HashMap<String, Column>(this.columnList.size());
+					for (Column column : this.columnList)
 						columnMap.put(column.getName(), column);
 					this.columnMap = columnMap;
 				}
@@ -112,13 +125,25 @@ public class Table {
 		}
 		return columnMap.get(name.toLowerCase());
 	}
+	public Column getColumnByFieldName(String fieldName) {
+		String columnName = toColumnName(fieldName);
+		return columnName == null ? null : getColumn(columnName);
+	}
+	public Field getField(String name) {
+		Column column = getColumnByFieldName(name);
+		return column == null ? null : column.getField();
+	}
+	public Field getFieldByColumnName(String columnName) {
+		Column column = getColumn(columnName);
+		return column == null ? null : column.getField();
+	}
 	private Map<String, String> fieldNameColumNameMap;
 	public String toColumnName(String fieldName) {
 		if (this.fieldNameColumNameMap == null) {
 			synchronized (this) {
 				if (this.fieldNameColumNameMap == null) {
-					Map<String, String> fieldNameColumnNameMap = new HashMap<String, String>(this.column.size());
-					for (Column column : this.column)
+					Map<String, String> fieldNameColumnNameMap = new HashMap<String, String>(this.columnList.size());
+					for (Column column : this.columnList)
 						fieldNameColumnNameMap.put(column.getField().getName(), column.getName());
 					this.fieldNameColumNameMap = fieldNameColumnNameMap;
 				}

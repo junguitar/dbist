@@ -47,9 +47,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T insert(T data) throws Exception {
+	public <T> void insert(T data) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override
@@ -59,9 +59,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T update(T data) throws Exception {
+	public <T> void update(T data) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override
@@ -71,9 +71,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T update(T data, String... fieldName) throws Exception {
+	public <T> void update(T data, String... fieldName) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override
@@ -83,9 +83,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T upsert(T data) throws Exception {
+	public <T> void upsert(T data) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override
@@ -95,9 +95,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T delete(T data) throws Exception {
+	public <T> void delete(T data) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override

@@ -30,8 +30,8 @@ public class Query extends Filters {
 	public int getPageIndex() {
 		return pageIndex;
 	}
-	public void setPageIndex(int pageNo) {
-		this.pageIndex = pageNo;
+	public void setPageIndex(int pageIndex) {
+		this.pageIndex = pageIndex;
 	}
 	public int getPageSize() {
 		return pageSize;

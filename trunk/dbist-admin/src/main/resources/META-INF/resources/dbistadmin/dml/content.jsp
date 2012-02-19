@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="java.util.List"%>
+<%@page import="org.dbist.dml.Query"%>
 <%@page import="org.dbist.admin.ParameterUtils"%>
 <%@page import="org.slf4j.LoggerFactory"%>
 <%@page import="org.slf4j.Logger"%>
@@ -59,24 +61,49 @@
 <div class="scope<%=ex == null ? "" : " errorScope"%>"><%=ex == null ? "no content" : "error message: " + ex.getMessage()%></div>
 <%
 	} else {
+		Object data = null;
+		String method = request.getParameter("_method");
+		try {
+			if ("insert".equals(method)) {
+				data = dml.insert(clazz, request);
+			}
+		} catch (Exception e) {
+			ex = e;
+			Logger logger = LoggerFactory.getLogger(this.getClass());
+			logger.error(e.getMessage(), e);
+		}
+
+		if (ex != null) {
+%>
+<div class="scope errorScope">
+	error message:
+	<%=ex.getMessage()%></div>
+<%
+	}
 %>
 <div class="scope">
-
-	<div class="scope dataScope">
-		<!--  -->
+	<form name="dataForm" method="post"
+		onsubmit="return dataForm._method.value != 'delete' || confirm('Delete?')">
+		<input name="_method" type="hidden" value="" />
 		<div class="titleScope">
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
-				<input type="button" value="Select" class="button" /> <input
-					type="button" value="Insert" class="button" /> <input
-					type="button" value="Update" class="button" /> <input
-					type="button" value="Upsert" class="button" /> <input
-					type="button" value="Delete" class="button" /> <input
-					type="button" value="Clear" class="button" />
+				<input type="submit" value="Select" class="button"
+					onmouseover="dataForm._method.value = 'select'" /> <input
+					type="submit" value="Insert" class="button"
+					onmouseover="dataForm._method.value = 'insert'" /> <input
+					type="submit" value="Update" class="button"
+					onmouseover="dataForm._method.value = 'update'" /> <input
+					type="submit" value="Upsert" class="button"
+					onmouseover="dataForm._method.value = 'upsert'" /> <input
+					type="submit" value="Delete" class="button"
+					onmouseover="dataForm._method.value = 'delete'" /> <input
+					type="submit" value="Clear" class="button"
+					onmouseover="dataForm._method.value = 'clear'" />
 			</div>
 		</div>
-		<form>
+		<div class="scope dataScope">
 			<table>
 				<thead>
 					<tr>
@@ -86,20 +113,21 @@
 				</thead>
 				<tbody>
 					<%
-						for (String pkColumnName : table.getPkColumnName()) {
+						for (String pkColumnName : table.getPkColumnNameList()) {
+								Column column = table.getColumn(pkColumnName);
 					%>
 					<tr>
 						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>)
 							- PK</td>
 						<td class="value"><input
-							name="<%=table.getColumn(pkColumnName).getField().getName()%>"
-							class="textInput" /></td>
+							name="<%=column.getField().getName()%>" class="textInput"
+							value="<%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%>" /></td>
 					</tr>
 					<%
 						}
 					%>
 					<%
-						for (Column column : table.getColumn()) {
+						for (Column column : table.getColumnList()) {
 								if (table.isPkColmnName(column.getName()))
 									continue;
 					%>
@@ -109,9 +137,12 @@
 							<%
 								if (column.isText()) {
 							%><textarea name="<%=column.getField().getName()%>"
-								class="textArea"></textarea> <%
- 	} else {
- %><input name="<%=column.getField().getName()%>" class="textInput" />
+								class="textArea"><%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%></textarea>
+							<%
+								} else {
+							%><input name="<%=column.getField().getName()%>"
+							class="textInput"
+							value="<%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%>" />
 							<%
 								}
 							%>
@@ -122,27 +153,38 @@
 					%>
 				</tbody>
 			</table>
-		</form>
-	</div>
+		</div>
+	</form>
 
-	<div class="scope listScope">
-		<form>
-			<!--  -->
-			<div class="titleScope">
-				<%=clazz.getSimpleName()%>
-				(<%=table.getName()%>) List
-				<div class="titleButtonScope">
-					<input type="button" value="Reload" class="button" /> <input
-						type="button" value="Delete" class="button" />
-				</div>
+	<%
+		int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "pageIndex"), 0);
+			int pageSize = ValueUtils.toInteger(ParameterUtils.get(request, "pageSize"), 20);
+			Query query = new Query();
+			query.setPageIndex(pageIndex);
+			query.setPageSize(pageSize);
+			List<?> list = dml.selectList(clazz, query);
+	%>
+	<form name="listForm" method="post"
+		onsubmit="return dataForm._method.value != 'deleteList' || confirm('Delete?')">
+		<input name="_method" type="hidden" value="" />
+		<div class="titleScope">
+			<%=clazz.getSimpleName()%>
+			(<%=table.getName()%>) List
+			<div class="titleButtonScope">
+				<input type="button" value="Reload" class="button"
+					onmouseover="listForm._method.value = 'reload'" /> <input
+					type="button" value="Delete" class="button"
+					onmouseover="listForm._method.value = 'deleteList'" />
 			</div>
+		</div>
+		<div class="scope listScope">
 			<table>
 				<thead>
 					<tr>
 						<th class="shortFieldHeader">no</th>
 						<th class="shortFieldHeader">!</th>
 						<%
-							for (String columnName : table.getTitleColumnName()) {
+							for (String columnName : table.getTitleColumnNameList()) {
 						%>
 						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%>
 							(<%=columnName%>)</th>
@@ -150,9 +192,9 @@
 							}
 						%>
 						<%
-							for (String columnName : table.getListedColumnName()) {
+							for (String columnName : table.getListedColumnNameList()) {
 						%>
-						<th class="shortFieldHeader"><%=table.toFieldName(columnName)%>
+						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%>
 							(<%=columnName%>)</th>
 						<%
 							}
@@ -160,28 +202,57 @@
 					</tr>
 				</thead>
 				<tbody>
+					<%
+						if (list.isEmpty()) {
+					%>
 					<tr>
 						<td class="shortField"></td>
 						<td class="shortField"><input type="checkbox" /></td>
 						<%
-							for (String columnName : table.getTitleColumnName()) {
+							for (String columnName : table.getTitleColumnNameList()) {
 						%>
 						<td class="titleField"></td>
 						<%
 							}
 						%>
 						<%
-							for (String columnName : table.getListedColumnName()) {
+							for (String columnName : table.getListedColumnNameList()) {
 						%>
 						<td class="shortField"></td>
 						<%
 							}
 						%>
 					</tr>
+					<%
+						} else {
+								for (Object item : list) {
+					%>
+					<tr class="listRow">
+						<td class="shortField"></td>
+						<td class="shortField"><input type="checkbox" /></td>
+						<%
+							for (String columnName : table.getTitleColumnNameList()) {
+						%>
+						<td class="titleField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item))%></td>
+						<%
+							}
+						%>
+						<%
+							for (String columnName : table.getListedColumnNameList()) {
+						%>
+						<td class="listedField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item))%></td>
+						<%
+							}
+						%>
+					</tr>
+					<%
+						}
+							}
+					%>
 				</tbody>
 			</table>
-		</form>
-	</div>
+		</div>
+	</form>
 </div>
 <%
 	}

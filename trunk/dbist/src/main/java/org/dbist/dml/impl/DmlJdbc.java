@@ -80,60 +80,102 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T select(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-		return select(selectList((Class<T>) data.getClass(), data));
-	}
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T selectForUpdate(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-		return select(selectListForUpdate((Class<T>) data.getClass(), data));
-	}
-
 	@Override
 	public <T> void insert(T data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
-
 		Table table = getTable(data);
-		String sql = toInsertSql(table);
+		String sql = table.getInsertSql();
 		Map<String, ?> paramMap = toParamMap(table, data);
-
-		this.namedParameterJdbcTemplate.update(sql, paramMap);
+		update(sql, paramMap);
 	}
-	@SuppressWarnings("unchecked")
+
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
 		if (ValueUtils.isEmpty(list))
 			return;
-
 		Table table = getTable(list.get(0));
-		String sql = toInsertSql(table);
-		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
-		for (T data : list)
-			paramMapList.add(toParamMap(table, data));
+		String sql = table.getInsertSql();
+		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
+		updateBatch(sql, paramMapList);
+	}
 
+	@Override
+	public <T> void update(T data) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+		Table table = getTable(data);
+		String sql = table.getUpdateSql();
+		Map<String, ?> paramMap = toParamMap(table, data);
+		update(sql, paramMap);
+	}
+
+	@Override
+	public <T> void updateBatch(List<T> list) throws Exception {
+		if (ValueUtils.isEmpty(list))
+			return;
+		Table table = getTable(list.get(0));
+		String sql = table.getUpdateSql();
+		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
+		updateBatch(sql, paramMapList);
+	}
+
+	@Override
+	public <T> void update(T data, String... fieldNames) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+		Table table = getTable(data);
+		String sql = table.getUpdateSql(fieldNames);
+		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
+		update(sql, paramMap);
+	}
+
+	@Override
+	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
+		if (ValueUtils.isEmpty(list))
+			return;
+		Table table = getTable(list.get(0));
+		String sql = table.getUpdateSql(fieldNames);
+		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
+		updateBatch(sql, paramMapList);
+	}
+
+	@Override
+	public <T> void delete(T data) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+		Table table = getTable(data);
+		String sql = table.getDeleteSql();
+		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
+		update(sql, paramMap);
+	}
+
+	@Override
+	public <T> void deleteBatch(List<T> list) throws Exception {
+		if (ValueUtils.isEmpty(list))
+			return;
+		Table table = getTable(list.get(0));
+		String sql = table.getDeleteSql();
+		List<Map<String, ?>> paramMapList = toParamMapList(table, list, table.getPkFieldNames());
+		updateBatch(sql, paramMapList);
+	}
+
+	private void update(String sql, Map<String, ?> paramMap) {
+		this.namedParameterJdbcTemplate.update(sql, paramMap);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updateBatch(String sql, List<Map<String, ?>> paramMapList) {
 		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
-	private String toInsertSql(Table table) {
-		StringBuffer buf = new StringBuffer("insert into ").append(table.getDomain()).append(".").append(table.getName()).append("(");
-		int i = 0;
-		for (Column column : table.getColumnList())
-			buf.append(i++ == 0 ? "" : ", ").append(column.getName());
-		buf.append(") values(");
-		i = 0;
-		for (Column column : table.getColumnList())
-			buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
-		buf.append(")");
-		return buf.toString();
+	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
+		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
+		for (T data : list)
+			paramMapList.add(toParamMap(table, data, fieldNames));
+		return paramMapList;
 	}
-
 	private <T> Map<String, ?> toParamMap(Table table, T data, String... fieldNames) throws Exception {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> paramMap = new ListOrderedMap();
+
+		// All fields
 		if (ValueUtils.isEmpty(fieldNames)) {
 			for (Column column : table.getColumnList()) {
 				Field field = column.getField();
@@ -142,146 +184,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			return paramMap;
 		}
 
+		// Some fields
 		for (String fieldName : fieldNames) {
-			Column column = table.getColumnByFieldName(fieldName);
-			if (column == null)
+			Field field = table.getField(fieldName);
+			if (field == null)
 				throw new DbistRuntimeException("Couldn't find column of table[" + table.getDomain() + "." + table.getName() + "] by fieldName["
 						+ fieldName + "]");
-			Field field = column.getField();
 			paramMap.put(fieldName, field.get(data));
 		}
 		return paramMap;
-	}
-
-	@Override
-	public <T> void update(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-
-		Table table = getTable(data);
-		String sql = toUpdateSql(table);
-		Map<String, ?> paramMap = toParamMap(table, data);
-
-		this.namedParameterJdbcTemplate.update(sql, paramMap);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> void updateBatch(List<T> list) throws Exception {
-		if (ValueUtils.isEmpty(list))
-			return;
-
-		Table table = getTable(list.get(0));
-		String sql = toUpdateSql(table);
-		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
-		for (T data : list)
-			paramMapList.add(toParamMap(table, data));
-
-		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
-	}
-
-	private String toUpdateSql(Table table, String... fieldNames) {
-		StringBuffer buf = new StringBuffer("update ").append(table.getDomain()).append(".").append(table.getName()).append(" set ");
-		int i = 0;
-
-		// Update all fields
-		if (ValueUtils.isEmpty(fieldNames)) {
-			for (Column column : table.getColumnList())
-				buf.append(i++ == 0 ? "" : ", ").append(column.getName()).append(" = :").append(column.getField().getName());
-			return buf.toString();
-		}
-
-		// Update some fields
-		for (String fieldName : fieldNames)
-			buf.append(i++ == 0 ? "" : ", ").append(table.toColumnName(fieldName)).append(" = :").append(fieldName);
-		return buf.toString();
-	}
-
-	@Override
-	public <T> void update(T data, String... fieldNames) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-
-		Table table = getTable(data);
-		String sql = toUpdateSql(table, fieldNames);
-		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
-
-		this.namedParameterJdbcTemplate.update(sql, paramMap);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> void updateBatch(List<T> list, String... filedNames) throws Exception {
-		if (ValueUtils.isEmpty(list))
-			return;
-
-		Table table = getTable(list.get(0));
-		String sql = toUpdateSql(table, filedNames);
-		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
-		for (T data : list)
-			paramMapList.add(toParamMap(table, data, filedNames));
-
-		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
-	}
-
-	@Override
-	public <T> void upsert(T data) throws Exception {
-		if (select(data) == null)
-			insert(data);
-		else
-			update(data);
-	}
-
-	@Override
-	public <T> void upsertBatch(List<T> list) throws Exception {
-		List<T> insertList = new ArrayList<T>();
-		List<T> updateList = new ArrayList<T>();
-		for (T data : list) {
-			if (select(data) == null)
-				insertList.add(data);
-			else
-				updateList.add(data);
-		}
-		insertBatch(insertList);
-		updateBatch(updateList);
-	}
-
-	@Override
-	public <T> void delete(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-
-		Table table = getTable(data);
-		String sql = toDeleteSql(table);
-		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
-
-		this.namedParameterJdbcTemplate.update(sql, paramMap);
-	}
-
-	private String toDeleteSql(Table table) {
-		StringBuffer buf = new StringBuffer("delete from ").append(table.getDomain()).append(".").append(table.getName());
-		int i = 0;
-		for (String columnName : table.getPkColumnNameList())
-			buf.append(i++ == 0 ? " where " : " and ").append(columnName).append(" = :").append(table.getColumn(columnName).getField().getName());
-		return buf.toString();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> void deleteBatch(List<T> list) throws Exception {
-		if (ValueUtils.isEmpty(list))
-			return;
-
-		Table table = getTable(list.get(0));
-		String sql = toDeleteSql(table);
-		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
-		for (T data : list)
-			paramMapList.add(toParamMap(table, data, table.getPkFieldNames()));
-
-		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
-	}
-
-	@Override
-	public <T> T delete(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -293,10 +204,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> selectList(final Class<T> clazz, Object condition) throws Exception {
-		final Table table = getTable(clazz);
-		StringBuffer buf = new StringBuffer();
-		Query query = condition instanceof Query ? (Query) condition : null;
+		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotNull("condition", condition);
 
+		final Table table = getTable(clazz);
+		Query query = toQuery(table, condition);
+
+		StringBuffer buf = new StringBuffer();
 		final List<String> columnNameList = new ArrayList<String>();
 
 		// Select
@@ -318,22 +232,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
-
-		// Query object;
-		if (query == null) {
-			query = new Query();
-			if (condition instanceof Map) {
-				Map<String, Object> map = (Map<String, Object>) condition;
-				for (String lo : map.keySet())
-					query.addFilter(lo, map.get(lo));
-			} else if (condition instanceof Filters) {
-				ValueUtils.populate(condition, query);
-			} else if (condition instanceof List) {
-				query.setFilter((List<Filter>) condition);
-			} else if (condition instanceof Filter) {
-				query.addFilter((Filter) condition);
-			}
-		}
 
 		// Where
 		Map<String, Object> paramMap = new ListOrderedMap();
@@ -368,26 +266,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		return list;
 	}
-	private static <T> T newInstance(Class<T> clazz) {
-		try {
-			return clazz.newInstance();
-		} catch (InstantiationException e) {
-			throw new DbistRuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new DbistRuntimeException(e);
-		}
-	}
 	private static void setFieldValue(Object data, ResultSet rs, Column column) throws SQLException {
 		Field field = column.getField();
 		try {
-			field.set(data, cast(rs, column.getName(), field.getType()));
+			field.set(data, toRequiredType(rs, column.getName(), field.getType()));
 		} catch (IllegalArgumentException e) {
 			throw new DbistRuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new DbistRuntimeException(e);
 		}
 	}
-	private static Object cast(ResultSet rs, String name, Class<?> requiredType) throws SQLException {
+	private static Object toRequiredType(ResultSet rs, String name, Class<?> requiredType) throws SQLException {
 		Object obj = rs.getObject(name);
 		if (obj == null)
 			return obj;
@@ -436,7 +325,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					String key = lo + i;
 					if (rightOperand.size() == 1) {
 						paramMap.put(key, rightOperand.get(0));
-						buf.append(" ").append(operator).append(" :").append(key);
 					} else {
 						paramMap.put(key, rightOperand);
 						if ("=".equals(operator))

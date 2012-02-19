@@ -35,18 +35,6 @@ public class DmlHibernate extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T select(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T selectForUpdate(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public <T> void insert(T data) throws Exception {
 		// TODO Auto-generated method stub
 
@@ -71,13 +59,13 @@ public class DmlHibernate extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void update(T data, String... fieldName) throws Exception {
+	public <T> void update(T data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
+	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}

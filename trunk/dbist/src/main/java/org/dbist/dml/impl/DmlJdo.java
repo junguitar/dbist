@@ -71,13 +71,13 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void update(T data, String... fieldName) throws Exception {
+	public <T> void update(T data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list, String... filedName) throws Exception {
+	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}

@@ -13,8 +13,7 @@
 <%@page import="org.springframework.util.ClassUtils"%>
 <%@page import="org.springframework.util.StringUtils"%>
 <%@page import="net.sf.common.util.ValueUtils"%>
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%
 	response.setDateHeader("Expires", 0);
@@ -67,6 +66,8 @@
 		try {
 			if ("select".equals(method)) {
 				data = dml.select(clazz, ValueUtils.isEmpty(id) ? request : StringUtils.commaDelimitedListToStringArray(id));
+				if (data == null)
+					throw new Exception("Couldn't find the data.");
 			} else if ("insert".equals(method)) {
 				data = dml.insert(clazz, request);
 			} else if ("update".equals(method)) {
@@ -101,25 +102,18 @@
 	}
 %>
 <div class="scope">
-	<form name="dataForm" method="post"
-		onsubmit="return dataForm._method.value != 'delete' || confirm('Delete?')">
+	<form name="dataForm" method="post" onsubmit="return dataForm._method.value != '' && (dataForm._method.value != 'delete' || confirm('Delete?'))">
 		<input name="_method" type="hidden" value="" />
 		<div class="titleScope">
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
-				<input type="submit" value="Select" class="button"
-					onmouseover="dataForm._method.value = 'select';" /> <input
-					type="submit" value="Insert" class="button"
-					onmouseover="dataForm._method.value = 'insert';" /> <input
-					type="submit" value="Update" class="button"
-					onmouseover="dataForm._method.value = 'update';" /> <input
-					type="submit" value="Upsert" class="button"
-					onmouseover="dataForm._method.value = 'upsert';" /> <input
-					type="submit" value="Delete" class="button"
-					onmouseover="dataForm._method.value = 'delete';" /> <input
-					type="submit" value="Clear" class="button"
-					onmouseover="dataForm._method.value = 'clear';" />
+				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Insert" class="button" onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Update" class="button" onmouseover="dataForm._method.value = 'update'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Upsert" class="button" onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Clear" class="button" onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -137,10 +131,8 @@
 								String fieldName = column.getField().getName();
 					%>
 					<tr>
-						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>)
-							- PK</td>
-						<td class="value"><input name="<%=fieldName%>"
-							class="textInput"
+						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>) - PK</td>
+						<td class="value"><input name="<%=fieldName%>" type="<%=column.isPassword() ? "password" : "text"%>" class="textInput"
 							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(data))%>" /></td>
 					</tr>
 					<%
@@ -158,10 +150,9 @@
 							<%
 								if (column.isText()) {
 							%><textarea name="<%=fieldName%>" class="textArea"><%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
-								data))%></textarea>
-							<%
-								} else {
-							%><input name="<%=fieldName%>" class="textInput"
+								data))%></textarea> <%
+ 	} else {
+ %><input name="<%=fieldName%>" type="<%=column.isPassword() ? "password" : "text"%>" class="textInput"
 							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
 								data))%>" />
 							<%
@@ -185,18 +176,14 @@
 			query.setPageSize(pageSize);
 			List<?> list = dml.selectList(clazz, query);
 	%>
-	<form name="listForm" method="post"
-		onsubmit="return dataForm._method.value != 'deleteList' || confirm('Delete?')">
-		<input name="_method" type="hidden" value="" /> <input
-			name="_selected_id" type="hidden" value="" />
+	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
+		<input name="_method" type="hidden" value="" /> <input name="_selected_id" type="hidden" value="" />
 		<div class="titleScope">
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) List
 			<div class="titleButtonScope">
-				<input type="button" value="Reload" class="button"
-					onmouseover="listForm._method.value = 'reload'" /> <input
-					type="button" value="Delete" class="button"
-					onmouseover="listForm._method.value = 'deleteList'" />
+				<input type="button" value="Reload" class="button" onmouseover="listForm._method.value = 'reload'" onmouseout="listForm._method.value = ''" /> <input
+					type="button" value="Delete" class="button" onmouseover="listForm._method.value = 'deleteList'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope listScope">
@@ -208,16 +195,14 @@
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {
 						%>
-						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%>
-							(<%=columnName%>)</th>
+						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%> (<%=columnName%>)</th>
 						<%
 							}
 						%>
 						<%
 							for (String columnName : table.getListedColumnNameList()) {
 						%>
-						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%>
-							(<%=columnName%>)</th>
+						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%> (<%=columnName%>)</th>
 						<%
 							}
 						%>

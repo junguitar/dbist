@@ -18,6 +18,10 @@ public enum ColumnType {
 	/**
 	 * 
 	 */
+	PASSWORD(Column.TYPE_PASSWORD),
+	/**
+	 * 
+	 */
 	TEXT(Column.TYPE_TEXT);
 
 	private final String value;

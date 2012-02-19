@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 public class Column {
 	public static final String TYPE_TITLE = "title";
 	public static final String TYPE_LISTED = "listed";
+	public static final String TYPE_PASSWORD = "password";
 	public static final String TYPE_TEXT = "text";
 
 	private String name;
@@ -60,6 +61,9 @@ public class Column {
 	}
 	public boolean isListed() {
 		return TYPE_LISTED.equals(type);
+	}
+	public boolean isPassword() {
+		return TYPE_PASSWORD.equals(type);
 	}
 	public boolean isText() {
 		return TYPE_TEXT.equals(type);

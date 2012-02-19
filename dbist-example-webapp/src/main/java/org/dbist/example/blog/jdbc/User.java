@@ -7,7 +7,7 @@ import org.dbist.annotation.Table;
 @Table(name = "users")
 public class User {
 	private String username;
-	@Column(name = "pwd")
+	@Column(name = "pwd", type = ColumnType.PASSWORD)
 	private String password;
 	@Column(type = ColumnType.TITLE)
 	private String firstName;

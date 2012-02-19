@@ -53,13 +53,29 @@ public interface Dml {
 	 *            The object class mapped to a database table
 	 * @param clazz
 	 *            The object class mapped to a database table
+	 * @param pkCondition
+	 *            The primary key condition wanted to select
+	 * @return The data selected
+	 * @throws Exception
+	 */
+	<T> T select(Class<T> clazz, Object pkCondition) throws Exception;
+	<T> T selectForUpdate(Class<T> clazz, Object pkCondition) throws Exception;
+
+	/**
+	 * Select a data from the database table mapped to T class by condition parameter.<br>
+	 * The data type of condition parameter can be primary key value (a value, array, List, or HttpServletRequest), Map, Query, Filters, Filter
+	 * 
+	 * @param <T>
+	 *            The object class mapped to a database table
+	 * @param clazz
+	 *            The object class mapped to a database table
 	 * @param condition
 	 *            The condition wanted to select
 	 * @return The data selected
 	 * @throws Exception
 	 */
-	<T> T select(Class<T> clazz, Object condition) throws Exception;
-	<T> T selectForUpdate(Class<T> clazz, Object condition) throws Exception;
+	<T> T selectByCondition(Class<T> clazz, Object condition) throws Exception;
+	<T> T selectForUpdateByCondition(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Select a data as the requiredType by the query and the paramMap<br>
@@ -134,7 +150,7 @@ public interface Dml {
 	 * @return The data updated
 	 * @throws Exception
 	 */
-	<T> void update(Class<T> clazz, Object data) throws Exception;
+	<T> T update(Class<T> clazz, Object data) throws Exception;
 
 	/**
 	 * Update some fields of data to the database table mapped to T class.
@@ -149,7 +165,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> void update(T data, String... fieldNames) throws Exception;
-	<T> void updateBatch(List<T> list, String... filedNames) throws Exception;
+	<T> void updateBatch(List<T> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.

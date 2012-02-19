@@ -23,6 +23,8 @@ import java.util.Map;
 
 import net.sf.common.util.ValueUtils;
 
+import org.dbist.exception.DbistRuntimeException;
+
 /**
  * @author Steve M. Jung
  * @since 2011. 7. 10 (version 0.0.1)
@@ -36,6 +38,9 @@ public class Table {
 	private List<String> titleColumnNameList;
 	private List<String> listedColumnNameList;
 	private List<Column> columnList = new ArrayList<Column>();
+	private String insertSql;
+	private String updateSql;
+	private String deleteSql;
 
 	public String getDomain() {
 		return domain;
@@ -61,22 +66,26 @@ public class Table {
 	public void setPkColumnNameList(List<String> pkColumnName) {
 		this.pkColumnNameList = pkColumnName;
 	}
-	public String[] getPkFieldNames() {
-		populateColumnName();
-		return pkFieldNames;
-	}
 	public boolean isPkColmnName(String name) {
 		return getPkColumnNameList().contains(name);
 	}
+	public String[] getPkFieldNames() {
+		populate();
+		return pkFieldNames;
+	}
+	public boolean isPkFieldName(String name) {
+		String columnName = toColumnName(name);
+		return columnName != null && isPkColmnName(columnName);
+	}
 	public List<String> getTitleColumnNameList() {
-		populateColumnName();
+		populate();
 		return titleColumnNameList;
 	}
 	public List<String> getListedColumnNameList() {
-		populateColumnName();
+		populate();
 		return listedColumnNameList;
 	}
-	private void populateColumnName() {
+	private void populate() {
 		if (this.titleColumnNameList != null)
 			return;
 		synchronized (this) {
@@ -154,5 +163,87 @@ public class Table {
 	public String toFieldName(String columnName) {
 		Column column = getColumn(columnName);
 		return column == null ? null : column.getField().getName();
+	}
+
+	public String getInsertSql() {
+		if (insertSql != null)
+			return insertSql;
+		synchronized (this) {
+			if (insertSql != null)
+				return insertSql;
+			StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+			int i = 0;
+			for (Column column : getColumnList())
+				buf.append(i++ == 0 ? "" : ", ").append(column.getName());
+			buf.append(") values(");
+			i = 0;
+			for (Column column : getColumnList())
+				buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
+			buf.append(")");
+			insertSql = buf.toString();
+		}
+		return insertSql;
+	}
+
+	public String getUpdateSql() {
+		return _getUpdateSql();
+	}
+	public String getUpdateSql(String... fieldNames) {
+		return _getUpdateSql(fieldNames);
+	}
+	private String _getUpdateSql(String... fieldNames) {
+		// Update all fields
+		if (ValueUtils.isEmpty(fieldNames)) {
+			if (updateSql != null)
+				return updateSql;
+			synchronized (this) {
+				if (updateSql != null)
+					return updateSql;
+				StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
+				StringBuffer whereBuf = new StringBuffer(" where ");
+				int i = 0;
+				int j = 0;
+				for (Column column : getColumnList()) {
+					if (column.isPrimaryKey()) {
+						whereBuf.append(j++ == 0 ? "" : ", ").append(column.getName()).append(" = ").append(":").append(column.getField().getName());
+						continue;
+					}
+					buf.append(i++ == 0 ? "" : ", ").append(column.getName()).append(" = :").append(column.getField().getName());
+				}
+				updateSql = buf.append(whereBuf).toString();
+			}
+			return updateSql;
+		}
+
+		// Update some fields
+		StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
+		StringBuffer whereBuf = new StringBuffer(" where ");
+		int i = 0;
+		int j = 0;
+		for (String fieldName : fieldNames) {
+			Column column = getColumnByFieldName(fieldName);
+			if (column.isPrimaryKey())
+				throw new DbistRuntimeException("Update primary key is not supported. " + getDomain() + "." + getName()
+						+ getPkColumnNameList().toArray());
+			buf.append(i++ == 0 ? "" : ", ").append(toColumnName(fieldName)).append(" = :").append(fieldName);
+		}
+		for (String columnName : getPkColumnNameList())
+			whereBuf.append(j++ == 0 ? "" : ", ").append(columnName).append(" = ").append(":").append(toFieldName(columnName));
+		return buf.append(whereBuf).toString();
+	}
+
+	public String getDeleteSql() {
+		if (deleteSql != null)
+			return deleteSql;
+		synchronized (this) {
+			if (deleteSql != null)
+				return deleteSql;
+			StringBuffer buf = new StringBuffer("delete from ").append(getDomain()).append(".").append(getName());
+			int i = 0;
+			for (String columnName : getPkColumnNameList())
+				buf.append(i++ == 0 ? " where " : " and ").append(columnName).append(" = :").append(getColumn(columnName).getField().getName());
+			deleteSql = buf.toString();
+		}
+		return deleteSql;
 	}
 }

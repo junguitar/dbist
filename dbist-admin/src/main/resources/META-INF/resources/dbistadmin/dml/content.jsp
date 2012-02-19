@@ -63,14 +63,33 @@
 	} else {
 		Object data = null;
 		String method = request.getParameter("_method");
+		String id = ValueUtils.toNull(request.getParameter("_selected_id"));
 		try {
-			if ("insert".equals(method)) {
+			if ("select".equals(method)) {
+				data = dml.select(clazz, ValueUtils.isEmpty(id) ? request : StringUtils.commaDelimitedListToStringArray(id));
+			} else if ("insert".equals(method)) {
 				data = dml.insert(clazz, request);
+			} else if ("update".equals(method)) {
+				data = dml.update(clazz, request);
+			} else if ("upsert".equals(method)) {
+				data = dml.upsert(clazz, request);
+			} else if ("delete".equals(method)) {
+				data = dml.delete(clazz, request);
+				data = null;
+			} else if ("deleteList".equals(method)) {
+				// TODO
 			}
 		} catch (Exception e) {
 			ex = e;
 			Logger logger = LoggerFactory.getLogger(this.getClass());
 			logger.error(e.getMessage(), e);
+		}
+		if (data != null && id == null) {
+			StringBuffer idBuf = new StringBuffer();
+			int i = 0;
+			for (String fieldName : table.getPkFieldNames())
+				idBuf.append(i++ == 0 ? "" : ",").append(ValueUtils.toString(table.getField(fieldName).get(data), ""));
+			id = idBuf.toString();
 		}
 
 		if (ex != null) {
@@ -90,17 +109,17 @@
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
 				<input type="submit" value="Select" class="button"
-					onmouseover="dataForm._method.value = 'select'" /> <input
+					onmouseover="dataForm._method.value = 'select';" /> <input
 					type="submit" value="Insert" class="button"
-					onmouseover="dataForm._method.value = 'insert'" /> <input
+					onmouseover="dataForm._method.value = 'insert';" /> <input
 					type="submit" value="Update" class="button"
-					onmouseover="dataForm._method.value = 'update'" /> <input
+					onmouseover="dataForm._method.value = 'update';" /> <input
 					type="submit" value="Upsert" class="button"
-					onmouseover="dataForm._method.value = 'upsert'" /> <input
+					onmouseover="dataForm._method.value = 'upsert';" /> <input
 					type="submit" value="Delete" class="button"
-					onmouseover="dataForm._method.value = 'delete'" /> <input
+					onmouseover="dataForm._method.value = 'delete';" /> <input
 					type="submit" value="Clear" class="button"
-					onmouseover="dataForm._method.value = 'clear'" />
+					onmouseover="dataForm._method.value = 'clear';" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -115,13 +134,14 @@
 					<%
 						for (String pkColumnName : table.getPkColumnNameList()) {
 								Column column = table.getColumn(pkColumnName);
+								String fieldName = column.getField().getName();
 					%>
 					<tr>
 						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>)
 							- PK</td>
-						<td class="value"><input
-							name="<%=column.getField().getName()%>" class="textInput"
-							value="<%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%>" /></td>
+						<td class="value"><input name="<%=fieldName%>"
+							class="textInput"
+							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(data))%>" /></td>
 					</tr>
 					<%
 						}
@@ -130,19 +150,20 @@
 						for (Column column : table.getColumnList()) {
 								if (table.isPkColmnName(column.getName()))
 									continue;
+								String fieldName = column.getField().getName();
 					%>
 					<tr>
-						<td class="label"><%=column.getField().getName()%> (<%=column.getName()%>)</td>
+						<td class="label"><%=fieldName%> (<%=column.getName()%>)</td>
 						<td class="value">
 							<%
 								if (column.isText()) {
-							%><textarea name="<%=column.getField().getName()%>"
-								class="textArea"><%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%></textarea>
+							%><textarea name="<%=fieldName%>" class="textArea"><%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
+								data))%></textarea>
 							<%
 								} else {
-							%><input name="<%=column.getField().getName()%>"
-							class="textInput"
-							value="<%=data == null ? "" : ValueUtils.toString(column.getField().get(data))%>" />
+							%><input name="<%=fieldName%>" class="textInput"
+							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
+								data))%>" />
 							<%
 								}
 							%>
@@ -166,7 +187,8 @@
 	%>
 	<form name="listForm" method="post"
 		onsubmit="return dataForm._method.value != 'deleteList' || confirm('Delete?')">
-		<input name="_method" type="hidden" value="" />
+		<input name="_method" type="hidden" value="" /> <input
+			name="_selected_id" type="hidden" value="" />
 		<div class="titleScope">
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) List
@@ -205,7 +227,7 @@
 					<%
 						if (list.isEmpty()) {
 					%>
-					<tr>
+					<tr class="listRow">
 						<td class="shortField"></td>
 						<td class="shortField"><input type="checkbox" /></td>
 						<%
@@ -226,8 +248,14 @@
 					<%
 						} else {
 								for (Object item : list) {
+									StringBuffer idRefBuf = new StringBuffer();
+									int i = 0;
+									for (String fieldName : table.getPkFieldNames())
+										idRefBuf.append(i++ == 0 ? "" : ",").append(ValueUtils.toString(table.getField(fieldName).get(item), ""));
+									String idRef = idRefBuf.toString();
 					%>
-					<tr class="listRow">
+					<tr class="listRow<%=idRef.equals(id) ? " listRowSelected" : ""%>"
+						onclick="listForm._method.value = 'select'; listForm._selected_id.value = '<%=idRef%>'; listForm.submit();">
 						<td class="shortField"></td>
 						<td class="shortField"><input type="checkbox" /></td>
 						<%

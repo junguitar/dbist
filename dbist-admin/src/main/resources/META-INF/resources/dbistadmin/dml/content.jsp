@@ -133,7 +133,8 @@
 					<tr>
 						<td class="label"><%=table.toFieldName(pkColumnName)%> (<%=pkColumnName%>) - PK</td>
 						<td class="value"><input name="<%=fieldName%>" type="<%=column.isPassword() ? "password" : "text"%>" class="textInput"
-							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(data))%>" /></td>
+							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(data),
+							"")%>" /></td>
 					</tr>
 					<%
 						}
@@ -149,12 +150,12 @@
 						<td class="value">
 							<%
 								if (column.isText()) {
-							%><textarea name="<%=fieldName%>" class="textArea"><%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
-								data))%></textarea> <%
+							%><textarea name="<%=fieldName%>" class="textArea"><%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(
+								column.getField().get(data), "")%></textarea> <%
  	} else {
  %><input name="<%=fieldName%>" type="<%=column.isPassword() ? "password" : "text"%>" class="textInput"
-							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(column.getField().get(
-								data))%>" />
+							value="<%=data == null ? ValueUtils.toNotNull(request.getParameter(fieldName)) : ValueUtils.toString(
+								column.getField().get(data), "")%>" />
 							<%
 								}
 							%>
@@ -246,14 +247,14 @@
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {
 						%>
-						<td class="titleField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item))%></td>
+						<td class="titleField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
 						<%
 							}
 						%>
 						<%
 							for (String columnName : table.getListedColumnNameList()) {
 						%>
-						<td class="listedField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item))%></td>
+						<td class="listedField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
 						<%
 							}
 						%>

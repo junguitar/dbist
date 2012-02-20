@@ -29,7 +29,7 @@ import org.dbist.processor.Preprocessor;
  */
 public interface Dml {
 	Table getTable(Object obj);
-	Preprocessor getPreprocessor();
+	void setPreprocessor(Preprocessor preprocessor);
 
 	/**
 	 * Select a data from the database table mapped to T class by primary key fields' value of data parameter.<br>
@@ -43,7 +43,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(T data) throws Exception;
-	<T> T selectForUpdate(T data) throws Exception;
+	<T> T selectWithLock(T data) throws Exception;
 
 	/**
 	 * Select a data from the database table mapped to T class by condition parameter.<br>
@@ -59,7 +59,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(Class<T> clazz, Object pkCondition) throws Exception;
-	<T> T selectForUpdate(Class<T> clazz, Object pkCondition) throws Exception;
+	<T> T selectWithLock(Class<T> clazz, Object pkCondition) throws Exception;
 
 	/**
 	 * Select a data from the database table mapped to T class by condition parameter.<br>
@@ -75,7 +75,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectByCondition(Class<T> clazz, Object condition) throws Exception;
-	<T> T selectForUpdateByCondition(Class<T> clazz, Object condition) throws Exception;
+	<T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Select a data as the requiredType by the query and the paramMap<br>
@@ -88,7 +88,6 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
-	<T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
 	 * Select a data as the requiredType by the query (SQL query) and the paramMap
@@ -100,7 +99,6 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
-	<T> T selectForUpdateByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.
@@ -231,7 +229,7 @@ public interface Dml {
 	 * @return The size of data counted
 	 * @throws Exception
 	 */
-	<T> int count(Class<T> clazz, Object condition) throws Exception;
+	<T> int selectSize(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Select some data from the database table mapped to T class<br>
@@ -248,7 +246,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectList(Class<T> clazz, Object condition) throws Exception;
-	<T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception;
+	<T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception;
 
 	/**
 	 * Select some data as the requiredType by the query and the paramMap<br>
@@ -260,8 +258,7 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
-	<T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Select some data as the requiredType by the query (SQL query) and the paramMap
@@ -272,8 +269,7 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
-	<T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>
@@ -288,5 +284,5 @@ public interface Dml {
 	 *            The condition wanted to delete
 	 * @throws Exception
 	 */
-	<T> void deleteList(Class<T> clazz, Object condition) throws Exception;
+	<T> int deleteList(Class<T> clazz, Object condition) throws Exception;
 }

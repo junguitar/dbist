@@ -39,10 +39,10 @@ import org.springframework.beans.factory.InitializingBean;
 public abstract class AbstractDml implements Dml, InitializingBean {
 	private Preprocessor preprocessor;
 
-	@Override
 	public Preprocessor getPreprocessor() {
 		return preprocessor;
 	}
+	@Override
 	public void setPreprocessor(Preprocessor preprocessor) {
 		this.preprocessor = preprocessor;
 	}
@@ -189,11 +189,11 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T selectForUpdate(T data) throws Exception {
+	public <T> T selectWithLock(T data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Class<T> clazz = (Class<T>) data.getClass();
 		Query query = toPkQuery(clazz, data);
-		return select(selectListForUpdate(clazz, query));
+		return select(selectListWithLock(clazz, query));
 	}
 
 	@Override
@@ -205,10 +205,10 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectForUpdate(Class<T> clazz, Object pkCondition) throws Exception {
+	public <T> T selectWithLock(Class<T> clazz, Object pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		Query query = toPkQuery(clazz, pkCondition);
-		return select(selectListForUpdate(clazz, query));
+		return select(selectListWithLock(clazz, query));
 	}
 
 	@Override
@@ -219,22 +219,16 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectForUpdateByCondition(Class<T> clazz, Object condition) throws Exception {
+	public <T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
-		return select(selectListForUpdate(clazz, condition));
+		return select(selectListWithLock(clazz, condition));
 	}
 
 	@Override
 	public <T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
 		ValueUtils.assertNotNull("query", query);
-		return select(selectList(query, paramMap, requiredType));
-	}
-
-	@Override
-	public <T> T selectForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		ValueUtils.assertNotNull("query", query);
-		return select(selectListForUpdate(query, paramMap, requiredType));
+		return select(selectList(query, paramMap, requiredType, 0, 2));
 	}
 
 	@Override
@@ -243,18 +237,9 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectForUpdateByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		return selectForUpdate(query, paramMap, requiredType);
-	}
-
-	@Override
-	public <T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		return selectList(query, paramMap, requiredType);
-	}
-
-	@Override
-	public <T> List<T> selectListForUpdateNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		return selectListForUpdate(query, paramMap, requiredType);
+	public <T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectList(query, paramMap, requiredType, pageIndex, pageSize);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -45,7 +45,9 @@ import org.dbist.metadata.Column;
 import org.dbist.metadata.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.util.StringUtils;
@@ -60,6 +62,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String DBTYPE_MYSQL = "mysql";
 	private static final String DBTYPE_ORACLE = "oracle";
 	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
+	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
 
 	private String dbType;
@@ -195,10 +198,28 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return paramMap;
 	}
 
+	private void populateFromWhere(Table table, Query query, StringBuffer buf, Map<String, Object> paramMap) {
+		// From
+		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
+
+		// Where
+		populateWhere(buf, table, query, 0, paramMap);
+	}
+
 	@Override
-	public <T> int count(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+	public <T> int selectSize(Class<T> clazz, Object condition) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotNull("condition", condition);
+
+		final Table table = getTable(clazz);
+		Query query = toQuery(table, condition);
+
+		StringBuffer buf = new StringBuffer("select count(*)");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> paramMap = new ListOrderedMap();
+		populateFromWhere(table, query, buf, paramMap);
+
+		return this.namedParameterJdbcTemplate.queryForInt(buf.toString(), paramMap);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -208,14 +229,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotNull("condition", condition);
 
 		final Table table = getTable(clazz);
-		Query query = toQuery(table, condition);
+		final Query query = toQuery(table, condition);
 
 		StringBuffer buf = new StringBuffer();
 		final List<String> columnNameList = new ArrayList<String>();
 
 		// Select
 		buf.append("select");
-		if (query == null || ValueUtils.isEmpty(query.getField())) {
+		if (ValueUtils.isEmpty(query.getField())) {
 			int i = 0;
 			for (Column column : table.getColumnList())
 				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
@@ -230,12 +251,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 		}
 
-		// From
-		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
-
-		// Where
 		Map<String, Object> paramMap = new ListOrderedMap();
-		populateWhere(buf, table, query, 0, paramMap);
+		populateFromWhere(table, query, buf, paramMap);
 
 		// Order by
 		if (!ValueUtils.isEmpty(query.getOrder())) {
@@ -245,27 +262,47 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(order.getField())).append(order.isAscending() ? " asc" : " desc");
 		}
 
-		List<T> list = this.namedParameterJdbcTemplate.query(buf.toString(), paramMap, new RowMapper<T>() {
-			@Override
-			public T mapRow(ResultSet rs, int rowNum) throws SQLException {
-				T data = newInstance(clazz);
-
-				// Select all fields
-				if (columnNameList.isEmpty()) {
-					for (Column column : table.getColumnList())
-						setFieldValue(data, rs, column);
-					return data;
+		List<T> list = null;
+		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(dbType) || query.getPageIndex() < 0 || query.getPageSize() <= 0) {
+			list = this.namedParameterJdbcTemplate.query(buf.toString(), paramMap, new RowMapper<T>() {
+				@Override
+				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+					return newInstance(table, columnNameList, rs, clazz);
 				}
-
-				// Select some fields
-				for (String columnName : columnNameList)
-					setFieldValue(data, rs, table.getColumn(columnName));
-				return data;
-			}
-		});
-
+			});
+		} else {
+			list = this.namedParameterJdbcTemplate.query(buf.toString(), paramMap, new ResultSetExtractor<List<T>>() {
+				@Override
+				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<T> list = new ArrayList<T>();
+					int firstRowIndex = query.getPageIndex() * query.getPageSize();
+					for (int i = 0; i < firstRowIndex; i++)
+						rs.next();
+					while (rs.next()) {
+						list.add(newInstance(table, columnNameList, rs, clazz));
+					}
+					return list;
+				}
+			});
+		}
 		return list;
 	}
+	private static <T> T newInstance(Table table, List<String> columnNameList, ResultSet rs, Class<T> clazz) throws SQLException {
+		T data = newInstance(clazz);
+
+		// Select all fields
+		if (columnNameList.isEmpty()) {
+			for (Column column : table.getColumnList())
+				setFieldValue(data, rs, column);
+			return data;
+		}
+
+		// Select some fields
+		for (String columnName : columnNameList)
+			setFieldValue(data, rs, table.getColumn(columnName));
+		return data;
+	}
+
 	private static void setFieldValue(Object data, ResultSet rs, Column column) throws SQLException {
 		Field field = column.getField();
 		try {
@@ -277,32 +314,31 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 	}
 	private static Object toRequiredType(ResultSet rs, String name, Class<?> requiredType) throws SQLException {
-		Object obj = rs.getObject(name);
-		if (obj == null)
-			return obj;
-		if (requiredType.isAssignableFrom(obj.getClass()))
-			return obj;
-		if (requiredType.isAssignableFrom(String.class))
-			return rs.getString(name);
-		if (requiredType.isAssignableFrom(BigDecimal.class))
-			return rs.getBigDecimal(name);
-		if (requiredType.isAssignableFrom(Date.class))
-			return rs.getTimestamp(name);
-		if (requiredType.isAssignableFrom(Double.class))
-			return rs.getDouble(name);
-		if (requiredType.isAssignableFrom(Integer.class))
-			return rs.getInt(name);
-		if (requiredType.isAssignableFrom(Long.class))
-			return rs.getLong(name);
-		if (requiredType.isAssignableFrom(Float.class))
-			return rs.getFloat(name);
-		if (requiredType.isAssignableFrom(Boolean.class))
-			return rs.getBoolean(name);
-		if (requiredType.isAssignableFrom(byte[].class))
-			return rs.getBytes(name);
-		if (requiredType.isAssignableFrom(byte.class))
-			return rs.getByte(name);
-		return obj;
+		if (ValueUtils.isPrimitive(requiredType)) {
+			if (requiredType.equals(String.class))
+				return rs.getString(name);
+			if (requiredType.equals(Character.class) || requiredType.equals(char.class))
+				return rs.getDouble(name);
+			if (requiredType.equals(BigDecimal.class))
+				return rs.getBigDecimal(name);
+			if (requiredType.equals(Date.class))
+				return rs.getTimestamp(name);
+			if (requiredType.equals(Double.class) || requiredType.equals(double.class))
+				return rs.getDouble(name);
+			if (requiredType.equals(Float.class) || requiredType.equals(float.class))
+				return rs.getFloat(name);
+			if (requiredType.equals(Long.class) || requiredType.equals(long.class))
+				return rs.getLong(name);
+			if (requiredType.equals(Integer.class) || requiredType.equals(int.class))
+				return rs.getInt(name);
+			if (requiredType.equals(Boolean.class) || requiredType.equals(boolean.class))
+				return rs.getBoolean(name);
+			if (requiredType.equals(Byte[].class) || requiredType.equals(byte[].class))
+				return rs.getBytes(name);
+			if (requiredType.equals(Byte.class) || requiredType.equals(byte.class))
+				return rs.getByte(name);
+		}
+		return rs.getObject(name);
 	}
 	private int populateWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
 		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
@@ -349,27 +385,31 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception {
+	public <T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public <T> int deleteList(Class<T> clazz, Object condition) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotNull("condition", condition);
 
-	@Override
-	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
+		final Table table = getTable(clazz);
+		Query query = toQuery(table, condition);
 
+		StringBuffer buf = new StringBuffer("delete");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> paramMap = new ListOrderedMap();
+		populateFromWhere(table, query, buf, paramMap);
+
+		return this.namedParameterJdbcTemplate.update(buf.toString(), paramMap);
 	}
 
 	public String getDbType() {
@@ -436,8 +476,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 						table.setName(tableAnn.name().toLowerCase());
 				}
 				checkAndPopulateDomainAndName(table, clazz);
-
-				// PkColumns
 
 				// Columns
 				for (Field field : ReflectionUtils.getFieldList(clazz, false))

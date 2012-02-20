@@ -101,7 +101,7 @@ public class DmlHibernate extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> int count(Class<T> clazz, Object condition) throws Exception {
+	public <T> int selectSize(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -113,27 +113,21 @@ public class DmlHibernate extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListForUpdate(Class<T> clazz, Object condition) throws Exception {
+	public <T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> List<T> selectListForUpdate(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
+	public <T> int deleteList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> void deleteList(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-
+		return 0;
 	}
 
 }

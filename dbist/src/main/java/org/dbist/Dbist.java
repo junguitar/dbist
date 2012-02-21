@@ -19,7 +19,7 @@ package org.dbist;
  * The main factory and util class of Dbist framework
  * 
  * @author Steve M. Jung
- * @since 2 June 2011 (version 0.0.1)
+ * @since 2011. 6. 2. (version 0.0.1)
  */
 public class Dbist {
 	

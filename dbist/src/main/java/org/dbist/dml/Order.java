@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.dbist.dml;
 
 /**
  * @author Steve M. Jung
- * @since 2 June 2011 (version 0.0.1)
+ * @since 2011. 6. 2. (version 0.0.1)
  */
 public class Order {
 	private String field;

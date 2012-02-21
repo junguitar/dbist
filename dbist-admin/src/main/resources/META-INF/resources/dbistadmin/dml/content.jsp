@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.dml.Page"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dbist.dml.Query"%>
 <%@page import="org.dbist.admin.ParameterUtils"%>
@@ -175,7 +176,8 @@
 			Query query = new Query();
 			query.setPageIndex(pageIndex);
 			query.setPageSize(pageSize);
-			List<?> list = dml.selectList(clazz, query);
+			Page<?> _page = dml.selectPage(clazz, query);
+			List<?> list = _page.getList();
 	%>
 	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
 		<input name="_method" type="hidden" value="" /> <input name="_selected_id" type="hidden" value="" />

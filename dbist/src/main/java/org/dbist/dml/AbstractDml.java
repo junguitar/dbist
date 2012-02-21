@@ -226,20 +226,32 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		ValueUtils.assertNotNull("query", query);
-		return select(selectList(query, paramMap, requiredType, 0, 2));
+	public <T> T select(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("query", sql);
+		return select(selectList(sql, paramMap, requiredType, 0, 2));
 	}
 
 	@Override
-	public <T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception {
-		return select(query, paramMap, requiredType);
+	public <T> Page<T> selectPage(Class<T> clazz, Query query) throws Exception {
+		Page<T> page = new Page<T>();
+		page.setIndex(query.getPageIndex());
+		page.setSize(query.getPageSize());
+		page.setTotalSize(selectSize(clazz, query));
+		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
+			page.setLastIndex((page.getTotalSize() / page.getSize()) + (page.getTotalSize() % page.getSize() == 0 ? 0 : 1));
+		page.setList(selectList(clazz, query));
+		return page;
 	}
 
 	@Override
-	public <T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize)
+	public <T> T selectByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		return select(sql, paramMap, requiredType);
+	}
+
+	@Override
+	public <T> List<T> selectListByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
-		return selectList(query, paramMap, requiredType, pageIndex, pageSize);
+		return selectList(sql, paramMap, requiredType, pageIndex, pageSize);
 	}
 
 	@SuppressWarnings("unchecked")

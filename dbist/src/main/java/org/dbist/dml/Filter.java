@@ -58,10 +58,10 @@ public class Filter {
 	public void setRightOperand(List<Object> rightOperand) {
 		this.rightOperand = rightOperand;
 	}
-	public <T> T addRightOperand(T rightOperand) {
+	public Filter addRightOperand(Object rightOperand) {
 		if (this.rightOperand == null)
 			this.rightOperand = new ArrayList<Object>();
 		this.rightOperand.add(rightOperand);
-		return rightOperand;
+		return this;
 	}
 }

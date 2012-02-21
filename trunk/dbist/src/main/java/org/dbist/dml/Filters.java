@@ -38,11 +38,11 @@ public class Filters {
 	public void setFilter(List<Filter> filter) {
 		this.filter = filter;
 	}
-	public Filter addFilter(Filter filter) {
+	public Filters addFilter(Filter filter) {
 		if (this.filter == null)
 			this.filter = new ArrayList<Filter>();
 		this.filter.add(filter);
-		return filter;
+		return this;
 	}
 	public Filters addFilter(String leftOperand, Object rightOperand) {
 		addFilter(new Filter(leftOperand, rightOperand));
@@ -62,6 +62,6 @@ public class Filters {
 		if (this.filters == null)
 			this.filters = new ArrayList<Filters>();
 		this.filters.add(filters);
-		return filters;
+		return this;
 	}
 }

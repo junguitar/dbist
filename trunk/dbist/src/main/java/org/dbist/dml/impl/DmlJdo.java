@@ -131,7 +131,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> List<T> selectList(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

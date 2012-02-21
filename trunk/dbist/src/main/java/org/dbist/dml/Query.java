@@ -45,11 +45,11 @@ public class Query extends Filters {
 	public void setField(List<String> field) {
 		this.field = field;
 	}
-	public String addField(String field) {
+	public Query addField(String field) {
 		if (this.field == null)
 			this.field = new ArrayList<String>();
 		this.field.add(field);
-		return field;
+		return this;
 	}
 	public List<Order> getOrder() {
 		return order;
@@ -57,10 +57,13 @@ public class Query extends Filters {
 	public void setOrder(List<Order> order) {
 		this.order = order;
 	}
-	public Order addOrder(Order order) {
+	public Query addOrder(Order order) {
 		if (this.order == null)
 			this.order = new ArrayList<Order>();
 		this.order.add(order);
-		return order;
+		return this;
+	}
+	public Query addOrder(String field, boolean ascending) {
+		return addOrder(new Order(field, ascending));
 	}
 }

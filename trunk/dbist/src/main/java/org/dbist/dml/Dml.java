@@ -87,7 +87,7 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T select(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> T select(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
 	 * Select a data as the requiredType by the query (SQL query) and the paramMap
@@ -98,7 +98,7 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T selectByNativeQuery(String query, Map<String, Object> paramMap, T requiredType) throws Exception;
+	<T> T selectByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.
@@ -248,28 +248,34 @@ public interface Dml {
 	<T> List<T> selectList(Class<T> clazz, Object condition) throws Exception;
 	<T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception;
 
+	<T> Page<T> selectPage(Class<T> clazz, Query query) throws Exception;
+
 	/**
 	 * Select some data as the requiredType by the query and the paramMap<br>
 	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query means HQL query. ...
 	 * 
-	 * @param query
+	 * @param sql
 	 * @param paramMap
 	 * @param requiredType
+	 * @param pageIndex
+	 * @param pageSize
 	 * @return
 	 * @throws Exception
 	 */
-	<T> List<T> selectList(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> List<T> selectList(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Select some data as the requiredType by the query (SQL query) and the paramMap
 	 * 
-	 * @param query
+	 * @param sql
 	 * @param paramMap
 	 * @param requiredType
+	 * @param pageIndex
+	 * @param pageSize
 	 * @return
 	 * @throws Exception
 	 */
-	<T> List<T> selectListByNativeQuery(String query, Map<String, Object> paramMap, T requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> List<T> selectListByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

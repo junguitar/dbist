@@ -41,6 +41,7 @@ import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
 import org.dbist.dml.Query;
+import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
 import org.dbist.metadata.Table;
@@ -109,7 +110,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(data);
 		String sql = table.getUpdateSql();
 		Map<String, ?> paramMap = toParamMap(table, data);
-		update(sql, paramMap);
+		// TODO DataNotFoundException message
+		if (update(sql, paramMap) != 1)
+			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
 	@Override
@@ -128,7 +131,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(data);
 		String sql = table.getUpdateSql(fieldNames);
 		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
-		update(sql, paramMap);
+		// TODO DataNotFoundException message
+		if (update(sql, paramMap) != 1)
+			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
 	@Override
@@ -147,7 +152,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(data);
 		String sql = table.getDeleteSql();
 		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
-		update(sql, paramMap);
+		// TODO DataNotFoundException message
+		if (update(sql, paramMap) != 1)
+			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
 	@Override
@@ -160,13 +167,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		updateBatch(sql, paramMapList);
 	}
 
-	private void update(String sql, Map<String, ?> paramMap) {
-		this.namedParameterJdbcTemplate.update(sql, paramMap);
+	private int update(String sql, Map<String, ?> paramMap) {
+		return this.namedParameterJdbcTemplate.update(sql, paramMap);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void updateBatch(String sql, List<Map<String, ?>> paramMapList) {
-		this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
+	private int[] updateBatch(String sql, List<Map<String, ?>> paramMapList) {
+		return this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
 	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
@@ -360,18 +367,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static <T> T newInstance(ResultSet rs, Class<T> clazz) throws SQLException {
 		if (ValueUtils.isPrimitive(clazz))
 			return (T) toRequiredType(rs, 1, clazz);
-		T data = newInstance(clazz);
+
 		ResultSetMetaData metadata = rs.getMetaData();
+		Map<String, Field> fieldCache;
+		if (classFieldCache.containsKey(clazz)) {
+			fieldCache = classFieldCache.get(clazz);
+		} else {
+			fieldCache = new ConcurrentHashMap<String, Field>();
+			classFieldCache.put(clazz, fieldCache);
+		}
+
+		T data = newInstance(clazz);
 		for (int i = 0; i < metadata.getColumnCount();) {
 			i++;
 			String name = metadata.getColumnName(i);
-			Map<String, Field> fieldCache;
-			if (classFieldCache.containsKey(clazz)) {
-				fieldCache = classFieldCache.get(clazz);
-			} else {
-				fieldCache = new ConcurrentHashMap<String, Field>();
-				classFieldCache.put(clazz, fieldCache);
-			}
 			Field field;
 			if (fieldCache.containsKey(name)) {
 				field = fieldCache.get(name);
@@ -394,18 +403,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			setFieldValue(rs, i, data, field);
 		}
 		return data;
-
-		//		// Select all fields
-		//		if (columnNameList.isEmpty()) {
-		//			for (Column column : table.getColumnList())
-		//				setFieldValue(data, rs, column);
-		//			return data;
-		//		}
-		//
-		//		// Select some fields
-		//		for (String columnName : columnNameList)
-		//			setFieldValue(data, rs, table.getColumn(columnName));
-		//		return data;
 	}
 	private static void setFieldValue(ResultSet rs, int index, Object data, Field field) throws SQLException {
 		try {
@@ -442,33 +439,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				return rs.getByte(index);
 		}
 		return rs.getObject(index);
-	}
-	private static Object toRequiredType(ResultSet rs, String name, Class<?> requiredType) throws SQLException {
-		if (ValueUtils.isPrimitive(requiredType)) {
-			if (requiredType.equals(String.class))
-				return rs.getString(name);
-			if (requiredType.equals(Character.class) || requiredType.equals(char.class))
-				return rs.getDouble(name);
-			if (requiredType.equals(BigDecimal.class))
-				return rs.getBigDecimal(name);
-			if (requiredType.equals(Date.class))
-				return rs.getTimestamp(name);
-			if (requiredType.equals(Double.class) || requiredType.equals(double.class))
-				return rs.getDouble(name);
-			if (requiredType.equals(Float.class) || requiredType.equals(float.class))
-				return rs.getFloat(name);
-			if (requiredType.equals(Long.class) || requiredType.equals(long.class))
-				return rs.getLong(name);
-			if (requiredType.equals(Integer.class) || requiredType.equals(int.class))
-				return rs.getInt(name);
-			if (requiredType.equals(Boolean.class) || requiredType.equals(boolean.class))
-				return rs.getBoolean(name);
-			if (requiredType.equals(Byte[].class) || requiredType.equals(byte[].class))
-				return rs.getBytes(name);
-			if (requiredType.equals(Byte.class) || requiredType.equals(byte.class))
-				return rs.getByte(name);
-		}
-		return rs.getObject(name);
 	}
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
 		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";

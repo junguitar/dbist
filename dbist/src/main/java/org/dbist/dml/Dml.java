@@ -264,6 +264,8 @@ public interface Dml {
 	 */
 	<T> List<T> selectList(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
+	<T> Page<T> selectPage(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+
 	/**
 	 * Select some data as the requiredType by the query (SQL query) and the paramMap
 	 * 
@@ -276,6 +278,8 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectListByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+
+	<T> Page<T> selectPageByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

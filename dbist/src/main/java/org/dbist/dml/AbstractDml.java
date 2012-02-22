@@ -238,7 +238,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		page.setSize(query.getPageSize());
 		page.setTotalSize(selectSize(clazz, query));
 		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
-			page.setLastIndex((page.getTotalSize() / page.getSize()) + (page.getTotalSize() % page.getSize() == 0 ? 0 : 1));
+			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
 		page.setList(selectList(clazz, query));
 		return page;
 	}
@@ -252,6 +252,12 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	public <T> List<T> selectListByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
 		return selectList(sql, paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	@Override
+	public <T> Page<T> selectPageByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectPage(sql, paramMap, requiredType, pageIndex, pageSize);
 	}
 
 	@SuppressWarnings("unchecked")

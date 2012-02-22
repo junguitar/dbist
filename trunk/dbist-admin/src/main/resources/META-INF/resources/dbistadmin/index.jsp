@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.admin.ParameterUtils"%>
 <%@page import="net.sf.common.util.ValueUtils"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -9,7 +10,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <%
-	String menu = ValueUtils.toString(request.getParameter("menu"), "home");
+	String menu = ValueUtils.toString(ParameterUtils.get(request, "_menu"), "home");
 	String submenuUrl = menu + "/submenu.jsp";
 	String contentUrl = menu + "/content.jsp";
 %>
@@ -28,7 +29,7 @@
 				<a href="index.jsp">Dbist - Administrator</a>
 			</div>
 			<div id="menu">
-				<a href="index.jsp?menu=home" <%=menu.equals("home") ? " class=\"menuSelected\"" : ""%>>Home</a> <a href="index.jsp?menu=dml"
+				<a href="index.jsp?_menu=home" <%=menu.equals("home") ? " class=\"menuSelected\"" : ""%>>Home</a> <a href="index.jsp?_menu=dml"
 					<%=menu.equals("dml") ? " class=\"menuSelected\"" : ""%>>Dml</a>
 			</div>
 		</div>

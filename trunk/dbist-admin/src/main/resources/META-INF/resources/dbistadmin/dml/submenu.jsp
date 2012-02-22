@@ -24,15 +24,15 @@
 	BeanUtils beanUtils = BeanUtils.getInstance(contextName);
 
 	// DML bean to use
-	String dml = ParameterUtils.get(request, "dml");
+	String dml = ParameterUtils.get(request, "_dml");
 	// DML beans usable
 	String[] dmls = beanUtils.getNames(Dml.class);
 
 	// prefix of data model class
-	String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prefix")).trim(), "/", ".");
+	String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prefix")).trim(), "/", ".");
 	List<Select> selectList = new ArrayList<Select>();
 	if (!ValueUtils.isEmpty(prefix) && !prefix.contains("*")) {
-		String[] paths = ParameterUtils.getValues(request, "path");
+		String[] paths = ParameterUtils.getValues(request, "_path");
 
 		int pathSize = ValueUtils.isEmpty(paths) ? 0 : paths.length;
 		int i = 0;
@@ -40,7 +40,7 @@
 		List<String> classNameList = null;
 		{
 			String prefixReplace = prefix + (prefix.endsWith(".") ? "" : ".");
-			String prevPrefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prevPrefix")).trim(), "/", ".");
+			String prevPrefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prevPrefix")).trim(), "/", ".");
 			if (prefix.equals(prevPrefix))
 				classNameList = (List<String>) request.getSession().getAttribute("dml.submenu.classNameList");
 			if (classNameList == null) {
@@ -82,11 +82,11 @@
 	}
 %>
 <form name="submenuForm">
-	<input name="menu" type="hidden" value="<%=ValueUtils.toNotNull(ParameterUtils.get(request, "menu"))%>" /> <input name="prevPrefix" type="hidden"
-		value="<%=prefix%>" />
+	<input name="_menu" type="hidden" value="<%=ValueUtils.toNotNull(ParameterUtils.get(request, "_menu"))%>" /> <input name="_prevPrefix" type="hidden"
+		value="<%=prefix%>" /> <input name="_pageIndex" type="hidden" value="0" />
 	<table>
 		<tr>
-			<td>dml: <select name="dml" onchange="submit()">
+			<td>dml: <select name="_dml" onchange="submit()">
 					<option value=""></option>
 					<%
 						int dmlSize = dmls.length;
@@ -96,9 +96,9 @@
 					<%
 						}
 					%>
-			</select>&nbsp;&nbsp;&nbsp;&nbsp; class: <input id="dmlSubmenuPrefix" name="prefix" type="text" value="<%=prefix%>" onchange="submit()" /> <%
+			</select>&nbsp;&nbsp;&nbsp;&nbsp; class: <input id="dmlSubmenuPrefix" name="_prefix" type="text" value="<%=prefix%>" onchange="submit()" /> <%
  	for (Select select : selectList) {
- %> <select name="path" onchange="submit()">
+ %> <select name="_path" onchange="submit()">
 					<option value=""></option>
 					<%
 						for (String option : select.options) {

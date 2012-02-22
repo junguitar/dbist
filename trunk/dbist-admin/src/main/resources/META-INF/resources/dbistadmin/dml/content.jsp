@@ -26,13 +26,13 @@
 
 	Dml dml = null;
 	Class<?> clazz = null;
-	String dmlName = ValueUtils.toNull(ParameterUtils.get(request, "dml"));
+	String dmlName = ValueUtils.toNull(ParameterUtils.get(request, "_dml"));
 	if (dmlName != null) {
 		dml = beanUtils.get(dmlName, Dml.class);
-		String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "prefix")).trim(), "/", ".");
+		String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prefix")).trim(), "/", ".");
 		if (!ValueUtils.isEmpty(prefix)) {
 			StringBuffer buf = new StringBuffer(prefix);
-			String[] paths = ParameterUtils.getValues(request, "path");
+			String[] paths = ParameterUtils.getValues(request, "_path");
 			if (!ValueUtils.isEmpty(paths)) {
 				for (String path : paths) {
 					if (ValueUtils.isEmpty(path))
@@ -63,7 +63,7 @@
 	} else {
 		Object data = null;
 		String method = request.getParameter("_method");
-		String id = ValueUtils.toNull(request.getParameter("_selected_id"));
+		String id = ValueUtils.toNull(request.getParameter("_selectedId"));
 		try {
 			if ("select".equals(method)) {
 				data = dml.select(clazz, ValueUtils.isEmpty(id) ? request : StringUtils.commaDelimitedListToStringArray(id));
@@ -78,6 +78,8 @@
 			} else if ("delete".equals(method)) {
 				data = dml.delete(clazz, request);
 				data = null;
+			} else if ("clear".equals(method)) {
+				data = clazz.newInstance();
 			} else if ("deleteList".equals(method)) {
 				// TODO
 			}
@@ -109,12 +111,15 @@
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
-				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Insert" class="button" onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Update" class="button" onmouseover="dataForm._method.value = 'update'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Upsert" class="button" onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Clear" class="button" onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
+				<input type="submit" value="Select" class="button" onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'select'"
+					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Insert" class="button"
+					onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
+					value="Update" class="button" onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'update'"
+					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Upsert" class="button"
+					onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
+					value="Delete" class="button" onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'delete'"
+					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Clear" class="button"
+					onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -171,16 +176,21 @@
 	</form>
 
 	<%
-		int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "pageIndex"), 0);
-			int pageSize = ValueUtils.toInteger(ParameterUtils.get(request, "pageSize"), 20);
+		int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "_pageIndex"), 0);
+			int pageSize = ValueUtils.toInteger(ParameterUtils.get(request, "_pageSize"), 10);
 			Query query = new Query();
 			query.setPageIndex(pageIndex);
 			query.setPageSize(pageSize);
 			Page<?> _page = dml.selectPage(clazz, query);
+			int lastPageIndex = _page.getLastIndex();
+			int pageGroupFromIndex = (pageIndex / pageSize) * pageSize;
+			int pageGroupToIndex = Math.min(lastPageIndex, pageGroupFromIndex + pageSize);
+			int totalSize = _page.getTotalSize();
 			List<?> list = _page.getList();
 	%>
-	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
-		<input name="_method" type="hidden" value="" /> <input name="_selected_id" type="hidden" value="" />
+	<form name="listForm" method="get" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
+		<input name="_method" type="hidden" value="" /> <input name="_pageIndex" type="hidden" value="<%=pageIndex%>" /> <input name="_selectedId"
+			type="hidden" value="" />
 		<div class="titleScope">
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) List
@@ -190,6 +200,38 @@
 			</div>
 		</div>
 		<div class="scope listScope">
+			<div class="pagination">
+				page:
+				<%
+				if (pageGroupFromIndex != 0) {
+			%>
+				<a onclick="listForm._pageIndex.value = '<%=pageGroupFromIndex - 1%>' listForm.submit();">&lt;&lt;</a>
+				<%
+					}
+
+						for (int i = pageGroupFromIndex; i < pageGroupToIndex + 1;) {
+							if (i == pageIndex) {
+				%>
+				<b><%=++i%></b>
+				<%
+					} else {
+				%>
+				<a onclick="listForm._pageIndex.value = '<%=i%>'; listForm.submit();"><%=++i%></a>
+				<%
+					}
+						}
+
+						if (pageGroupToIndex < lastPageIndex) {
+				%>
+				<a onclick="listForm._pageIndex.value = '<%=pageGroupToIndex + 1%>' listForm.submit();">&gt;&gt;</a>
+				<%
+					}
+				%>
+				<div class="totalSize">
+					(total:
+					<%=totalSize%>)
+				</div>
+			</div>
 			<table>
 				<thead>
 					<tr>
@@ -235,6 +277,7 @@
 					</tr>
 					<%
 						} else {
+								int no = pageIndex * pageSize;
 								for (Object item : list) {
 									StringBuffer idRefBuf = new StringBuffer();
 									int i = 0;
@@ -243,8 +286,8 @@
 									String idRef = idRefBuf.toString();
 					%>
 					<tr class="listRow<%=idRef.equals(id) ? " listRowSelected" : ""%>"
-						onclick="listForm._method.value = 'select'; listForm._selected_id.value = '<%=idRef%>'; listForm.submit();">
-						<td class="shortField"></td>
+						onclick="listForm._method.value = 'select'; listForm._selectedId.value = '<%=idRef%>'; listForm.submit();">
+						<td class="shortField"><%=++no%></td>
 						<td class="shortField"><input type="checkbox" /></td>
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {

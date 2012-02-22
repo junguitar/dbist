@@ -40,6 +40,7 @@ import org.dbist.dml.Dml;
 import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
 import org.dbist.dml.Order;
+import org.dbist.dml.Page;
 import org.dbist.dml.Query;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
@@ -300,7 +301,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			// Oracle
 			if (DBTYPE_ORACLE.equals(dbType)) {
 				String subsql = null;
-				final int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
+				int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
 				if (forUpdateIndex > -1) {
 					subsql = sql.substring(forUpdateIndex);
 					sql = sql.substring(0, forUpdateIndex - 1);
@@ -378,29 +379,38 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		T data = newInstance(clazz);
-		for (int i = 0; i < metadata.getColumnCount();) {
-			i++;
-			String name = metadata.getColumnName(i);
-			Field field;
-			if (fieldCache.containsKey(name)) {
-				field = fieldCache.get(name);
-			} else {
-				field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
-				if (field == null) {
-					for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
-						if (!f.getName().equalsIgnoreCase(name))
-							continue;
-						field = f;
-						break;
-					}
-					if (field == null)
-						field = ReflectionUtils.NULL_FIELD;
-				}
-				fieldCache.put(name, field);
+		if (data instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>) data;
+			for (int i = 0; i < metadata.getColumnCount();) {
+				i++;
+				String name = metadata.getColumnName(i);
+				map.put(name, toRequiredType(rs, i, null));
 			}
-			if (field == null || ReflectionUtils.NULL_FIELD.equals(field))
-				continue;
-			setFieldValue(rs, i, data, field);
+		} else {
+			for (int i = 0; i < metadata.getColumnCount();) {
+				i++;
+				String name = metadata.getColumnName(i);
+				Field field;
+				if (fieldCache.containsKey(name)) {
+					field = fieldCache.get(name);
+				} else {
+					field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
+					if (field == null) {
+						for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
+							if (!f.getName().equalsIgnoreCase(name))
+								continue;
+							field = f;
+							break;
+						}
+						if (field == null)
+							field = ReflectionUtils.NULL_FIELD;
+					}
+					fieldCache.put(name, field);
+				}
+				if (field == null || ReflectionUtils.NULL_FIELD.equals(field))
+					continue;
+				setFieldValue(rs, i, data, field);
+			}
 		}
 		return data;
 	}
@@ -414,6 +424,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 	}
 	private static Object toRequiredType(ResultSet rs, int index, Class<?> requiredType) throws SQLException {
+		if (requiredType == null)
+			return rs.getObject(index);
 		if (ValueUtils.isPrimitive(requiredType)) {
 			if (requiredType.equals(String.class))
 				return rs.getString(index);
@@ -491,6 +503,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		sql = sql.trim();
 		sql = appyPagination(sql, paramMap, pageIndex, pageSize);
 		return query(sql, paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	@Override
+	public <T> Page<T> selectPage(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		Page<T> page = new Page<T>();
+		page.setIndex(pageIndex);
+		page.setSize(pageSize);
+		page.setList(selectList(sql, paramMap, requiredType, pageIndex, pageSize));
+		int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
+		if (forUpdateIndex > -1)
+			sql = sql.substring(0, forUpdateIndex - 1);
+		sql = "select count(*) from (" + sql + ")";
+		page.setTotalSize(select(sql, paramMap, Integer.class));
+		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
+			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
+		return page;
 	}
 
 	@Override

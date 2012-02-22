@@ -15,6 +15,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<scm>
+		<url>http://dbist.googlecode.com/svn</url>
+		<connection>scm:svn:http://dbist.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://dbist.googlecode.com/svn/trunk/</developerConnection>
+	</scm>
+
+	<issueManagement>
+		<system>googlecode</system>
+		<url>http://code.google.com/p/dbist/issues</url>
+	</issueManagement>
+
 	<build>
 		<finalName>dbist-example</finalName>
 		<plugins>
@@ -28,7 +39,27 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.jvnet.wagon-svn</groupId>
+				<artifactId>wagon-svn</artifactId>
+				<version>1.9</version>
+			</extension>
+		</extensions>
 	</build>
 
 	<repositories>
@@ -117,4 +148,17 @@
 			<version>1.7</version>
 		</dependency>
 	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<name>Googlecode Snapshots</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

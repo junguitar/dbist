@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.sql.DataSource;
+
 import net.sf.common.util.Closure;
 import net.sf.common.util.ReflectionUtils;
 import net.sf.common.util.SyncCtrlUtils;
@@ -49,10 +51,10 @@ import org.dbist.metadata.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.util.StringUtils;
 
 /**
@@ -71,16 +73,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private String dbType;
 	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
-	private JdbcTemplate jdbcTemplate;
-	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	private DataSource dataSource;
+	private JdbcOperations jdbcOperations;
+	private NamedParameterJdbcOperations namedParameterJdbcOperations;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 		ValueUtils.assertNotEmpty("domain", getDomain());
-		ValueUtils.assertNotEmpty("jdbcTemplate", getJdbcTemplate());
-		ValueUtils.assertNotEmpty("namedParameterJdbcTemplate", getNamedParameterJdbcTemplate());
-		DatabaseMetaData metadata = jdbcTemplate.getDataSource().getConnection().getMetaData();
+		ValueUtils.assertNotEmpty("dataSource", getDataSource());
+		ValueUtils.assertNotEmpty("jdbcOperations", getJdbcOperations());
+		ValueUtils.assertNotEmpty("namedParameterJdbcOperations", getNamedParameterJdbcOperations());
+		DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
 		dbType = metadata.getDatabaseProductName().toLowerCase();
 		if (!DBTYPE_SUPPORTED_LIST.contains(dbType))
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
@@ -169,12 +173,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private int update(String sql, Map<String, ?> paramMap) {
-		return this.namedParameterJdbcTemplate.update(sql, paramMap);
+		return this.namedParameterJdbcOperations.update(sql, paramMap);
 	}
 
 	@SuppressWarnings("unchecked")
 	private int[] updateBatch(String sql, List<Map<String, ?>> paramMapList) {
-		return this.namedParameterJdbcTemplate.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
+		return this.namedParameterJdbcOperations.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
 	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
@@ -228,7 +232,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Map<String, Object> paramMap = new ListOrderedMap();
 		appendFromWhere(table, query, false, buf, paramMap);
 
-		return this.namedParameterJdbcTemplate.queryForInt(buf.toString(), paramMap);
+		return this.namedParameterJdbcOperations.queryForInt(buf.toString(), paramMap);
 	}
 
 	@Override
@@ -340,14 +344,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			throws Exception {
 		List<T> list = null;
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(dbType) || pageIndex < 0 || pageSize <= 0) {
-			list = this.namedParameterJdbcTemplate.query(sql, paramMap, new RowMapper<T>() {
+			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
 				@Override
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
 					return newInstance(rs, requiredType);
 				}
 			});
 		} else {
-			list = this.namedParameterJdbcTemplate.query(sql, paramMap, new ResultSetExtractor<List<T>>() {
+			list = this.namedParameterJdbcOperations.query(sql, paramMap, new ResultSetExtractor<List<T>>() {
 				@Override
 				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<T> list = new ArrayList<T>();
@@ -534,7 +538,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Map<String, Object> paramMap = new ListOrderedMap();
 		appendFromWhere(table, query, false, buf, paramMap);
 
-		return this.namedParameterJdbcTemplate.update(buf.toString(), paramMap);
+		return this.namedParameterJdbcOperations.update(buf.toString(), paramMap);
 	}
 
 	public String getDbType() {
@@ -558,17 +562,23 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	public List<String> getDomainList() {
 		return domainList;
 	}
-	public JdbcTemplate getJdbcTemplate() {
-		return jdbcTemplate;
+	public DataSource getDataSource() {
+		return dataSource;
 	}
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
 	}
-	public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
-		return namedParameterJdbcTemplate;
+	public JdbcOperations getJdbcOperations() {
+		return jdbcOperations;
 	}
-	public void setNamedParameterJdbcTemplate(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
-		this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+	public void setJdbcOperations(JdbcOperations jdbcOperations) {
+		this.jdbcOperations = jdbcOperations;
+	}
+	public NamedParameterJdbcOperations getNamedParameterJdbcOperations() {
+		return namedParameterJdbcOperations;
+	}
+	public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
+		this.namedParameterJdbcOperations = namedParameterJdbcOperations;
 	}
 
 	private static Map<Class<?>, Table> cache = new ConcurrentHashMap<Class<?>, Table>();
@@ -652,7 +662,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			domainName = domainName.toLowerCase();
 			String _sql = StringUtils.replace(sql, "${domain}", domainName);
 			for (String tableName : tableNameList) {
-				if (jdbcTemplate.queryForInt(_sql, tableName) > 0) {
+				if (jdbcOperations.queryForInt(_sql, tableName) > 0) {
 					table.setDomain(domainName);
 					table.setName(tableName);
 					populated = true;
@@ -672,7 +682,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND, ValueUtils.toMap("queryName: primary key", "dbType:" + dbType)));
 		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
-		table.setPkColumnNameList(jdbcTemplate.queryForList(sql, String.class, table.getName()));
+		table.setPkColumnNameList(jdbcOperations.queryForList(sql, String.class, table.getName()));
 
 		return table;
 	}
@@ -717,7 +727,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		};
 		if (columnAnn != null) {
 			if (!ValueUtils.isEmpty(columnAnn.name())) {
-				tabColumn = jdbcTemplate.queryForObject(sql, rowMapper, tableNamae, columnAnn.name());
+				tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnAnn.name());
 				if (tabColumn == null)
 					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
 							ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableNamae)));
@@ -727,12 +737,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (tabColumn == null) {
 			String columnName = ValueUtils.toDelimited(field.getName(), '_').toLowerCase();
 			String columnName1 = field.getName().toLowerCase();
-			tabColumn = jdbcTemplate.queryForObject(sql, rowMapper, tableNamae, columnName);
+			tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnName);
 			if (tabColumn == null) {
 				if (columnName.equals(columnName1))
 					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
 							ValueUtils.toMap("column:" + columnName, "table:" + table.getDomain() + "." + tableNamae)));
-				tabColumn = jdbcTemplate.queryForObject(sql, rowMapper, tableNamae, columnName1);
+				tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnName1);
 				if (tabColumn == null)
 					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
 							ValueUtils.toMap("column:" + columnName + " or " + columnName1, "table:" + table.getDomain() + "." + tableNamae)));

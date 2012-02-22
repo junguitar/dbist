@@ -81,7 +81,7 @@
 		}
 	}
 %>
-<form name="submenuForm">
+<form name="submenuForm" method="post">
 	<input name="_menu" type="hidden" value="<%=ValueUtils.toNotNull(ParameterUtils.get(request, "_menu"))%>" /> <input name="_prevPrefix" type="hidden"
 		value="<%=prefix%>" /> <input name="_pageIndex" type="hidden" value="0" />
 	<table>

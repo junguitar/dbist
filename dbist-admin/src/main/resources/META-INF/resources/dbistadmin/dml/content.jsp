@@ -111,15 +111,15 @@
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
-				<input type="submit" value="Select" class="button" onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'select'"
+				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'"
 					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Insert" class="button"
-					onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
-					value="Update" class="button" onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'update'"
+					onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
+					value="Update" class="button" onmouseover="dataForm._method.value = 'update'"
 					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Upsert" class="button"
-					onmouseover="dataForm.method.value = 'post'; dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
-					value="Delete" class="button" onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'delete'"
+					onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
+					value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'"
 					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Clear" class="button"
-					onmouseover="dataForm.method.value = 'get'; dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
+					onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -188,7 +188,7 @@
 			int totalSize = _page.getTotalSize();
 			List<?> list = _page.getList();
 	%>
-	<form name="listForm" method="get" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
+	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
 		<input name="_method" type="hidden" value="" /> <input name="_pageIndex" type="hidden" value="<%=pageIndex%>" /> <input name="_selectedId"
 			type="hidden" value="" />
 		<div class="titleScope">

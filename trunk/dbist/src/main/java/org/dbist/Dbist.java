@@ -22,5 +22,5 @@ package org.dbist;
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public class Dbist {
-	
+
 }

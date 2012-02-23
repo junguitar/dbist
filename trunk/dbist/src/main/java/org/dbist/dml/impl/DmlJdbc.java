@@ -24,8 +24,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
@@ -51,6 +53,7 @@ import org.dbist.metadata.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -66,7 +69,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final String DBTYPE_MYSQL = "mysql";
 	private static final String DBTYPE_ORACLE = "oracle";
-	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
+	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE);
 	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
 
@@ -433,8 +436,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ValueUtils.isPrimitive(requiredType)) {
 			if (requiredType.equals(String.class))
 				return rs.getString(index);
-			if (requiredType.equals(Character.class) || requiredType.equals(char.class))
-				return rs.getDouble(index);
+			if (requiredType.equals(Character.class) || requiredType.equals(char.class)) {
+				String str = rs.getString(index);
+				if (str == null || str.isEmpty())
+					return null;
+				return str.charAt(0);
+			}
 			if (requiredType.equals(BigDecimal.class))
 				return rs.getBigDecimal(index);
 			if (requiredType.equals(Date.class))
@@ -727,26 +734,33 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		};
 		if (columnAnn != null) {
 			if (!ValueUtils.isEmpty(columnAnn.name())) {
-				tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnAnn.name());
-				if (tabColumn == null)
+				try {
+					tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnAnn.name());
+				} catch (EmptyResultDataAccessException e) {
 					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
 							ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableNamae)));
+				}
 			}
 			column.setType(ValueUtils.toNull(columnAnn.type().value()));
 		}
 		if (tabColumn == null) {
-			String columnName = ValueUtils.toDelimited(field.getName(), '_').toLowerCase();
-			String columnName1 = field.getName().toLowerCase();
-			tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnName);
-			if (tabColumn == null) {
-				if (columnName.equals(columnName1))
-					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
-							ValueUtils.toMap("column:" + columnName, "table:" + table.getDomain() + "." + tableNamae)));
-				tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnName1);
-				if (tabColumn == null)
-					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
-							ValueUtils.toMap("column:" + columnName + " or " + columnName1, "table:" + table.getDomain() + "." + tableNamae)));
+			List<String> columnNameCandidates = ValueUtils.toList(ValueUtils.toDelimited(field.getName(), '_').toLowerCase(),
+					ValueUtils.toDelimited(field.getName(), '_', true).toLowerCase(), field.getName().toLowerCase());
+			Set<String> checkedSet = new HashSet<String>();
+			for (String columnName : columnNameCandidates) {
+				if (checkedSet.contains(columnName))
+					continue;
+				try {
+					tabColumn = jdbcOperations.queryForObject(sql, rowMapper, tableNamae, columnName);
+				} catch (EmptyResultDataAccessException e) {
+					checkedSet.add(columnName);
+					continue;
+				}
+				break;
 			}
+			if (tabColumn == null)
+				throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
+						ValueUtils.toMap("column:" + mapOr(columnNameCandidates), "table:" + table.getDomain() + "." + tableNamae)));
 		}
 
 		column.setName(tabColumn.getName());

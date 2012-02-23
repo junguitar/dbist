@@ -111,15 +111,12 @@
 			<%=clazz.getSimpleName()%>
 			(<%=table.getName()%>) Data
 			<div class="titleButtonScope">
-				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'"
-					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Insert" class="button"
-					onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
-					value="Update" class="button" onmouseover="dataForm._method.value = 'update'"
-					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Upsert" class="button"
-					onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input type="submit"
-					value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'"
-					onmouseout="listForm._method.value = ''" /> <input type="submit" value="Clear" class="button"
-					onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
+				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Insert" class="button" onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Update" class="button" onmouseover="dataForm._method.value = 'update'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Upsert" class="button" onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'" onmouseout="listForm._method.value = ''" /> <input
+					type="submit" value="Clear" class="button" onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -184,7 +181,7 @@
 			Page<?> _page = dml.selectPage(clazz, query);
 			int lastPageIndex = _page.getLastIndex();
 			int pageGroupFromIndex = (pageIndex / pageSize) * pageSize;
-			int pageGroupToIndex = Math.min(lastPageIndex, pageGroupFromIndex + pageSize);
+			int pageGroupToIndex = Math.min(lastPageIndex, pageGroupFromIndex + pageSize - 1);
 			int totalSize = _page.getTotalSize();
 			List<?> list = _page.getList();
 	%>
@@ -204,8 +201,14 @@
 				page:
 				<%
 				if (pageGroupFromIndex != 0) {
+						if (pageGroupFromIndex > pageSize) {
 			%>
-				<a onclick="listForm._pageIndex.value = '<%=pageGroupFromIndex - 1%>' listForm.submit();">&lt;&lt;</a>
+				<a onclick="listForm._pageIndex.value = '0'; listForm.submit();">&lt;1&gt;</a>
+				<%
+					}
+				%>
+				<a onclick="listForm._pageIndex.value = '<%=pageGroupFromIndex - 1%>'; listForm.submit();">&lt;<%=pageGroupFromIndex%>&gt;
+				</a>
 				<%
 					}
 
@@ -223,7 +226,9 @@
 
 						if (pageGroupToIndex < lastPageIndex) {
 				%>
-				<a onclick="listForm._pageIndex.value = '<%=pageGroupToIndex + 1%>' listForm.submit();">&gt;&gt;</a>
+				<a onclick="listForm._pageIndex.value = '<%=pageGroupToIndex + 1%>'; listForm.submit();">&lt;<%=pageGroupToIndex + 2%>&gt;
+				</a> <a onclick="listForm._pageIndex.value = '<%=lastPageIndex%>'; listForm.submit();">&lt;<%=lastPageIndex + 1%>&gt;
+				</a>
 				<%
 					}
 				%>

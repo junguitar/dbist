@@ -18,6 +18,8 @@ package org.dbist.dml;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.common.util.ValueUtils;
+
 /**
  * @author Steve M. Jung
  * @since 2011. 6. 2. (version 0.0.1)
@@ -45,10 +47,13 @@ public class Query extends Filters {
 	public void setField(List<String> field) {
 		this.field = field;
 	}
-	public Query addField(String field) {
+	public Query addField(String... field) {
+		if (ValueUtils.isEmpty(field))
+			return this;
 		if (this.field == null)
 			this.field = new ArrayList<String>();
-		this.field.add(field);
+		for (String f : field)
+			this.field.add(f);
 		return this;
 	}
 	public List<Order> getOrder() {
@@ -57,10 +62,13 @@ public class Query extends Filters {
 	public void setOrder(List<Order> order) {
 		this.order = order;
 	}
-	public Query addOrder(Order order) {
+	public Query addOrder(Order... order) {
+		if (ValueUtils.isEmpty(order))
+			return this;
 		if (this.order == null)
 			this.order = new ArrayList<Order>();
-		this.order.add(order);
+		for (Order o : order)
+			this.order.add(o);
 		return this;
 	}
 	public Query addOrder(String field, boolean ascending) {

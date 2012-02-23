@@ -16,7 +16,11 @@
 package org.dbist.dml;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import net.sf.common.util.ValueUtils;
 
 /**
  * @author Steve M. Jung
@@ -38,11 +42,20 @@ public class Filters {
 	public void setFilter(List<Filter> filter) {
 		this.filter = filter;
 	}
-	public Filters addFilter(Filter filter) {
+	public Filters addFilter(Filter... filter) {
+		if (ValueUtils.isEmpty(filter))
+			return this;
 		if (this.filter == null)
 			this.filter = new ArrayList<Filter>();
-		this.filter.add(filter);
+		for (Filter f : filter)
+			this.filter.add(f);
 		return this;
+	}
+	public Filters setFilter(String leftOperand, Object rightOperand) {
+		return removeFilter(leftOperand).addFilter(leftOperand, rightOperand);
+	}
+	public Filters setFilter(String leftOperand, String operator, Object rightOperand) {
+		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand);
 	}
 	public Filters addFilter(String leftOperand, Object rightOperand) {
 		addFilter(new Filter(leftOperand, rightOperand));
@@ -50,6 +63,19 @@ public class Filters {
 	}
 	public Filters addFilter(String leftOperand, String operator, Object rightOperand) {
 		addFilter(new Filter(leftOperand, operator, rightOperand));
+		return this;
+	}
+	public Filters removeFilter(String... leftOperand) {
+		if (this.filter == null || ValueUtils.isEmpty(leftOperand))
+			return null;
+		Set<String> set = ValueUtils.toSet(leftOperand);
+		Set<Filter> removeSet = new HashSet<Filter>(leftOperand.length);
+		for (Filter filter : this.filter) {
+			if (set.contains(filter.getLeftOperand()))
+				continue;
+			removeSet.add(filter);
+		}
+		this.filter.removeAll(removeSet);
 		return this;
 	}
 	public List<Filters> getFilters() {

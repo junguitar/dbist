@@ -27,16 +27,15 @@ import net.sf.common.util.ValueUtils;
 public class Filter {
 	private String leftOperand;
 	private String operator;
-	private List<Object> rightOperand;
+	private List<?> rightOperand;
 	public Filter(String leftOperand) {
 		this.leftOperand = leftOperand;
 	}
-	public Filter(String leftOperand, Object rightOperand) {
+	public Filter(String leftOperand, Object... rightOperand) {
 		this(leftOperand);
-		if (!ValueUtils.isEmpty(rightOperand))
-			addRightOperand(rightOperand);
+		addRightOperand(rightOperand);
 	}
-	public Filter(String leftOperand, String operator, Object rightOperand) {
+	public Filter(String leftOperand, String operator, Object... rightOperand) {
 		this(leftOperand, rightOperand);
 		this.operator = operator;
 	}
@@ -55,13 +54,21 @@ public class Filter {
 	public List<?> getRightOperand() {
 		return rightOperand;
 	}
-	public void setRightOperand(List<Object> rightOperand) {
+	public void setRightOperand(List<?> rightOperand) {
 		this.rightOperand = rightOperand;
 	}
-	public Filter addRightOperand(Object rightOperand) {
+	public void setRightOperand(Object... rightOperand) {
+		this.rightOperand = ValueUtils.toList(rightOperand);
+	}
+	public Filter addRightOperand(Object... rightOperand) {
+		if (ValueUtils.isEmpty(rightOperand))
+			return this;
 		if (this.rightOperand == null)
 			this.rightOperand = new ArrayList<Object>();
-		this.rightOperand.add(rightOperand);
+		@SuppressWarnings("unchecked")
+		List<Object> list = (List<Object>) this.rightOperand;
+		for (Object ro : rightOperand)
+			list.add(ro);
 		return this;
 	}
 }

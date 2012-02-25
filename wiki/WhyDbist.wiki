@@ -13,16 +13,13 @@ Now, you can see why we must use Dbist instead of them.
 
 === Select a data from a DB table ===
 
-
-
-Select by primary key value
+Select by a primary key value
 {{{
-Post post = getDml().select(Post.class, "1");
+Data data = getDml().select(Data.class, "x");
 }}}
-Select by composite key value array
+Select by composite key values
 {{{
-Object[] id = new Object[] {"public", "1"}
-Post post = getDml().select(Post.class, id);
+Data data = getDml().select(Data.class, "x", "y", "z");
 }}}
 Select by composite key value List
 {{{
@@ -35,3 +32,9 @@ Select by composite key value HttpServletRequest
 {{{
 Post post = Dbist.getDml().select(Post.class, request);
 }}}
+
+=== Insert a data from a DB table ===
+
+=== Update a data from a DB table ===
+
+=== Insert or Update (Merge/Upsert) a data from DB table ===

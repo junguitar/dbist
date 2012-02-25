@@ -15,12 +15,17 @@
  */
 package org.dbist.dml;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import net.sf.common.util.ReflectionUtils;
 import net.sf.common.util.ValueUtils;
+
+import org.dbist.exception.DbistRuntimeException;
 
 /**
  * @author Steve M. Jung
@@ -42,6 +47,12 @@ public class Filters {
 	public void setFilter(List<Filter> filter) {
 		this.filter = filter;
 	}
+	public Filters setFilter(String leftOperand, Object rightOperand) {
+		return removeFilter(leftOperand).addFilter(leftOperand, rightOperand);
+	}
+	public Filters setFilter(String leftOperand, String operator, Object rightOperand) {
+		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand);
+	}
 	public Filters addFilter(Filter... filter) {
 		if (ValueUtils.isEmpty(filter))
 			return this;
@@ -51,18 +62,78 @@ public class Filters {
 			this.filter.add(f);
 		return this;
 	}
-	public Filters setFilter(String leftOperand, Object rightOperand) {
-		return removeFilter(leftOperand).addFilter(leftOperand, rightOperand);
-	}
-	public Filters setFilter(String leftOperand, String operator, Object rightOperand) {
-		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand);
-	}
 	public Filters addFilter(String leftOperand, Object rightOperand) {
-		addFilter(new Filter(leftOperand, rightOperand));
+		addFilterAll(new Filter(leftOperand, rightOperand));
 		return this;
 	}
 	public Filters addFilter(String leftOperand, String operator, Object rightOperand) {
-		addFilter(new Filter(leftOperand, operator, rightOperand));
+		addFilterAll(new Filter(leftOperand, operator, rightOperand));
+		return this;
+	}
+	public Filters addFilterAll(Object filter) {
+		return _addFilter(filter);
+	}
+	public Filters addFilterAll(Object filter, String... leftOperands) {
+		return _addFilter(filter, leftOperands);
+	}
+	@SuppressWarnings("unchecked")
+	private Filters _addFilter(Object filter, String... leftOperands) {
+		boolean byLeftOperands = !ValueUtils.isEmpty(leftOperands);
+		Set<String> fieldNameSet = byLeftOperands ? ValueUtils.toSet(leftOperands) : null;
+		if (filter instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>) filter;
+			for (String key : map.keySet()) {
+				if (byLeftOperands) {
+					if (!fieldNameSet.contains(key))
+						continue;
+					fieldNameSet.remove(key);
+				}
+				addFilter(key, map.get(key));
+			}
+		} else if (filter instanceof Filter) {
+			addFilter((Filter) filter);
+		} else if (filter instanceof Filter[]) {
+			addFilter((Filter[]) filter);
+		} else if (filter instanceof Object[]) {
+			if (!ValueUtils.isEmpty(filter)) {
+				Object firstItem = ((Object[]) filter)[0];
+				if (!(firstItem instanceof Filter))
+					throw new DbistRuntimeException("Unsupported filter array type: Object[] of " + firstItem.getClass().getName());
+				for (Object obj : (Object[]) filter)
+					addFilter((Filter) obj);
+			}
+		} else if (filter instanceof List) {
+			if (!ValueUtils.isEmpty(filter)) {
+				Object firstItem = ((List<?>) filter).get(0);
+				if (!(firstItem instanceof Filter))
+					throw new DbistRuntimeException("Unsupported filter list type: List<" + firstItem.getClass().getName() + ">");
+				if (this.filter == null)
+					this.filter = new ArrayList<Filter>();
+				this.filter.addAll((List<Filter>) filter);
+			}
+		} else {
+			for (Field field : ReflectionUtils.getFieldList(filter, true)) {
+				String key = field.getName();
+				if (byLeftOperands) {
+					if (!fieldNameSet.contains(key))
+						continue;
+					fieldNameSet.remove(key);
+				}
+				Object value;
+				try {
+					value = field.get(filter);
+				} catch (IllegalArgumentException e) {
+					throw e;
+				} catch (IllegalAccessException e) {
+					throw new DbistRuntimeException(e);
+				}
+				if (!byLeftOperands && value == null)
+					continue;
+				addFilter(key, value);
+			}
+		}
+		if (byLeftOperands && fieldNameSet.size() != 0)
+			throw new IllegalArgumentException("Some of condition was not found " + fieldNameSet.toArray(new String[fieldNameSet.size()]));
 		return this;
 	}
 	public Filters removeFilter(String... leftOperand) {

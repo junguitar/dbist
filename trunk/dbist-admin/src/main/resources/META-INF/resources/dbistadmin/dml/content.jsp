@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="org.dbist.dml.Filters"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="org.dbist.dml.Filter"%>
 <%@page import="org.dbist.dml.Page"%>
@@ -94,7 +95,23 @@
 			} else if ("clear".equals(method)) {
 				data = clazz.newInstance();
 			} else if ("deleteList".equals(method)) {
-				// TODO
+				String[] listChecked = request.getParameterValues("_listChecked");
+				Query query = new Query();
+				if (!ValueUtils.isEmpty(listChecked)) {
+					if (!listChecked[0].contains(",")) {
+						query.addFilter((String) table.getPkFieldNames()[0], (Object) listChecked);
+					} else {
+						for (String idRef : listChecked) {
+							query.setOperator("or");
+							Filters filters = new Filters();
+							query.addFilters(filters);
+							int i = 0;
+							for (String value : StringUtils.tokenizeToStringArray(idRef, ","))
+								filters.addFilter(table.getPkFieldNames()[i++], value);
+						}
+					}
+					dml.deleteList(clazz, query);
+				}
 			}
 		} catch (Exception e) {
 			ex = e;
@@ -186,9 +203,12 @@
 
 	<%
 		String className = clazz.getName();
-			String leftOperand = className.equals(ParameterUtils.get(request, "_className")) ? ParameterUtils.get(request, "_leftOperand") : null;
+			boolean useParam = className.equals(ParameterUtils.get(request, "_className"));
+			String leftOperand = useParam ? ParameterUtils.get(request, "_leftOperand") : null;
 			String operator = null;
 			String rightOperand = "";
+			String order = useParam ? ValueUtils.toNotNull(ParameterUtils.get(request, "_order")) : "";
+			String orderDirection = useParam ? ValueUtils.toNotNull(ParameterUtils.get(request, "_orderDirection")) : "";
 			int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "_pageIndex"), 0);
 			int pageSize = ValueUtils.toInteger(ParameterUtils.get(request, "_pageSize"), 10);
 			Query query = new Query();
@@ -202,6 +222,8 @@
 							.toArray()));
 				}
 			}
+			if (!ValueUtils.isEmpty(order))
+				query.addOrder(order, !"desc".equals(orderDirection));
 			query.setPageIndex(pageIndex);
 			query.setPageSize(pageSize);
 			Page<?> _page = null;
@@ -228,12 +250,13 @@
 		}
 	%>
 	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
-		<input name="_method" type="hidden" value="" /><input name="_className" type="hidden" value="<%=className%>" /> <input name="_pageIndex"
-			type="hidden" value="<%=pageIndex%>" /> <input name="_selectedId" type="hidden" value="" />
+		<input name="_method" type="hidden" value="" /><input name="_className" type="hidden" value="<%=className%>" /><input name="_order" type="hidden"
+			value="<%=order%>" /><input name="_orderDirection" type="hidden" value="<%=orderDirection%>" /><input name="_pageIndex" type="hidden"
+			value="<%=pageIndex%>" /><input name="_selectedId" type="hidden" value="" />
 		<div class="titleScope">
 			<a title="<%=className%>"><%=clazz.getSimpleName()%> (<%=table.getName()%>) List</a>
 			<div class="titleButtonScope">
-				<select name="_leftOperand">
+				filter: <select name="_leftOperand">
 					<option></option>
 					<%
 						for (Column column : table.getColumnList()) {
@@ -251,9 +274,14 @@
 					<option value="&lt;=" <%="<=".equals(operator) ? "selected=\"selected\"" : ""%>>&lt;=</option>
 					<option value="&gt;" <%=">".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;</option>
 					<option value="&gt;=" <%=">=".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;=</option>
-				</select> <input name="_rightOperand" value="<%=rightOperand%>" onkeydown="listForm._method.value = 'reload'" /> <input type="submit" value="Reload"
-					class="button" onmouseover="listForm._method.value = 'reload'" /> <input type="submit" value="Delete" class="button"
-					onmouseover="listForm._method.value = 'deleteList'" onmouseout="listForm._method.value = ''" />
+				</select> <input name="_rightOperand" value="<%=rightOperand%>" onkeydown="listForm._method.value = 'reload'" /> &nbsp;&nbsp;pageSize: <select
+					name="_pageSize"><option value="5" <%=pageSize == 5 ? "selected=\"selected\"" : ""%>>5</option>
+					<option value="10" <%=pageSize == 10 ? "selected=\"selected\"" : ""%>>10</option>
+					<option value="20" <%=pageSize == 20 ? "selected=\"selected\"" : ""%>>20</option>
+					<option value="50" <%=pageSize == 50 ? "selected=\"selected\"" : ""%>>50</option>
+					<option value="100" <%=pageSize == 100 ? "selected=\"selected\"" : ""%>>100</option>
+				</select> <input type="submit" value="Reload" class="button" onmouseover="listForm._method.value = 'reload'" /> <input type="submit" value="Delete"
+					class="button" onmouseover="listForm._method.value = 'deleteList'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope listScope">
@@ -299,20 +327,30 @@
 			</div>
 			<table>
 				<thead>
-					<tr>
+					<tr class="listHeader">
 						<th class="shortFieldHeader">no</th>
 						<th class="shortFieldHeader">!</th>
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {
+									String fieldName = table.toFieldName(columnName);
+									boolean orderField = order.equals(fieldName);
+									String orderMark = orderField ? orderDirection.equals("asc") ? ">>" : "<<" : "";
 						%>
-						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%></th>
+						<th class="titleFieldHeader"
+							onclick="listForm._order.value='<%=fieldName%>'; listForm._orderDirection.value='<%=orderField && orderDirection.equals("asc") ? "desc" : "asc"%>'; listForm.submit();">
+							<%=fieldName%> <%=orderMark%></th>
 						<%
 							}
 						%>
 						<%
 							for (String columnName : table.getListedColumnNameList()) {
+									String fieldName = table.toFieldName(columnName);
+									boolean orderField = order.equals(fieldName);
+									String orderMark = orderField ? orderDirection.equals("asc") ? ">>" : "<<" : "";
 						%>
-						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%></th>
+						<th class="listedFieldHeader"
+							onclick="listForm._order.value='<%=fieldName%>'; listForm._orderDirection.value='<%=orderField && orderDirection.equals("asc") ? "desc" : "asc"%>'; listForm.submit();">
+							<%=fieldName%> <%=orderMark%></th>
 						<%
 							}
 						%>
@@ -350,21 +388,20 @@
 										idRefBuf.append(i++ == 0 ? "" : ",").append(ValueUtils.toString(table.getField(fieldName).get(item), ""));
 									String idRef = idRefBuf.toString();
 					%>
-					<tr class="listRow<%=idRef.equals(id) ? " listRowSelected" : ""%>"
-						onclick="listForm._method.value = 'select'; listForm._selectedId.value = '<%=idRef%>'; listForm.submit();">
-						<td class="shortField"><%=++no%></td>
-						<td class="shortField"><input type="checkbox" /></td>
+					<tr class="listRow<%=idRef.equals(id) ? " listRowSelected" : ""%>">
+						<td class="shortField" onclick="listForm._method.value = 'select'; listForm._selectedId.value = '<%=idRef%>'; listForm.submit();"><%=++no%></td>
+						<td class="shortField"><input name="_listChecked" type="checkbox" value="<%=idRef%>" /></td>
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {
 						%>
-						<td class="titleField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
+						<td class="titleField" onclick="listForm._method.value = 'select'; listForm._selectedId.value = '<%=idRef%>'; listForm.submit();"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
 						<%
 							}
 						%>
 						<%
 							for (String columnName : table.getListedColumnNameList()) {
 						%>
-						<td class="listedField"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
+						<td class="listedField" onclick="listForm._method.value = 'select'; listForm._selectedId.value = '<%=idRef%>'; listForm.submit();"><%=ValueUtils.toString(table.getFieldByColumnName(columnName).get(item), "")%></td>
 						<%
 							}
 						%>

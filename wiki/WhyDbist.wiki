@@ -32,22 +32,27 @@ Select by HttpServletRequest parameters
 {{{
 Data data = getDml().select(Data.class, request);
 }}}
-Select by a Map;
+Select by a Map
+{{{
 Map<String, Object> paramMap = new HashMap<String, Object>();
 paramMap.put("pk1", "x");
 paramMap.put("pk2", "y");
 Data data = getDml().select(Data.class, paramMap);
+}}}
 Select by the object
+{{{
 Data data = new Data();
 data.setPk1("x");
 data.setPk2("y");
 data = getDml().select(data);
+}}}
 Select by another object
+{{{
 OtherData otherData = new OtherData();
 otherData.setPk1("x");
 otherData.setPk2("y");
 Data data = getDml().select(Data.class, otherData);
-
+}}}
 === Insert a data from a DB table ===
 
 === Update a data from a DB table ===

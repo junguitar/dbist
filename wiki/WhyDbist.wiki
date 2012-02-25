@@ -8,3 +8,69 @@ You may already know about many other ORM Frameworks (Hibernate, mybatis, Active
 But it's easier than them.
 
 Now, you can see why we must use Dbist instead of them.
+
+== Example ==
+
+A "POST" is a DB table.<br>
+The DB table has four columns "title", "author", "content", "created_at" and a primary key "id".<br>
+
+table name: BLOG
+||column    ||data type||
+||id (PK)   ||VARCHAR  ||
+||title     ||VARCHAR  ||
+||author    ||VARCHAR  ||
+||content   ||CLOB     ||
+||created_at||DATE     ||
+
+And we try to map a class to this table. (Access modifier, getter and setter methods, etc. has been omitted to make it easier to understand.)<br>
+{{{
+class Data {
+    String id;
+    String title;
+    String author;
+    String content;
+    Date createdAt;
+    ...
+}
+}}}
+The mapping does not need any more.<br>
+How...? It is automatically mapped, because it is enough to be inferred.<br>
+Now you can start DB programming right now.
+
+=== If you want to...<br> ===
+
+  # insert a data,
+{{{
+Post post = new Post();
+post.setId("1");
+post.setTitle("Why Dbist?");
+post.setAuthor("Steve, M. Jung");
+post.setContent("Now, you can see why we should use Dbist...");
+post.setCreatedAt(new Date());
+dml.insert(post);
+}}}
+  # select the data,
+{{{
+Post post = dml.select(Post.class, "1");
+}}}
+  # update the data,
+{{{
+post.setContent("Now, you can see why we must use Dbist...");
+dml.update(post);
+}}}
+  # select data list, (0, 10 means pageIndex and pageSize)
+{{{
+List<Post> list = dml.selectList(Post.class, new Query(0, 10));
+for (Post post : list) {
+    ......
+}
+}}}
+  # select some filterd data list, (0, 10 means pageIndex and pageSize)
+{{{
+List<Post> list = dml.selectList(Post.class, new Query(0, 10).addFitler("name" "like" "%Dbist%"));
+for (Post post : list) {
+    ......
+}
+}}}
+
+It's really easy, isn't it?

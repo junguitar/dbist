@@ -29,6 +29,14 @@ public class Query extends Filters {
 	private int pageSize;
 	private List<String> field;
 	private List<Order> order;
+	public Query() {
+		super();
+	}
+	public Query(int pageIndex, int pageSize) {
+		this();
+		this.pageIndex = pageIndex;
+		this.pageSize = pageSize;
+	}
 	public int getPageIndex() {
 		return pageIndex;
 	}

@@ -1,13 +1,74 @@
 #summary examples
 
-= Insert A Data =
+== Examples ==
 
-= Select A Data =
+=== Select a data from a DB table ===
 
-= Update A Data =
-
-= Delete A Data =
-
-= Select Data List =
-
-= Delete Data List =
+By a primary key value (If the "DATA" table has a primary key.)
+{{{
+Data data = dml.select(Data.class, "x");
+}}}
+By composite key values (If the "DATA" table has composite keys.)
+{{{
+Data data = dml.select(Data.class, "x", "y");
+}}}
+By List
+{{{
+List<Object> id = new ArrayList<Object>();
+id.add("x");
+id.add("y");
+Data data = dml.select(Data.class, id);
+}}}
+By HttpServletRequest parameters
+{{{
+Data data = dml.select(Data.class, request);
+}}}
+By Map
+{{{
+Map<String, Object> paramMap = new HashMap<String, Object>();
+paramMap.put("pk1", "x");
+paramMap.put("pk2", "y");
+Data data = dml.select(Data.class, paramMap);
+}}}
+By the object
+{{{
+Data data = new Data();
+data.setPk1("x");
+data.setPk2("y");
+data = dml.select(data);
+}}}
+By another object
+{{{
+OtherData otherData = new OtherData();
+otherData.setPk1("x");
+otherData.setPk2("y");
+Data data = dml.select(Data.class, otherData);
+}}}
+By candidate keys
+{{{
+Data data = new Data();
+data.setCk1("l");
+data.setCk2("m");
+data = dml.selectByCondition(data);
+}}}
+=== Insert a data from a DB table ===
+By an object
+{{{
+}}}
+By another object
+{{{
+}}}
+By Map
+{{{
+}}}
+=== Update a data from a DB table ===
+By an object
+{{{
+}}}
+By another object
+{{{
+}}}
+By Map
+{{{
+}}}
+=== Insert or Update (Merge/Upsert) a data from DB table ===

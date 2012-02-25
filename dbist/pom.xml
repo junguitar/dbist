@@ -46,6 +46,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.common-util</groupId>
 			<artifactId>common-util</artifactId>
 			<version>1.0.8-SNAPSHOT</version>
@@ -54,6 +59,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
 			<version>3.1.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.15.0-GA</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.persistence</groupId>
@@ -84,11 +94,6 @@
 			<artifactId>velocity</artifactId>
 			<version>1.7</version>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.15.0-GA</version>
 		</dependency>
 		<dependency>
 			<groupId>org.aspectj</groupId>

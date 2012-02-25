@@ -131,6 +131,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T insert(Class<T> clazz, Object data) throws Exception;
+	Object insert(String tableName, Object data) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -144,6 +145,8 @@ public interface Dml {
 	 */
 	<T> void update(T data) throws Exception;
 	<T> void updateBatch(List<T> list) throws Exception;
+	<T> void update(T data, String... fieldNames) throws Exception;
+	<T> void updateBatch(List<T> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -156,21 +159,14 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T update(Class<T> clazz, Object data) throws Exception;
+	void updateBatch(Class<?> clazz, List<Object> list) throws Exception;
+	<T> T update(Class<T> clazz, Object data, String... fieldNames) throws Exception;
+	void updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception;
 
-	/**
-	 * Update some fields of data to the database table mapped to T class.
-	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
-	 * @param data
-	 *            The data to update
-	 * @param fieldNames
-	 *            The fieldName array of the data to update
-	 * @return The data updated
-	 * @throws Exception
-	 */
-	<T> void update(T data, String... fieldNames) throws Exception;
-	<T> void updateBatch(List<T> list, String... fieldNames) throws Exception;
+	void update(String tableName, Object data) throws Exception;
+	void updateBatch(String tableName, List<Object> list) throws Exception;
+	void update(String tableName, Object data, String... fieldNames) throws Exception;
+	void updateBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
@@ -182,8 +178,8 @@ public interface Dml {
 	 * @return The data upserted
 	 * @throws Exception
 	 */
-	<T> void upsert(T data) throws Exception;
-	<T> void upsertBatch(List<T> list) throws Exception;
+	void upsert(Object data) throws Exception;
+	void upsertBatch(List<?> list) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
@@ -196,6 +192,10 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T upsert(Class<T> clazz, Object data) throws Exception;
+	<T> List<T> upsertBatch(Class<T> clazz, List<Object> data) throws Exception;
+
+	void upsert(String tableName, Object data) throws Exception;
+	void upsertBatch(String tableName, List<Object> list) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class.
@@ -208,7 +208,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> void delete(T data) throws Exception;
-	<T> void deleteBatch(List<T> list) throws Exception;
+	void deleteBatch(List<?> list) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class. by condition parameter.<br>
@@ -224,6 +224,10 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T delete(Class<T> clazz, Object condition) throws Exception;
+	void deleteBatch(Class<?> clazz, List<Object> list) throws Exception;
+
+	void delete(String tableName, Object pkCondition) throws Exception;
+	void deleteBatch(String tableName, List<Object> list) throws Exception;
 
 	/**
 	 * 
@@ -274,7 +278,6 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
-
 	<T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
@@ -289,7 +292,6 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
-
 	<T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**

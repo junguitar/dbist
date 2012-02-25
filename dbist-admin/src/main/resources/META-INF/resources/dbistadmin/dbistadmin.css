@@ -204,25 +204,28 @@ a {
 
 .titleField {
 	text-align: left;
-	cursor: pointer;
 	text-overflow: ellipsis;
+	cursor: pointer;
 }
 
 .titleFieldHeader {
 	text-align: left;
 	text-overflow: ellipsis;
+	cursor: pointer;
 }
 
 .listedField {
 	width: 150px;
 	text-align: center;
 	text-overflow: ellipsis;
+	cursor: pointer;
 }
 
 .listedFieldHeader {
 	width: 150px;
 	text-align: center;
 	text-overflow: ellipsis;
+	cursor: pointer;
 }
 
 .label {

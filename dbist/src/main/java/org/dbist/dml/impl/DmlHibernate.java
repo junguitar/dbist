@@ -84,33 +84,15 @@ public class DmlHibernate extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void upsert(T data) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public <T> void upsertBatch(List<T> list) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public <T> void delete(T data) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void deleteBatch(List<T> list) throws Exception {
+	public void deleteBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public <T> T delete(Class<T> clazz, Object condition) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

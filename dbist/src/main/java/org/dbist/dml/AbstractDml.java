@@ -23,9 +23,9 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.sf.common.util.ReflectionUtils;
 import net.sf.common.util.ValueUtils;
 
+import org.apache.commons.collections.map.ListOrderedMap;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Table;
@@ -65,14 +65,13 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		return list.get(0);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected Query toQuery(Table table, Object condition, String... fieldNames) throws Exception {
 		if (condition instanceof Query)
 			return (Query) condition;
-		boolean byFieldName = fieldNames != null && fieldNames.length != 0;
-		Set<String> fieldNameSet = byFieldName ? ValueUtils.toSet(fieldNames) : null;
 		Query query = new Query();
 		if (condition instanceof HttpServletRequest) {
+			boolean byFieldName = fieldNames != null && fieldNames.length != 0;
+			Set<String> fieldNameSet = byFieldName ? ValueUtils.toSet(fieldNames) : null;
 			HttpServletRequest request = (HttpServletRequest) condition;
 			Map<String, String[]> paramMap = request.getParameterMap();
 			for (String key : paramMap.keySet()) {
@@ -96,41 +95,11 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 				query.setPageSize(ValueUtils.toInteger(request.getParameter("pageSize"), 0));
 			if (paramMap.containsKey("operator") && table.getField("operator") == null)
 				query.setOperator(request.getParameter("operator"));
-		} else if (condition instanceof Map) {
-			Map<String, Object> map = (Map<String, Object>) condition;
-			for (String key : map.keySet()) {
-				if (byFieldName) {
-					if (!fieldNameSet.contains(key))
-						continue;
-					fieldNameSet.remove(key);
-				}
-				query.addFilter(key, map.get(key));
-			}
 		} else if (condition instanceof Filters) {
 			ValueUtils.populate(condition, query);
-		} else if (condition instanceof List) {
-			query.setFilter((List<Filter>) condition);
-		} else if (condition.getClass().isArray()) {
-			query.setFilter(ValueUtils.toList((Filter[]) condition));
-		} else if (condition instanceof Filter) {
-			query.addFilter((Filter) condition);
 		} else {
-			for (Field field : ReflectionUtils.getFieldList(condition, true)) {
-				String key = field.getName();
-				if (byFieldName) {
-					if (!fieldNameSet.contains(key))
-						continue;
-					fieldNameSet.remove(key);
-				}
-				Object value = field.get(condition);
-				if (value == null)
-					continue;
-				query.addFilter(key, value);
-			}
+			query.addFilterAll(condition, fieldNames);
 		}
-		if (byFieldName && fieldNameSet.size() != 0)
-			throw new IllegalArgumentException("Some of fieldName condition was not in "
-					+ (String[]) fieldNameSet.toArray(new String[fieldNameSet.size()]));
 		return query;
 	}
 	protected Query toPkQuery(Object obj, Object condition) throws Exception {
@@ -148,7 +117,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			Table table = getTable(clazz);
 			if (condition instanceof List) {
 				if (ValueUtils.isEmpty(condition))
-					return query;
+					throw new IllegalAccessException("Requested pk condition is empty.");
 				@SuppressWarnings("unchecked")
 				List<?> list = (List<Object>) condition;
 				if (ValueUtils.isPrimitive(list.get(0))) {
@@ -163,16 +132,18 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 				}
 			} else if (condition.getClass().isArray()) {
 				if (ValueUtils.isEmpty(condition))
-					return query;
+					throw new IllegalAccessException("Requested pk condition is empty.");
 				Object[] array = (Object[]) condition;
-				int i = 0;
-				int size = array.length;
-				for (String pkFieldName : table.getPkFieldNames()) {
-					query.addFilter(pkFieldName, array[i++]);
-					if (i == size)
-						break;
+				if (ValueUtils.isPrimitive(array[0])) {
+					int i = 0;
+					int size = array.length;
+					for (String pkFieldName : table.getPkFieldNames()) {
+						query.addFilter(pkFieldName, array[i++]);
+						if (i == size)
+							break;
+					}
+					return query;
 				}
-				return query;
 			}
 			query = toQuery(table, condition, table.getPkFieldNames());
 			return query;
@@ -181,14 +152,12 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			//			query.setPageSize(2);
 		}
 	}
-	protected static <T> T newInstance(Class<T> clazz) {
-		try {
-			return clazz.newInstance();
-		} catch (InstantiationException e) {
-			throw new DbistRuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new DbistRuntimeException(e);
-		}
+
+	@SuppressWarnings("unchecked")
+	protected static <T> T newInstance(Class<T> clazz) throws InstantiationException, IllegalAccessException {
+		if (clazz.equals(Map.class))
+			return (T) ListOrderedMap.class.newInstance();
+		return clazz.newInstance();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -239,7 +208,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, pkCondition);
 		Object obj = select(selectList(clazz, query));
-		return ValueUtils.populate(obj, requiredType.newInstance());
+		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
 	@Override
@@ -250,7 +219,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, pkCondition);
 		Object obj = selectWithLock(selectList(clazz, query));
-		return ValueUtils.populate(obj, requiredType.newInstance());
+		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
 	@Override
@@ -261,7 +230,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, condition);
 		Object obj = select(selectList(clazz, query));
-		return ValueUtils.populate(obj, requiredType.newInstance());
+		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
 	@Override
@@ -272,7 +241,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, condition);
 		Object obj = selectWithLock(selectList(clazz, query));
-		return ValueUtils.populate(obj, requiredType.newInstance());
+		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
 	@Override
@@ -311,7 +280,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		List<?> objList = selectList(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
 		for (Object obj : objList)
-			list.add(ValueUtils.populate(obj, requiredType.newInstance()));
+			list.add(ValueUtils.populate(obj, newInstance(requiredType)));
 		return list;
 	}
 
@@ -320,7 +289,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		List<?> objList = selectListWithLock(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
 		for (Object obj : objList)
-			list.add(ValueUtils.populate(obj, requiredType.newInstance()));
+			list.add(ValueUtils.populate(obj, newInstance(requiredType)));
 		return list;
 	}
 
@@ -366,27 +335,89 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		return obj;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
+	public Object insert(String tableName, Object data) throws Exception {
+		return insert(getClass(tableName), data);
+	}
+
 	@Override
 	public <T> T update(Class<T> clazz, Object data) throws Exception {
+		return _update(clazz, data);
+	}
+
+	@Override
+	public void updateBatch(Class<?> clazz, List<Object> list) throws Exception {
+		_updateBatch(clazz, list);
+	}
+
+	@Override
+	public <T> T update(Class<T> clazz, Object data, String... fieldNames) throws Exception {
+		return _update(clazz, data, fieldNames);
+	}
+
+	@Override
+	public void updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
+		_updateBatch(clazz, list, fieldNames);
+	}
+
+	public <T> T _update(Class<T> clazz, Object data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("data", data);
-		if (data.getClass().isAssignableFrom(clazz)) {
+		if (data.getClass().equals(clazz)) {
+			@SuppressWarnings("unchecked")
 			T obj = (T) data;
-			update(obj);
+			update(obj, fieldNames);
+			return obj;
 		}
 		T obj = select(clazz, data);
 		if (obj == null) {
 			Table table = getTable(data);
 			throw new DataNotFoundException("Couldn't find data from table[" + table.getDomain() + "." + table.getName() + "]");
 		}
-		obj = ValueUtils.populate(data, obj);
-		update(obj);
+		obj = ValueUtils.populate(data, obj, fieldNames);
+		update(obj, fieldNames);
 		return obj;
 	}
 
+	@SuppressWarnings("unchecked")
+	private static <T> List<T> toRequiredType(List<?> list, Class<T> requiredType, String... fieldNames) throws InstantiationException,
+			IllegalAccessException {
+		if (ValueUtils.isEmpty(list))
+			return (List<T>) list;
+		if (list.get(0).getClass().equals(requiredType))
+			return (List<T>) list;
+		List<T> dataList = new ArrayList<T>(list.size());
+		for (Object obj : list)
+			dataList.add(ValueUtils.populate(obj, newInstance(requiredType), fieldNames));
+		return dataList;
+	}
+
+	public void _updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
+		updateBatch(toRequiredType(list, clazz, fieldNames), fieldNames);
+	}
+
 	@Override
-	public <T> void upsert(T data) throws Exception {
+	public void update(String tableName, Object data) throws Exception {
+		update(getClass(tableName), data);
+	}
+
+	@Override
+	public void updateBatch(String tableName, List<Object> list) throws Exception {
+		updateBatch(getClass(tableName), list);
+	}
+
+	@Override
+	public void update(String tableName, Object data, String... fieldNames) throws Exception {
+		update(getClass(tableName), data, fieldNames);
+	}
+
+	@Override
+	public void updateBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+		updateBatch(getClass(tableName), list, fieldNames);
+	}
+
+	@Override
+	public void upsert(Object data) throws Exception {
 		if (select(data) == null)
 			insert(data);
 		else
@@ -394,10 +425,10 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> void upsertBatch(List<T> list) throws Exception {
-		List<T> insertList = new ArrayList<T>();
-		List<T> updateList = new ArrayList<T>();
-		for (T data : list) {
+	public void upsertBatch(List<?> list) throws Exception {
+		List<Object> insertList = new ArrayList<Object>();
+		List<Object> updateList = new ArrayList<Object>();
+		for (Object data : list) {
 			if (select(data) == null)
 				insertList.add(data);
 			else
@@ -413,11 +444,43 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T delete(Class<T> clazz, Object condition) throws Exception {
-		T data = select(clazz, condition);
+	public <T> List<T> upsertBatch(Class<T> clazz, List<Object> list) throws Exception {
+		List<T> newList = toRequiredType(list, clazz);
+		upsertBatch(toRequiredType(list, clazz));
+		return newList;
+	}
+
+	@Override
+	public void upsert(String tableName, Object data) throws Exception {
+		upsert(getClass(tableName), data);
+	}
+
+	@Override
+	public void upsertBatch(String tableName, List<Object> list) throws Exception {
+		upsertBatch(getClass(tableName), list);
+	}
+
+	@Override
+	public <T> T delete(Class<T> clazz, Object pkCondition) throws Exception {
+		T data = select(clazz, pkCondition);
 		if (data == null)
 			return null;
 		delete(data);
 		return data;
+	}
+
+	@Override
+	public void deleteBatch(Class<?> clazz, List<Object> list) throws Exception {
+		deleteBatch(toRequiredType(list, clazz));
+	}
+
+	@Override
+	public void delete(String tableName, Object data) throws Exception {
+		delete(getClass(tableName), data);
+	}
+
+	@Override
+	public void deleteBatch(String tableName, List<Object> list) throws Exception {
+		deleteBatch(getClass(tableName), list);
 	}
 }

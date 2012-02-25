@@ -105,7 +105,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(data);
 		String sql = table.getInsertSql();
 		Map<String, ?> paramMap = toParamMap(table, data);
-		update(sql, paramMap);
+		updateBySql(sql, paramMap);
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(list.get(0));
 		String sql = table.getInsertSql();
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
-		updateBatch(sql, paramMapList);
+		updateBatchBySql(sql, paramMapList);
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		String sql = table.getUpdateSql();
 		Map<String, ?> paramMap = toParamMap(table, data);
 		// TODO DataNotFoundException message
-		if (update(sql, paramMap) != 1)
+		if (updateBySql(sql, paramMap) != 1)
 			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
@@ -136,7 +136,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(list.get(0));
 		String sql = table.getUpdateSql();
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
-		updateBatch(sql, paramMapList);
+		updateBatchBySql(sql, paramMapList);
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		String sql = table.getUpdateSql(fieldNames);
 		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
 		// TODO DataNotFoundException message
-		if (update(sql, paramMap) != 1)
+		if (updateBySql(sql, paramMap) != 1)
 			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
@@ -157,7 +157,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Table table = getTable(list.get(0));
 		String sql = table.getUpdateSql(fieldNames);
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
-		updateBatch(sql, paramMapList);
+		updateBatchBySql(sql, paramMapList);
 	}
 
 	@Override
@@ -167,26 +167,26 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		String sql = table.getDeleteSql();
 		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
 		// TODO DataNotFoundException message
-		if (update(sql, paramMap) != 1)
+		if (updateBySql(sql, paramMap) != 1)
 			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
 	@Override
-	public <T> void deleteBatch(List<T> list) throws Exception {
+	public void deleteBatch(List<?> list) throws Exception {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
 		String sql = table.getDeleteSql();
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, table.getPkFieldNames());
-		updateBatch(sql, paramMapList);
+		updateBatchBySql(sql, paramMapList);
 	}
 
-	private int update(String sql, Map<String, ?> paramMap) {
+	private int updateBySql(String sql, Map<String, ?> paramMap) {
 		return this.namedParameterJdbcOperations.update(sql, paramMap);
 	}
 
 	@SuppressWarnings("unchecked")
-	private int[] updateBatch(String sql, List<Map<String, ?>> paramMapList) {
+	private int[] updateBatchBySql(String sql, List<Map<String, ?>> paramMapList) {
 		return this.namedParameterJdbcOperations.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
@@ -391,7 +391,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			classFieldCache.put(clazz, fieldCache);
 		}
 
-		T data = newInstance(clazz);
+		T data;
+		try {
+			data = newInstance(clazz);
+		} catch (InstantiationException e) {
+			throw new DbistRuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new DbistRuntimeException(e);
+		}
 		if (data instanceof Map) {
 			Map<String, Object> map = (Map<String, Object>) data;
 			for (int i = 0; i < metadata.getColumnCount();) {
@@ -490,19 +497,21 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					String key = lo + i;
 					if (rightOperand.size() == 1) {
 						paramMap.put(key, rightOperand.get(0));
+						buf.append(" ").append(operator).append(" :").append(key);
 					} else {
 						paramMap.put(key, rightOperand);
 						if ("=".equals(operator))
 							operator = "in";
 						else if ("!=".equals(operator))
 							operator = "not in";
+						buf.append(" ").append(operator).append(" (:").append(key).append(")");
 					}
-					buf.append(" ").append(operator).append(" (:").append(key).append(")");
 				}
 			}
 		}
 
 		if (!ValueUtils.isEmpty(filters.getFilters())) {
+			buf.append(i++ == 0 ? " where " : logicalOperator);
 			for (Filters subFilters : filters.getFilters()) {
 				buf.append("(");
 				i = appendWhere(buf, table, subFilters, i, paramMap);

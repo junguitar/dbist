@@ -31,13 +31,13 @@ public class Filter {
 	public Filter(String leftOperand) {
 		this.leftOperand = leftOperand;
 	}
-	public Filter(String leftOperand, Object... rightOperand) {
-		this(leftOperand);
-		addRightOperand(rightOperand);
+	public Filter(String leftOperand, Object rightOperand) {
+		this(leftOperand, "=", rightOperand);
 	}
-	public Filter(String leftOperand, String operator, Object... rightOperand) {
-		this(leftOperand, rightOperand);
+	public Filter(String leftOperand, String operator, Object rightOperand) {
+		this.leftOperand = leftOperand;
 		this.operator = operator;
+		addRightOperand(rightOperand);
 	}
 	public String getLeftOperand() {
 		return leftOperand;
@@ -70,7 +70,15 @@ public class Filter {
 		for (Object ro : rightOperand) {
 			if (ro == null)
 				continue;
-			list.add(ro);
+			if (ro instanceof Object[]) {
+				for (Object subRo : (Object[]) ro)
+					list.add(subRo);
+			} else if (ro instanceof List) {
+				for (Object subRo : (List<?>) ro)
+					list.add(subRo);
+			} else {
+				list.add(ro);
+			}
 		}
 		return this;
 	}

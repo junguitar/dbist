@@ -110,21 +110,27 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			clazz = getClass((String) obj);
 		else
 			clazz = obj.getClass();
+		if (condition instanceof Object[] && ((Object[]) condition).length == 1)
+			condition = ((Object[]) condition)[0];
 		Query query = new Query();
 		try {
 			if (condition == null || condition instanceof Query)
 				return (Query) condition;
 			Table table = getTable(clazz);
-			if (condition instanceof Object[]) {
+			if (ValueUtils.isPrimitive(condition)) {
+				query.addFilter(table.getPkFieldNames()[0], condition);
+				return query;
+			} else if (condition instanceof Object[]) {
 				if (ValueUtils.isEmpty(condition))
 					throw new IllegalAccessException("Requested pk condition is empty.");
 				Object[] array = (Object[]) condition;
 				if (ValueUtils.isPrimitive(array[0])) {
 					int i = 0;
-					int size = array.length;
-					for (String pkFieldName : table.getPkFieldNames()) {
-						query.addFilter(pkFieldName, array[i++]);
-						if (i == size)
+					String[] pkFieldNames = table.getPkFieldNames();
+					int pkFieldSize = pkFieldNames.length;
+					for (Object item : array) {
+						query.addFilter(pkFieldNames[i++], item);
+						if (i == pkFieldSize)
 							break;
 					}
 					return query;
@@ -136,10 +142,11 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 				List<?> list = (List<Object>) condition;
 				if (ValueUtils.isPrimitive(list.get(0))) {
 					int i = 0;
-					int size = list.size();
-					for (String pkFieldName : table.getPkFieldNames()) {
-						query.addFilter(pkFieldName, list.get(i++));
-						if (i == size)
+					String[] pkFieldNames = table.getPkFieldNames();
+					int pkFieldSize = pkFieldNames.length;
+					for (Object item : list) {
+						query.addFilter(pkFieldNames[i++], item);
+						if (i == pkFieldSize)
 							break;
 					}
 					return query;

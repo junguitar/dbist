@@ -22,7 +22,7 @@ table name: BLOG
 ||content   ||CLOB     ||
 ||created_at||DATE     ||
 
-And we try to map a class to this table. (Access modifier, getter and setter methods, etc. has been omitted to make it easier to understand.)<br>
+And we try to map a class to this table. (access modifier, getter and setter methods,... has been omitted to make it easier to understand.)<br>
 {{{
 class Data {
     String id;

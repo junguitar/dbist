@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<%@page import="java.util.ArrayList"%>
+<%@page import="org.dbist.dml.Filter"%>
 <%@page import="org.dbist.dml.Page"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dbist.dml.Query"%>
@@ -119,15 +121,14 @@
 	<form name="dataForm" method="post" onsubmit="return dataForm._method.value != '' && (dataForm._method.value != 'delete' || confirm('Delete?'))">
 		<input name="_method" type="hidden" value="" />
 		<div class="titleScope">
-			<%=clazz.getSimpleName()%>
-			(<%=table.getName()%>) Data
+			<a title="<%=clazz.getName()%>"><%=clazz.getSimpleName()%> (<%=table.getName()%>) Data</a>
 			<div class="titleButtonScope">
-				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Insert" class="button" onmouseover="dataForm._method.value = 'insert'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Update" class="button" onmouseover="dataForm._method.value = 'update'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Upsert" class="button" onmouseover="dataForm._method.value = 'upsert'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'" onmouseout="listForm._method.value = ''" /> <input
-					type="submit" value="Clear" class="button" onmouseover="dataForm._method.value = 'clear'" onmouseout="listForm._method.value = ''" />
+				<input type="submit" value="Select" class="button" onmouseover="dataForm._method.value = 'select'" onmouseout="dataForm._method.value = ''" /> <input
+					type="submit" value="Insert" class="button" onmouseover="dataForm._method.value = 'insert'" onmouseout="dataForm._method.value = ''" /> <input
+					type="submit" value="Update" class="button" onmouseover="dataForm._method.value = 'update'" onmouseout="dataForm._method.value = ''" /> <input
+					type="submit" value="Upsert" class="button" onmouseover="dataForm._method.value = 'upsert'" onmouseout="dataForm._method.value = ''" /> <input
+					type="submit" value="Delete" class="button" onmouseover="dataForm._method.value = 'delete'" onmouseout="dataForm._method.value = ''" /> <input
+					type="submit" value="Clear" class="button" onmouseover="dataForm._method.value = 'clear'" onmouseout="dataForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope dataScope">
@@ -184,27 +185,75 @@
 	</form>
 
 	<%
-		int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "_pageIndex"), 0);
+		String className = clazz.getName();
+			String leftOperand = className.equals(ParameterUtils.get(request, "_className")) ? ParameterUtils.get(request, "_leftOperand") : null;
+			String operator = null;
+			String rightOperand = "";
+			int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "_pageIndex"), 0);
 			int pageSize = ValueUtils.toInteger(ParameterUtils.get(request, "_pageSize"), 10);
 			Query query = new Query();
+			if (!ValueUtils.isEmpty(leftOperand) && table.getField(leftOperand) != null) {
+				operator = ParameterUtils.get(request, "_operator");
+				rightOperand = ValueUtils.toNotNull(ParameterUtils.get(request, "_rightOperand"));
+				if (ValueUtils.isEmpty(rightOperand)) {
+					query.addFilter(new Filter(leftOperand, operator, rightOperand == null || rightOperand.isEmpty() ? null : rightOperand));
+				} else {
+					query.addFilter(new Filter(leftOperand, operator, ValueUtils.toList(StringUtils.tokenizeToStringArray(rightOperand, ","))
+							.toArray()));
+				}
+			}
 			query.setPageIndex(pageIndex);
 			query.setPageSize(pageSize);
-			Page<?> _page = dml.selectPage(clazz, query);
+			Page<?> _page = null;
+			Exception exc = null;
+			try {
+				_page = dml.selectPage(clazz, query);
+			} catch (Exception e) {
+				exc = e;
+				_page = new Page<Object>();
+				_page.setList(new ArrayList(0));
+			}
 			int lastPageIndex = _page.getLastIndex();
 			int pageGroupFromIndex = (pageIndex / pageSize) * pageSize;
 			int pageGroupToIndex = Math.min(lastPageIndex, pageGroupFromIndex + pageSize - 1);
 			int totalSize = _page.getTotalSize();
 			List<?> list = _page.getList();
+
+			if (exc != null) {
+	%>
+	<div class="scope errorScope">
+		error message:
+		<%=ex.getMessage()%></div>
+	<%
+		}
 	%>
 	<form name="listForm" method="post" onsubmit="return listForm._method.value != '' && (listForm._method.value != 'deleteList' || confirm('Delete?'))">
-		<input name="_method" type="hidden" value="" /> <input name="_pageIndex" type="hidden" value="<%=pageIndex%>" /> <input name="_selectedId"
-			type="hidden" value="" />
+		<input name="_method" type="hidden" value="" /><input name="_className" type="hidden" value="<%=className%>" /> <input name="_pageIndex"
+			type="hidden" value="<%=pageIndex%>" /> <input name="_selectedId" type="hidden" value="" />
 		<div class="titleScope">
-			<%=clazz.getSimpleName()%>
-			(<%=table.getName()%>) List
+			<a title="<%=className%>"><%=clazz.getSimpleName()%> (<%=table.getName()%>) List</a>
 			<div class="titleButtonScope">
-				<input type="button" value="Reload" class="button" onmouseover="listForm._method.value = 'reload'" onmouseout="listForm._method.value = ''" /> <input
-					type="button" value="Delete" class="button" onmouseover="listForm._method.value = 'deleteList'" onmouseout="listForm._method.value = ''" />
+				<select name="_leftOperand">
+					<option></option>
+					<%
+						for (Column column : table.getColumnList()) {
+								String fieldName = column.getField().getName();
+					%>
+					<option value="<%=fieldName%>" <%=fieldName.equals(leftOperand) ? "selected=\"selected\"" : ""%>><%=fieldName%></option>
+					<%
+						}
+					%>
+				</select> <select name="_operator">
+					<option value="=" <%="=".equals(operator) ? "selected=\"selected\"" : ""%>>=</option>
+					<option value="like" <%="like".equals(operator) ? "selected=\"selected\"" : ""%>>like</option>
+					<option value="!=" <%="!=".equals(operator) ? "selected=\"selected\"" : ""%>>!=</option>
+					<option value="&lt;" <%="<".equals(operator) ? "selected=\"selected\"" : ""%>>&lt;</option>
+					<option value="&lt;=" <%="<=".equals(operator) ? "selected=\"selected\"" : ""%>>&lt;=</option>
+					<option value="&gt;" <%=">".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;</option>
+					<option value="&gt;=" <%=">=".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;=</option>
+				</select> <input name="_rightOperand" value="<%=rightOperand%>" onkeydown="listForm._method.value = 'reload'" /> <input type="submit" value="Reload"
+					class="button" onmouseover="listForm._method.value = 'reload'" /> <input type="submit" value="Delete" class="button"
+					onmouseover="listForm._method.value = 'deleteList'" onmouseout="listForm._method.value = ''" />
 			</div>
 		</div>
 		<div class="scope listScope">
@@ -256,14 +305,14 @@
 						<%
 							for (String columnName : table.getTitleColumnNameList()) {
 						%>
-						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%> (<%=columnName%>)</th>
+						<th class="titleFieldHeader"><%=table.toFieldName(columnName)%></th>
 						<%
 							}
 						%>
 						<%
 							for (String columnName : table.getListedColumnNameList()) {
 						%>
-						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%> (<%=columnName%>)</th>
+						<th class="listedFieldHeader"><%=table.toFieldName(columnName)%></th>
 						<%
 							}
 						%>

@@ -177,8 +177,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			query = toQuery(table, condition, table.getPkFieldNames());
 			return query;
 		} finally {
-			query.setPageIndex(0);
-			query.setPageSize(2);
+			//			query.setPageIndex(0);
+			//			query.setPageSize(2);
 		}
 	}
 	protected static <T> T newInstance(Class<T> clazz) {

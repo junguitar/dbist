@@ -65,7 +65,7 @@ for (Post post : list) {
     ......
 }
 }}}
-  # select some filterd data list, (0, 10 means pageIndex and pageSize)
+  # select some filtered data list, (0, 10 means pageIndex and pageSize)
 {{{
 List<Post> list = dml.selectList(Post.class, new Query(0, 10).addFitler("name" "like" "%Dbist%"));
 for (Post post : list) {

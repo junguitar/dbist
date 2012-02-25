@@ -60,8 +60,8 @@ public interface Dml {
 	 * @return The data selected
 	 * @throws Exception
 	 */
-	<T> T select(Class<T> clazz, Object pkCondition) throws Exception;
-	<T> T selectWithLock(Class<T> clazz, Object pkCondition) throws Exception;
+	<T> T select(Class<T> clazz, Object... pkCondition) throws Exception;
+	<T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception;
 
 	/**
 	 * Select a data from the database table mapped to T class by condition parameter.<br>

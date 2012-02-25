@@ -7,4 +7,6 @@
 	response.setHeader("Pragma", "no-cache");
 	response.setHeader("Cache-Control", request.getProtocol().equals("HTTP/1.1") ? "no-cache" : "no-store");
 %>
-<div class="scope">no content</div>
+<div class="scope">
+	<a href="http://www.dbist.org">http://www.dbist.org</a>
+</div>

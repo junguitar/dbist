@@ -115,7 +115,21 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			if (condition == null || condition instanceof Query)
 				return (Query) condition;
 			Table table = getTable(clazz);
-			if (condition instanceof List) {
+			if (condition instanceof Object[]) {
+				if (ValueUtils.isEmpty(condition))
+					throw new IllegalAccessException("Requested pk condition is empty.");
+				Object[] array = (Object[]) condition;
+				if (ValueUtils.isPrimitive(array[0])) {
+					int i = 0;
+					int size = array.length;
+					for (String pkFieldName : table.getPkFieldNames()) {
+						query.addFilter(pkFieldName, array[i++]);
+						if (i == size)
+							break;
+					}
+					return query;
+				}
+			} else if (condition instanceof List) {
 				if (ValueUtils.isEmpty(condition))
 					throw new IllegalAccessException("Requested pk condition is empty.");
 				@SuppressWarnings("unchecked")
@@ -125,20 +139,6 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 					int size = list.size();
 					for (String pkFieldName : table.getPkFieldNames()) {
 						query.addFilter(pkFieldName, list.get(i++));
-						if (i == size)
-							break;
-					}
-					return query;
-				}
-			} else if (condition.getClass().isArray()) {
-				if (ValueUtils.isEmpty(condition))
-					throw new IllegalAccessException("Requested pk condition is empty.");
-				Object[] array = (Object[]) condition;
-				if (ValueUtils.isPrimitive(array[0])) {
-					int i = 0;
-					int size = array.length;
-					for (String pkFieldName : table.getPkFieldNames()) {
-						query.addFilter(pkFieldName, array[i++]);
 						if (i == size)
 							break;
 					}
@@ -179,7 +179,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T select(Class<T> clazz, Object pkCondition) throws Exception {
+	public <T> T select(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("pkCondition", pkCondition);
 		Query query = toPkQuery(clazz, pkCondition);
@@ -187,7 +187,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectWithLock(Class<T> clazz, Object pkCondition) throws Exception {
+	public <T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		Query query = toPkQuery(clazz, pkCondition);
 		return select(selectListWithLock(clazz, query));

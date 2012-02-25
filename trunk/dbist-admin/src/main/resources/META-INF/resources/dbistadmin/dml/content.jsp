@@ -207,6 +207,7 @@
 			String leftOperand = useParam ? ParameterUtils.get(request, "_leftOperand") : null;
 			String operator = null;
 			String rightOperand = "";
+			boolean caseSensitive = useParam ? ValueUtils.toBoolean(ParameterUtils.get(request, "_caseSensitive"), true) : true;
 			String order = useParam ? ValueUtils.toNotNull(ParameterUtils.get(request, "_order")) : "";
 			String orderDirection = useParam ? ValueUtils.toNotNull(ParameterUtils.get(request, "_orderDirection")) : "";
 			int pageIndex = ValueUtils.toInteger(ParameterUtils.get(request, "_pageIndex"), 0);
@@ -216,10 +217,11 @@
 				operator = ParameterUtils.get(request, "_operator");
 				rightOperand = ValueUtils.toNotNull(ParameterUtils.get(request, "_rightOperand"));
 				if (ValueUtils.isEmpty(rightOperand)) {
-					query.addFilter(new Filter(leftOperand, operator, rightOperand == null || rightOperand.isEmpty() ? null : rightOperand));
+					query.addFilter(new Filter(leftOperand, operator, rightOperand == null || rightOperand.isEmpty() ? null : rightOperand,
+							caseSensitive));
 				} else {
 					query.addFilter(new Filter(leftOperand, operator, ValueUtils.toList(StringUtils.tokenizeToStringArray(rightOperand, ","))
-							.toArray()));
+							.toArray(), caseSensitive));
 				}
 			}
 			if (!ValueUtils.isEmpty(order))
@@ -256,7 +258,7 @@
 		<div class="titleScope">
 			<a title="<%=className%>"><%=clazz.getSimpleName()%> (<%=table.getName()%>) List</a>
 			<div class="titleButtonScope">
-				filter: <select name="_leftOperand">
+				filter: <select name="_leftOperand" title="leftOperand">
 					<option></option>
 					<%
 						for (Column column : table.getColumnList()) {
@@ -266,7 +268,7 @@
 					<%
 						}
 					%>
-				</select> <select name="_operator">
+				</select> <select name="_operator" title="operator">
 					<option value="=" <%="=".equals(operator) ? "selected=\"selected\"" : ""%>>=</option>
 					<option value="like" <%="like".equals(operator) ? "selected=\"selected\"" : ""%>>like</option>
 					<option value="!=" <%="!=".equals(operator) ? "selected=\"selected\"" : ""%>>!=</option>
@@ -274,8 +276,10 @@
 					<option value="&lt;=" <%="<=".equals(operator) ? "selected=\"selected\"" : ""%>>&lt;=</option>
 					<option value="&gt;" <%=">".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;</option>
 					<option value="&gt;=" <%=">=".equals(operator) ? "selected=\"selected\"" : ""%>>&gt;=</option>
-				</select> <input name="_rightOperand" value="<%=rightOperand%>" onkeydown="listForm._method.value = 'reload'" /> &nbsp;&nbsp;pageSize: <select
-					name="_pageSize"><option value="5" <%=pageSize == 5 ? "selected=\"selected\"" : ""%>>5</option>
+				</select> <input name="_rightOperand" value="<%=rightOperand%>" onkeydown="listForm._method.value = 'reload'" /> <select name="_caseSensitive">
+					<option value="true" <%=caseSensitive ? "selected=\"selected\"" : ""%>>case sensitive</option>
+					<option value="false" <%=!caseSensitive ? "selected=\"selected\"" : ""%>>case insensitive</option>
+				</select> <select name="_pageSize" title="pageSize"><option value="5" <%=pageSize == 5 ? "selected=\"selected\"" : ""%>>5</option>
 					<option value="10" <%=pageSize == 10 ? "selected=\"selected\"" : ""%>>10</option>
 					<option value="20" <%=pageSize == 20 ? "selected=\"selected\"" : ""%>>20</option>
 					<option value="50" <%=pageSize == 50 ? "selected=\"selected\"" : ""%>>50</option>

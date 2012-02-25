@@ -476,6 +476,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 		return rs.getObject(index);
 	}
+
+	private static final String DBFUNC_LOWERCASE_MYSQL = "lcase";
+	private static final String DBFUNC_LOWERCASE_ORACLE = "lower";
+	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
+	static {
+		DBFUNC_LOWERCASE_MAP = new HashMap<String, String>();
+		DBFUNC_LOWERCASE_MAP.put(DBTYPE_MYSQL, DBFUNC_LOWERCASE_MYSQL);
+		DBFUNC_LOWERCASE_MAP.put(DBTYPE_ORACLE, DBFUNC_LOWERCASE_ORACLE);
+	}
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
 		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
 
@@ -484,29 +493,86 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (Filter filter : filters.getFilter()) {
 				String operator = ValueUtils.toString(filter.getOperator(), "=").trim();
 				String lo = filter.getLeftOperand();
-				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator).append(table.toColumnName(lo));
-				j++;
+				String columnName = table.toColumnName(lo);
+				buf.append(i++ == 0 ? " where " : j++ == 0 ? "" : logicalOperator);
+
 				List<?> rightOperand = filter.getRightOperand();
+
+				// case: 'is null' or 'is not null'
 				if (ValueUtils.isEmpty(rightOperand)) {
-					if ("=".equals(operator))
-						operator = "is";
-					else if ("!=".equals(operator))
-						operator = "is not";
-					buf.append(" ").append(operator).append(" null");
-				} else {
-					String key = lo + i;
-					if (rightOperand.size() == 1) {
-						paramMap.put(key, rightOperand.get(0));
-						buf.append(" ").append(operator).append(" :").append(key);
-					} else {
-						paramMap.put(key, rightOperand);
-						if ("=".equals(operator))
-							operator = "in";
-						else if ("!=".equals(operator))
-							operator = "not in";
-						buf.append(" ").append(operator).append(" (:").append(key).append(")");
-					}
+					appendNullCondition(buf, table, columnName, operator);
+					continue;
 				}
+
+				// check and process case sensitive
+				if (!filter.isCaseSensitive()) {
+					columnName = DBFUNC_LOWERCASE_MAP.get(dbType) + "(" + columnName + ")";
+					List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
+					for (Object ro : rightOperand) {
+						if (ro != null && ro instanceof String)
+							ro = ((String) ro).toLowerCase();
+						newRightOperand.add(ro);
+					}
+					rightOperand = newRightOperand;
+				}
+
+				// case only one filter
+				if (rightOperand.size() == 1) {
+					Object value = rightOperand.get(0);
+
+					// case: is null or is not null
+					if (value == null) {
+						appendNullCondition(buf, table, columnName, operator);
+						continue;
+					}
+
+					// case x = 'l' or x != 'l'
+					String key = lo + i;
+					paramMap.put(key, value);
+					buf.append(columnName).append(" ").append(operator).append(" :").append(key);
+					continue;
+				}
+
+				// check has null
+				boolean hasNull = false;
+				for (Object ro : rightOperand) {
+					if (ro != null)
+						continue;
+					hasNull = true;
+					break;
+				}
+
+				// case: has null so... (x = 'l' or x is null or...)
+				if (hasNull) {
+					if ("in".equals(operator))
+						operator = "=";
+					else if ("not in".equals(operator))
+						operator = "!=";
+					String subLogicalOperator = "!=".equals(operator) ? " and " : " or ";
+					buf.append("(");
+					int k = 0;
+					for (Object ro : rightOperand) {
+						buf.append(k++ == 0 ? "" : subLogicalOperator);
+						if (ro == null) {
+							appendNullCondition(buf, table, columnName, operator);
+							continue;
+						}
+						String key = lo + i++;
+						paramMap.put(key, ro);
+						buf.append(columnName).append(" ").append(operator).append(" :").append(key);
+					}
+					buf.append(")");
+					continue;
+				}
+
+				// case: in ('x', 'y', 'z')
+				String key = lo + i;
+				paramMap.put(key, rightOperand);
+				if ("=".equals(operator))
+					operator = "in";
+				else if ("!=".equals(operator))
+					operator = "not in";
+				buf.append(columnName).append(" ").append(operator).append(" (:").append(key).append(")");
 			}
 		}
 
@@ -520,6 +586,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		return i;
+	}
+	private void appendNullCondition(StringBuffer buf, Table table, String columnName, String operator) {
+		buf.append(columnName);
+		if ("=".equals(operator) || "in".equals(operator))
+			operator = "is";
+		else if ("!=".equals(operator) || "not in".equals(operator))
+			operator = "is not";
+		buf.append(" ").append(operator).append(" null");
 	}
 
 	@Override
@@ -638,21 +712,21 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					}
 				});
 	}
-	private static Map<String, CtClass> ctClassByDbDataTypeMap;
+	private static final Map<String, CtClass> CTCLASS_BY_DBDATATYPE_MAP;
 	static {
-		ctClassByDbDataTypeMap = new HashMap<String, CtClass>();
+		CTCLASS_BY_DBDATATYPE_MAP = new HashMap<String, CtClass>();
 		ClassPool pool = ClassPool.getDefault();
 		try {
-			ctClassByDbDataTypeMap.put("NUMBER", pool.get(BigDecimal.class.getName()));
-			ctClassByDbDataTypeMap.put("DATE", pool.get(Date.class.getName()));
-			ctClassByDbDataTypeMap.put("TIMESTAMP", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("NUMBER", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("DATE", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("TIMESTAMP", pool.get(Date.class.getName()));
 		} catch (NotFoundException e) {
 			logger.warn(e.getMessage(), e);
 		}
 	}
 	private static CtClass toCtClass(String dbDataType) throws NotFoundException {
-		if (ctClassByDbDataTypeMap.containsKey(dbDataType))
-			return ctClassByDbDataTypeMap.get(dbDataType);
+		if (CTCLASS_BY_DBDATATYPE_MAP.containsKey(dbDataType))
+			return CTCLASS_BY_DBDATATYPE_MAP.get(dbDataType);
 		return ClassPool.getDefault().getCtClass(String.class.getName());
 	}
 

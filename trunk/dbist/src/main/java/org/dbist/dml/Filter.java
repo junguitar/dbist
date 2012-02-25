@@ -28,16 +28,21 @@ public class Filter {
 	private String leftOperand;
 	private String operator;
 	private List<?> rightOperand;
-	public Filter(String leftOperand) {
-		this.leftOperand = leftOperand;
-	}
+	private boolean caseSensitive = true;
 	public Filter(String leftOperand, Object rightOperand) {
 		this(leftOperand, "=", rightOperand);
 	}
 	public Filter(String leftOperand, String operator, Object rightOperand) {
 		this.leftOperand = leftOperand;
 		this.operator = operator;
+		if (rightOperand != null)
+			addRightOperand(rightOperand);
+	}
+	public Filter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive) {
+		this.leftOperand = leftOperand;
+		this.operator = operator;
 		addRightOperand(rightOperand);
+		this.caseSensitive = caseSensitive;
 	}
 	public String getLeftOperand() {
 		return leftOperand;
@@ -68,9 +73,9 @@ public class Filter {
 		@SuppressWarnings("unchecked")
 		List<Object> list = (List<Object>) this.rightOperand;
 		for (Object ro : rightOperand) {
-			if (ro == null)
-				continue;
-			if (ro instanceof Object[]) {
+			if (ro == null) {
+				list.add(null);
+			} else if (ro instanceof Object[]) {
 				for (Object subRo : (Object[]) ro)
 					list.add(subRo);
 			} else if (ro instanceof List) {
@@ -81,5 +86,11 @@ public class Filter {
 			}
 		}
 		return this;
+	}
+	public boolean isCaseSensitive() {
+		return caseSensitive;
+	}
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
 	}
 }

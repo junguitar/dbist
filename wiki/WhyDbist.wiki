@@ -3,24 +3,26 @@
 = An Easy Database Management Framework for Java =
 
 The Dbist is an easy Java programming framework to manage dababase.<br>
-It's truly the easiest way to do database programming.<br>
+This is truly the easiest way to do database programming.<br>
 You may already know about many other ORM Frameworks (Hibernate, mybatis, Active Record ...).<br>
-But it's easier.
+But it's easier than them.
 
 Now, you can see why we must use Dbist instead of them.
 
 == Examples ==
 
-=== Select a data from database ===
+=== Select a data from a DB table ===
+
+
 
 Select by primary key value
 {{{
-Post post = Dbist.getDml().select(Post.class, "1");
+Post post = getDml().select(Post.class, "1");
 }}}
 Select by composite key value array
 {{{
 Object[] id = new Object[] {"public", "1"}
-Post post = Dbist.getDml().select(Post.class, id);
+Post post = getDml().select(Post.class, id);
 }}}
 Select by composite key value List
 {{{

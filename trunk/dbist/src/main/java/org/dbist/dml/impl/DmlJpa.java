@@ -30,7 +30,19 @@ import org.dbist.metadata.Table;
 public class DmlJpa extends AbstractDml implements Dml {
 
 	@Override
+	public Class<?> getClass(String tableName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public Table getTable(Object obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Table getTable(String obj) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -132,13 +144,13 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectList(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> Page<T> selectPage(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

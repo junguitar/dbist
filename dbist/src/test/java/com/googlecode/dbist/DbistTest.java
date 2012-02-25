@@ -16,8 +16,13 @@
 package com.googlecode.dbist;
 
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
 import junit.framework.Assert;
+import net.sf.common.util.ReflectionUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
@@ -60,5 +65,18 @@ public class DbistTest {
 		Velocity.evaluate(vc, writer, query, query);
 
 		System.out.println(writer);
+	}
+
+	@Test
+	public final void testJavassist() throws Exception {
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.makeClass("com.googlecode.dbist.Data");
+		CtClass str = pool.getCtClass(String.class.getName());
+		cc.addField(new CtField(str, "name", cc));
+		Class<?> clazz = cc.toClass();
+		Object obj = clazz.newInstance();
+		for (Field field : ReflectionUtils.getFieldList(obj, false)) {
+			System.out.println("field: " + field.getName());
+		}
 	}
 }

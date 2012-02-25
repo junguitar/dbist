@@ -29,20 +29,31 @@
 	String dmlName = ValueUtils.toNull(ParameterUtils.get(request, "_dml"));
 	if (dmlName != null) {
 		dml = beanUtils.get(dmlName, Dml.class);
-		String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prefix")).trim(), "/", ".");
-		if (!ValueUtils.isEmpty(prefix)) {
-			StringBuffer buf = new StringBuffer(prefix);
-			String[] paths = ParameterUtils.getValues(request, "_path");
-			if (!ValueUtils.isEmpty(paths)) {
-				for (String path : paths) {
-					if (ValueUtils.isEmpty(path))
-						break;
-					buf.append(buf.toString().endsWith(".") ? "" : ".").append(path);
+		String by = ParameterUtils.get(request, "_by");
+		if ("table".equals(by)) {
+			String table = ParameterUtils.get(request, "_table");
+			if (!ValueUtils.isEmpty(table)) {
+				try {
+					clazz = dml.getClass(table);
+				} catch (Exception e) {
 				}
 			}
-			try {
-				clazz = ClassUtils.forName(buf.toString(), null);
-			} catch (Exception e) {
+		} else {
+			String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prefix")).trim(), "/", ".");
+			if (!ValueUtils.isEmpty(prefix)) {
+				StringBuffer buf = new StringBuffer(prefix);
+				String[] paths = ParameterUtils.getValues(request, "_path");
+				if (!ValueUtils.isEmpty(paths)) {
+					for (String path : paths) {
+						if (ValueUtils.isEmpty(path))
+							break;
+						buf.append(buf.toString().endsWith(".") ? "" : ".").append(path);
+					}
+				}
+				try {
+					clazz = ClassUtils.forName(buf.toString(), null);
+				} catch (Exception e) {
+				}
 			}
 		}
 	}

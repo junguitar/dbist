@@ -39,6 +39,12 @@ import org.springframework.beans.factory.InitializingBean;
 public abstract class AbstractDml implements Dml, InitializingBean {
 	private Preprocessor preprocessor;
 
+	@Override
+	public Table getTable(String name) {
+		Class<?> clazz = getClass(name);
+		return clazz == null ? null : getTable(clazz);
+	}
+
 	public Preprocessor getPreprocessor() {
 		return preprocessor;
 	}
@@ -127,7 +133,14 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 					+ (String[]) fieldNameSet.toArray(new String[fieldNameSet.size()]));
 		return query;
 	}
-	protected Query toPkQuery(Class<?> clazz, Object condition) throws Exception {
+	protected Query toPkQuery(Object obj, Object condition) throws Exception {
+		Class<?> clazz;
+		if (obj instanceof Class)
+			clazz = (Class<?>) obj;
+		else if (obj instanceof String)
+			clazz = getClass((String) obj);
+		else
+			clazz = obj.getClass();
 		Query query = new Query();
 		try {
 			if (condition == null || condition instanceof Query)
@@ -219,6 +232,50 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
+	public <T> T select(String tableName, Object pkCondition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("pkCondition", pkCondition);
+		ValueUtils.assertNotNull("requiredType", requiredType);
+		Class<?> clazz = getClass(tableName);
+		Query query = toPkQuery(clazz, pkCondition);
+		Object obj = select(selectList(clazz, query));
+		return ValueUtils.populate(obj, requiredType.newInstance());
+	}
+
+	@Override
+	public <T> T selectWithLock(String tableName, Object pkCondition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("pkCondition", pkCondition);
+		ValueUtils.assertNotNull("requiredType", requiredType);
+		Class<?> clazz = getClass(tableName);
+		Query query = toPkQuery(clazz, pkCondition);
+		Object obj = selectWithLock(selectList(clazz, query));
+		return ValueUtils.populate(obj, requiredType.newInstance());
+	}
+
+	@Override
+	public <T> T selectByCondition(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("condition", condition);
+		ValueUtils.assertNotNull("requiredType", requiredType);
+		Class<?> clazz = getClass(tableName);
+		Query query = toPkQuery(clazz, condition);
+		Object obj = select(selectList(clazz, query));
+		return ValueUtils.populate(obj, requiredType.newInstance());
+	}
+
+	@Override
+	public <T> T selectByConditionWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("condition", condition);
+		ValueUtils.assertNotNull("requiredType", requiredType);
+		Class<?> clazz = getClass(tableName);
+		Query query = toPkQuery(clazz, condition);
+		Object obj = selectWithLock(selectList(clazz, query));
+		return ValueUtils.populate(obj, requiredType.newInstance());
+	}
+
+	@Override
 	public <T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
@@ -226,9 +283,10 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T select(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+	public <T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("query", sql);
-		return select(selectList(sql, paramMap, requiredType, 0, 2));
+		ValueUtils.assertNotNull("requiredType", requiredType);
+		return select(selectListByQl(sql, paramMap, requiredType, 0, 2));
 	}
 
 	@Override
@@ -244,20 +302,53 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
-		return select(sql, paramMap, requiredType);
+	public <T> int selectSize(String tableName, Object condition) throws Exception {
+		return selectSize(getClass(tableName), condition);
 	}
 
 	@Override
-	public <T> List<T> selectListByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
-			throws Exception {
-		return selectList(sql, paramMap, requiredType, pageIndex, pageSize);
+	public <T> List<T> selectList(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		List<?> objList = selectList(getClass(tableName), condition);
+		List<T> list = new ArrayList<T>();
+		for (Object obj : objList)
+			list.add(ValueUtils.populate(obj, requiredType.newInstance()));
+		return list;
 	}
 
 	@Override
-	public <T> Page<T> selectPageByNativeQuery(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
-			throws Exception {
-		return selectPage(sql, paramMap, requiredType, pageIndex, pageSize);
+	public <T> List<T> selectListWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		List<?> objList = selectListWithLock(getClass(tableName), condition);
+		List<T> list = new ArrayList<T>();
+		for (Object obj : objList)
+			list.add(ValueUtils.populate(obj, requiredType.newInstance()));
+		return list;
+	}
+
+	@Override
+	public <T> Page<T> selectPage(String tableName, Query query, Class<T> requiredType) throws Exception {
+		Page<T> page = new Page<T>();
+		page.setIndex(query.getPageIndex());
+		page.setSize(query.getPageSize());
+		page.setTotalSize(selectSize(tableName, query));
+		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
+			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
+		page.setList(selectList(tableName, query, requiredType));
+		return page;
+	}
+
+	@Override
+	public <T> T selectBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		return selectByQl(sql, paramMap, requiredType);
+	}
+
+	@Override
+	public <T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	@Override
+	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize);
 	}
 
 	@SuppressWarnings("unchecked")

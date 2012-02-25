@@ -28,6 +28,12 @@
 	// DML beans usable
 	String[] dmls = beanUtils.getNames(Dml.class);
 
+	// By
+	String by = ParameterUtils.get(request, "_by");
+
+	// tableName
+	String table = ValueUtils.toNotNull(ParameterUtils.get(request, "_table"));
+
 	// prefix of data model class
 	String prefix = StringUtils.replace(ValueUtils.toNotNull(ParameterUtils.get(request, "_prefix")).trim(), "/", ".");
 	List<Select> selectList = new ArrayList<Select>();
@@ -96,7 +102,14 @@
 					<%
 						}
 					%>
-			</select>&nbsp;&nbsp;&nbsp;&nbsp; class: <input id="dmlSubmenuPrefix" name="_prefix" type="text" value="<%=prefix%>" onchange="submit()" /> <%
+			</select> &nbsp;&nbsp;by: <select name="_by" onchange="submit()">
+					<option value="class" <%="class".equals(by) ? "selected=\"selected\"" : ""%>>class</option>
+					<option value="table" <%="table".equals(by) ? "selected=\"selected\"" : ""%>>table</option>
+			</select> <%
+ 	if ("table".equals(by)) {
+ %>&nbsp;&nbsp;table: <input id="_table" name="_table" type="text" value="<%=table%>" onchange="submit()" /> <%
+ 	} else {
+ %>&nbsp;&nbsp;class: <input id="dmlSubmenuPrefix" name="_prefix" type="text" value="<%=prefix%>" onchange="submit()" /> <%
  	for (Select select : selectList) {
  %> <select name="_path" onchange="submit()">
 					<option value=""></option>
@@ -108,6 +121,7 @@
 						}
 					%>
 			</select> <%
+ 	}
  	}
  %> <input type="submit" value="OK" class="button" /></td>
 		</tr>

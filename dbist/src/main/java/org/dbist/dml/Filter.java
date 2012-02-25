@@ -67,8 +67,11 @@ public class Filter {
 			this.rightOperand = new ArrayList<Object>();
 		@SuppressWarnings("unchecked")
 		List<Object> list = (List<Object>) this.rightOperand;
-		for (Object ro : rightOperand)
+		for (Object ro : rightOperand) {
+			if (ro == null)
+				continue;
 			list.add(ro);
+		}
 		return this;
 	}
 }

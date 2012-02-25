@@ -13,7 +13,14 @@ import org.slf4j.LoggerFactory;
 public class SqlAspect {
 	private static final Logger logger = LoggerFactory.getLogger(SqlAspect.class);
 
+	private boolean enabled = true;
 	private boolean prettyPrint;
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 	public boolean isPrettyPrint() {
 		return prettyPrint;
 	}
@@ -28,12 +35,12 @@ public class SqlAspect {
 		return point.proceed();
 	}
 	private void print(Object[] args) {
-		if (!logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
+		if (!enabled || !logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
 			return;
 		StringBuffer buf = new StringBuffer("\r\nSQL: ");
 		String sql = (String) args[0];
 		buf.append(prettyPrint ? formatter.format(sql) : sql);
-		if (args.length > 1) {
+		if (args.length > 1 && !ValueUtils.isEmpty(args[1])) {
 			if (args[1] instanceof Map) {
 				@SuppressWarnings("unchecked")
 				Map<String, ?> map = (Map<String, ?>) args[1];

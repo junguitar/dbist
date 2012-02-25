@@ -18,11 +18,11 @@ package org.dbist.dml.impl;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.DatabaseMetaData;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -497,7 +497,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 						else if ("!=".equals(operator))
 							operator = "not in";
 					}
-					buf.append(" ").append(operator).append(" :").append(key);
+					buf.append(" ").append(operator).append(" (:").append(key).append(")");
 				}
 			}
 		}

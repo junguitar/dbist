@@ -13,46 +13,51 @@ Now, you can see why we must use Dbist instead of them.
 
 === Select a data from a DB table ===
 
-Select by a primary key value
+By a primary key value (If the "DATA" table has a primary key.)
 {{{
-Data data = getDml().select(Data.class, "x");
+Data data = dml.select(Data.class, "x");
 }}}
-Select by composite key values
+By composite key values (If the "DATA" table has composite keys.)
 {{{
-Data data = getDml().select(Data.class, "x", "y");
+Data data = dml.select(Data.class, "x", "y");
 }}}
-Select by composite key value List
+By List
 {{{
 List<Object> id = new ArrayList<Object>();
 id.add("x");
 id.add("y");
-Data data = getDml().select(Data.class, id);
+Data data = dml.select(Data.class, id);
 }}}
-Select by HttpServletRequest parameters
+By HttpServletRequest parameters
 {{{
-Data data = getDml().select(Data.class, request);
+Data data = dml.select(Data.class, request);
 }}}
-Select by a Map
+By a Map
 {{{
 Map<String, Object> paramMap = new HashMap<String, Object>();
 paramMap.put("pk1", "x");
 paramMap.put("pk2", "y");
-Data data = getDml().select(Data.class, paramMap);
+Data data = dml.select(Data.class, paramMap);
 }}}
-Select by the object
+By the object
 {{{
 Data data = new Data();
 data.setPk1("x");
 data.setPk2("y");
-data = getDml().select(data);
+data = dml.select(data);
 }}}
-Select by another object
+By another object
 {{{
 OtherData otherData = new OtherData();
 otherData.setPk1("x");
 otherData.setPk2("y");
-Data data = getDml().select(Data.class, otherData);
+Data data = dml.select(Data.class, otherData);
 }}}
+By candidate keys
+Data data = new Data();
+data.setCk1("l");
+data.setCk2("m");
+data = dml.selectByCondition(data);
 === Insert a data from a DB table ===
 
 === Update a data from a DB table ===

@@ -2,9 +2,9 @@
 
 = Downloads =
 
-Releases
+== Releases ==
 
-1.0.0
+Version 1.0.0
   * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.0/dbist-1.0.0.jar dbist-1.0.0]
   * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0]
 

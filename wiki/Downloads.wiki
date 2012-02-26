@@ -1,3 +1,41 @@
 #summary downloads tab.
 
 = Downloads =
+
+Releases
+
+1.0.0
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.0/dbist-1.0.0.jar dbist-1.0.0]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0]
+
+By Maven Configurations
+
+{{{
+	<repositories>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>http://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<repository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<name>Googlecode Snapshots</name>
+			<url>http://repo-m2.googlecode.com/svn/snapshots</url>
+		</repository>
+	</repositories>
+}}}
+
+{{{
+	<dependencies>
+		<dependency>
+			<groupId>org.dbist</groupId>
+			<artifactId>dbist</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dbist</groupId>
+			<artifactId>dbist-admin</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	</dependencies>
+}}}

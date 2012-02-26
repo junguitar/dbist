@@ -1,0 +1,154 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.dbist</groupId>
+	<artifactId>dbist-example-webapp</artifactId>
+	<version>1.0.0</version>
+	<packaging>war</packaging>
+
+	<name>dbist-example-webapp</name>
+	<url>http://dbist.org</url>
+	<description>Examples of the dbist framework</description>
+
+	<properties>
+		<maven.test.skip>true</maven.test.skip>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<scm>
+		<url>http://dbist.googlecode.com/svn</url>
+		<connection>scm:svn:http://dbist.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://dbist.googlecode.com/svn/trunk/</developerConnection>
+	</scm>
+
+	<issueManagement>
+		<system>googlecode</system>
+		<url>http://code.google.com/p/dbist/issues</url>
+	</issueManagement>
+
+	<build>
+		<finalName>dbist-example</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.jvnet.wagon-svn</groupId>
+				<artifactId>wagon-svn</artifactId>
+				<version>1.9</version>
+			</extension>
+		</extensions>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>http://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<repository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<name>Googlecode Snapshots</name>
+			<url>http://repo-m2.googlecode.com/svn/snapshots</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>3.1.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>1.6.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>3.5.6-Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-annotations</artifactId>
+			<version>3.5.6-Final</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.jdo</groupId>
+			<artifactId>jdo2-api</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dbist</groupId>
+			<artifactId>dbist</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dbist</groupId>
+			<artifactId>dbist-admin</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<name>Googlecode Releases</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<name>Googlecode Snapshots</name>
+			<url>svn:https://repo-m2.googlecode.com/svn/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

@@ -494,7 +494,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				String operator = ValueUtils.toString(filter.getOperator(), "=").trim();
 				String lo = filter.getLeftOperand();
 				String columnName = table.toColumnName(lo);
-				buf.append(i++ == 0 ? " where " : j++ == 0 ? "" : logicalOperator);
+				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
+				j++;
 
 				List<?> rightOperand = filter.getRightOperand();
 

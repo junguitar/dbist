@@ -131,7 +131,10 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T insert(Class<T> clazz, Object data) throws Exception;
-	Object insert(String tableName, Object data) throws Exception;
+	void insertBatch(Class<?> clazz, List<Object> list) throws Exception;
+
+	void insert(String tableName, Object data) throws Exception;
+	void insertBatch(String tableName, List<Object> list) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -223,11 +226,13 @@ public interface Dml {
 	 * @return The data deleted
 	 * @throws Exception
 	 */
-	<T> T delete(Class<T> clazz, Object condition) throws Exception;
+	<T> T delete(Class<T> clazz, Object... pkCondition) throws Exception;
 	void deleteBatch(Class<?> clazz, List<Object> list) throws Exception;
+	<T> T deleteByCondition(Class<T> clazz, Object condition) throws Exception;
 
-	void delete(String tableName, Object pkCondition) throws Exception;
+	void delete(String tableName, Object... pkCondition) throws Exception;
 	void deleteBatch(String tableName, List<Object> list) throws Exception;
+	<T> void deleteByCondition(String tableName, Object condition) throws Exception;
 
 	/**
 	 * 

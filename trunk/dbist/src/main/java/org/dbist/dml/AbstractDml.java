@@ -188,7 +188,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public <T> T select(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
-		ValueUtils.assertNotNull("pkCondition", pkCondition);
+		ValueUtils.assertNotEmpty("pkCondition", pkCondition);
 		Query query = toPkQuery(clazz, pkCondition);
 		return select(selectList(clazz, query));
 	}
@@ -196,6 +196,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public <T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
+		ValueUtils.assertNotEmpty("pkCondition", pkCondition);
 		Query query = toPkQuery(clazz, pkCondition);
 		return select(selectListWithLock(clazz, query));
 	}
@@ -261,12 +262,16 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public <T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("query", sql);
+		ValueUtils.assertNotNull("paramMap", paramMap);
 		ValueUtils.assertNotNull("requiredType", requiredType);
 		return select(selectListByQl(sql, paramMap, requiredType, 0, 2));
 	}
 
 	@Override
 	public <T> Page<T> selectPage(Class<T> clazz, Query query) throws Exception {
+		ValueUtils.assertNotNull("clazz", clazz);
+		if (query == null)
+			query = new Query();
 		Page<T> page = new Page<T>();
 		page.setIndex(query.getPageIndex());
 		page.setSize(query.getPageSize());
@@ -279,11 +284,14 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public <T> int selectSize(String tableName, Object condition) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
 		return selectSize(getClass(tableName), condition);
 	}
 
 	@Override
 	public <T> List<T> selectList(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("requiredType", requiredType);
 		List<?> objList = selectList(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
 		for (Object obj : objList)
@@ -293,6 +301,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public <T> List<T> selectListWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("requiredType", requiredType);
 		List<?> objList = selectListWithLock(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
 		for (Object obj : objList)
@@ -302,6 +312,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public <T> Page<T> selectPage(String tableName, Query query, Class<T> requiredType) throws Exception {
+		ValueUtils.assertNotNull("tableName", tableName);
+		ValueUtils.assertNotNull("requiredType", requiredType);
 		Page<T> page = new Page<T>();
 		page.setIndex(query.getPageIndex());
 		page.setSize(query.getPageSize());
@@ -343,8 +355,18 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public Object insert(String tableName, Object data) throws Exception {
-		return insert(getClass(tableName), data);
+	public void insertBatch(Class<?> clazz, List<Object> list) throws Exception {
+		insertBatch(toRequiredType(list, clazz));
+	}
+
+	@Override
+	public void insert(String tableName, Object data) throws Exception {
+		insert(getClass(tableName), data);
+	}
+
+	@Override
+	public void insertBatch(String tableName, List<Object> list) throws Exception {
+		insertBatch(toRequiredType(list, getClass(tableName)));
 	}
 
 	@Override
@@ -468,7 +490,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T delete(Class<T> clazz, Object pkCondition) throws Exception {
+	public <T> T delete(Class<T> clazz, Object... pkCondition) throws Exception {
 		T data = select(clazz, pkCondition);
 		if (data == null)
 			return null;
@@ -482,12 +504,29 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public void delete(String tableName, Object data) throws Exception {
-		delete(getClass(tableName), data);
+	public <T> T deleteByCondition(Class<T> clazz, Object condition) throws Exception {
+		T data = selectByCondition(clazz, condition);
+		if (data == null)
+			return null;
+		delete(data);
+		return data;
+	}
+
+	@Override
+	public void delete(String tableName, Object... pkCondition) throws Exception {
+		delete(getClass(tableName), pkCondition);
 	}
 
 	@Override
 	public void deleteBatch(String tableName, List<Object> list) throws Exception {
 		deleteBatch(getClass(tableName), list);
+	}
+
+	@Override
+	public <T> void deleteByCondition(String tableName, Object condition) throws Exception {
+		Object data = selectByCondition(tableName, condition, getClass(tableName));
+		if (data == null)
+			return;
+		delete(data);
 	}
 }

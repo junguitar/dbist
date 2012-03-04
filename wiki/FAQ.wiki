@@ -9,7 +9,7 @@ SELECT a, b
 FROM DATA
 WHERE l = 'x'
 AND   m like '%y%'
-AND   n not null
+AND   n is not null
 AND   t in ('z', 'k')
 ORDER BY a ASC, b DESC
 }}}

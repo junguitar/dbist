@@ -21,7 +21,7 @@ Let's begin...
 == Running Example Sources ==
 
   # Create an oracle Database (ex. dbist)
-  # Run this script to the Database 
+  # Run [ExampleSchema this script] to the Database 
   # Download this dbist-example.war file (or check-out the example project from Dbist SVN)
   # Publish this example to your tomcat server
   # Check and modify the config.properties(dbist-example/WEB-INF/config.properties) file

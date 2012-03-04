@@ -1,0 +1,31 @@
+#summary Frequently asked questions
+
+== Composite Key ==
+
+{{{
+dml.select(Data.class, "x", "y");
+}}}
+
+== Partial Fields Selection (Query) ==
+
+{{{
+dml.selectList(Data.class, new Query().addField("a", "b"));
+}}}
+
+== Partial Fields Update ==
+
+{{{
+dml.update(data, "a", "b");
+}}}
+
+== Ordering ==
+
+dml.selectList(Data.class, new Query().addOrder("a", true));
+
+== Pagination == 
+
+dml.selectList(Data.class, new Query(0, 10));
+
+== Some Complex Queries ==
+
+== Object Relations ==

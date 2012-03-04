@@ -16,7 +16,7 @@ Let's begin...
   # Java SE JDK 6
   # Maven2 or later
   # Eclipse Indigo or later (IDE for Java EE Developers)
-  # Eclipse Plugin - Maven Integration for Eclipse (by Eclipse Marketplace)
+  # Eclipse Plugin - Maven Integration for Eclipse (from Eclipse Marketplace)
 
 == Running Example Sources ==
 

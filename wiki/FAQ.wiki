@@ -20,11 +20,15 @@ dml.update(data, "a", "b");
 
 == Ordering ==
 
+{{{
 dml.selectList(Data.class, new Query().addOrder("a", true));
+}}}
 
 == Pagination == 
 
+{{{
 dml.selectList(Data.class, new Query(0, 10));
+}}}
 
 == Some Complex Queries ==
 

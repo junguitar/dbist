@@ -23,7 +23,7 @@ dml.selectList(Data.class,
             .addFilter("l", "x")
             .addFilter("m", "like" "%y%")
             .addFilter("n", "!=" null)
-            .addFilter(new Filter("t", new String[] {"z", "k"}))
+            .addFilter("t", new String[] {"z", "k"})
             .addOrder("a", true).addOrder("b", false));
 }}}
 

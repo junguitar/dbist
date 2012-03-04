@@ -9,6 +9,8 @@ But it's easier than them.
 
 Now, you can see why we must use Dbist instead of them.
 
+  # [GettingStarted Getting Started]
+
 == Example ==
 
 A "POST" is a DB table.<br>

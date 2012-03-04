@@ -16,8 +16,16 @@ Let's begin...
   # Maven2 or later
   # Eclipse Indigo or later (IDE for Java EE Developers)
   # Eclipse Plugin - Maven Integration for Eclipse (by Eclipse Marketplace)
+  # Oracle 10g or later
 
 == Running Example Sources ==
+
+  # Create an oracle Database (ex. dbist)
+  # Run this script to the Database 
+  # Download this dbist-example.war file (or check-out the example project from Dbist SVN)
+  # Publish this example to your tomcat server
+  # Check and modify the config.properties(dbist-example/WEB-INF/config.properties) file
+  # Run the tomcat server and browse this url on a browser
 
 == Creating a Project ==
 

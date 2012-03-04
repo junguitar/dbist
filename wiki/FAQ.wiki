@@ -45,7 +45,7 @@ dml.selectList(Data.class, new Query().addField("a", "b"));
 dml.update(data, "a", "b");
 }}}
 
-== Ordering ==
+== Order By ==
 
 {{{
 dml.selectList(Data.class, new Query().addOrder("a", true));

@@ -1,6 +1,6 @@
 #summary Frequently asked questions
 
-== Combined Sample ==
+=== Combined Sample ===
 
 * SQL Query
 
@@ -27,36 +27,36 @@ dml.selectList(Data.class,
             .addOrder("a", true).addOrder("b", false));
 }}}
 
-== Composite Key ==
+=== Composite Key ===
 
 {{{
 dml.select(Data.class, "x", "y");
 }}}
 
-== Partial Fields Selection (Query) ==
+=== Partial Fields Selection (Query) ===
 
 {{{
 dml.selectList(Data.class, new Query().addField("a", "b"));
 }}}
 
-== Partial Fields Update ==
+=== Partial Fields Update ===
 
 {{{
 dml.update(data, "a", "b");
 }}}
 
-== Order By ==
+=== Order By ===
 
 {{{
 dml.selectList(Data.class, new Query().addOrder("a", true));
 }}}
 
-== Pagination == 
+=== Pagination ===
 
 {{{
 dml.selectList(Data.class, new Query(0, 10));
 }}}
 
-== Some Complex Queries ==
+=== Some Complex Queries ===
 
-== Object Relations ==
+=== Object Relations ===

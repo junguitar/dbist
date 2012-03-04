@@ -26,7 +26,7 @@ Let's begin...
   # Publish this example to your tomcat server
   # Check and modify [ConfigProperties the config.properties](dbist-example/WEB-INF/config.properties) file
   # Run the tomcat server and browse [http://localhost:8080/dbist-example/dbistadmin this url] on a browser
-  # Move to the "Dml" menu and enjoy it. (class: org.dbist.example.blog.jdbc and enter)
+  # Move to the "Dml" menu and enjoy it. (class: *org.dbist.example.blog.jdbc* and enter)
 
 == Creating a Project ==
 

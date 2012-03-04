@@ -5,14 +5,14 @@
 == Releases ==
 
 Version 1.0.1 - 2012-03-04
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.1/dbist-1.0.1.jar dbist-1.0.1]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.1/dbist-example.war dbist-example-1.0.1]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.1/dbist-1.0.1.jar dbist-1.0.1.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.1/dbist-example-webapp-1.0.1.war dbist-example.war]
 
 Version 1.0.0 - 2012-02-26
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.0/dbist-1.0.0.jar dbist-1.0.0]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.0/dbist-example.war dbist-example-1.0.0]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.0/dbist-1.0.0.jar dbist-1.0.0.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.0/dbist-admin-1.0.0.jar dbist-admin-1.0.0.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.0/dbist-example-webapp-1.0.0.war dbist-example.war]
 
 By Maven Configurations
 

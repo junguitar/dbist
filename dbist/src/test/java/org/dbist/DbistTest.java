@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.googlecode.dbist;
+package org.dbist;
 
 import java.io.StringWriter;
 import java.lang.reflect.Field;
@@ -33,6 +33,7 @@ import org.springframework.util.ResourceUtils;
 
 /**
  * @author Steve Jung
+ * @since 2011. 7. 3.
  */
 public class DbistTest {
 	@BeforeClass
@@ -56,7 +57,7 @@ public class DbistTest {
 
 	@Test
 	public final void testQuery() throws Exception {
-		String query = FileUtils.readFileToString(ResourceUtils.getFile("classpath:com/googlecode/dbist/query.vm"));
+		String query = FileUtils.readFileToString(ResourceUtils.getFile("classpath:org/dbist/query.vm"));
 
 		StringWriter writer = new StringWriter();
 		VelocityContext vc = new VelocityContext();
@@ -70,7 +71,7 @@ public class DbistTest {
 	@Test
 	public final void testJavassist() throws Exception {
 		ClassPool pool = ClassPool.getDefault();
-		CtClass cc = pool.makeClass("com.googlecode.dbist.Data");
+		CtClass cc = pool.makeClass("org.dbist.virtual.Data");
 		CtClass str = pool.getCtClass(String.class.getName());
 		cc.addField(new CtField(str, "name", cc));
 		Class<?> clazz = cc.toClass();

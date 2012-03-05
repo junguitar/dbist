@@ -70,6 +70,10 @@ public class Filters {
 		addFilterAll(new Filter(leftOperand, operator, rightOperand));
 		return this;
 	}
+	public Filters addFilter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive) {
+		addFilterAll(new Filter(leftOperand, operator, rightOperand, caseSensitive));
+		return this;
+	}
 	public Filters addFilterAll(Object filter) {
 		return _addFilter(filter);
 	}

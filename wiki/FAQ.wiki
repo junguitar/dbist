@@ -20,11 +20,11 @@ ORDER BY a ASC, b DESC
 dml.selectList(Data.class, 
         new Query()
             .addField("a", "b")
+            .addOrder("a", true).addOrder("b", false)
             .addFilter("l", "x")
             .addFilter("m", "like" "%y%")
             .addFilter("n", "!=" null)
-            .addFilter("t", new String[] {"z", "k"})
-            .addOrder("a", true).addOrder("b", false));
+            .addFilter("t", new String[] {"z", "k"}));
 }}}
 
 === Composite Key ===

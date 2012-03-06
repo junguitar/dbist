@@ -15,11 +15,15 @@
  */
 package org.dbist.dml;
 
-import net.sf.common.util.BeanUtils;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.dbist.dml.impl.DmlJdbc;
+import org.dbist.dml.impl.Blog;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -30,10 +34,121 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:WEB-INF/beans.xml")
 public abstract class AbstractDmlTest {
+	int i = 0;
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 	protected Dml dml;
+
 	@Before
 	public void beforeTest() {
 		if (dml == null)
-			dml = BeanUtils.getInstance("dbist-example").get(DmlJdbc.class, Dml.class);
+			dml = getDml();
+		try {
+			Blog blog = dml.select(Blog.class, "1");
+			if (blog == null) {
+				blog = new Blog();
+				blog.setId("1");
+				blog.setName("1");
+				blog.setOwner("junguitar@gmail.com");
+				blog.setDescription("the 1");
+				dml.insert(blog);
+			}
+		} catch (Exception e) {
+
+		}
+	}
+	public abstract Dml getDml();
+
+	@Test
+	public void select() throws Exception {
+		logger.info("case " + i++ + ": select by id value");
+		{
+			dml.select(Blog.class, "1");
+		}
+
+		logger.info("case " + i++ + ": select by data object");
+		{
+			Blog blog = new Blog();
+			blog.setId("1");
+			blog = dml.select(blog);
+		}
+
+		logger.info("case " + i++ + ": select by Filter");
+		{
+			dml.select(Blog.class, new Filter("id", "1"));
+		}
+
+		logger.info("case " + i++ + ": select by Filter[]");
+		{
+			dml.select(Blog.class, new Object[] { new Filter("id", "1") });
+		}
+
+		logger.info("case " + i++ + ": select by Query object");
+		{
+			dml.select(Blog.class, new Query().addFilter("id", "1"));
+		}
+
+		logger.info("case " + i++ + ": select by Map");
+		{
+			Map<String, Object> id = new HashMap<String, Object>();
+			id.put("id", "1");
+			dml.select(Blog.class, id);
+		}
+
+		logger.info("case " + i++ + ": select by another object");
+		{
+			Id id = new Id();
+			id.setId("1");
+			dml.select(Blog.class, id);
+		}
+
+		logger.info("case " + i++ + ": select by tableName");
+		{
+			dml.select("blog", "1", Map.class);
+		}
+
+		logger.info("case " + i++ + ": select partial fields");
+		{
+			dml.select(Blog.class, new Query().addField("id", "name").addFilter("id", "1"));
+		}
+	}
+
+	class Id {
+		private String id;
+		public String getId() {
+			return id;
+		}
+		public void setId(String id) {
+			this.id = id;
+		}
+	}
+
+	@Test
+	public void selectList() throws Exception {
+		for (Blog data : dml.selectList(Blog.class, new Query(0, 10)))
+			logger.debug("selected data: " + data.getId());
+	}
+
+	@Test
+	public void testCombinedSql() throws Exception {
+		{
+			Query query = new Query();
+			query.addField("id", "name");
+			query.addOrder("name", true);
+			query.addFilter("description", "like", "%the%", false);
+			query.addFilter("createdAt", "!=", null);
+			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });
+			dml.selectList(Blog.class, query);
+		}
+
+		{
+			Query query = new Query();
+			query.addField("id", "name");
+			query.addOrder("name", true);
+			query.setOperator("or");
+			query.addFilter("description", "like", "%the%", false);
+			query.addFilter("createdAt", "!=", null);
+			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });
+			dml.selectList(Blog.class, query);
+		}
 	}
 }

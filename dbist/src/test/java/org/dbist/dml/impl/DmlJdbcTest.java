@@ -15,18 +15,18 @@
  */
 package org.dbist.dml.impl;
 
+import net.sf.common.util.BeanUtils;
+
 import org.dbist.dml.AbstractDmlTest;
-import org.dbist.dml.Query;
-import org.junit.Test;
+import org.dbist.dml.Dml;
 
 /**
  * @author Steve Jung
  * @since 2012. 3. 6.
  */
 public class DmlJdbcTest extends AbstractDmlTest {
-	@Test
-	public void testCombinedSql() throws Exception {
-		dml.selectList(Blog.class, new Query().addField("id", "name").addOrder("name", true).addFilter("description", "like", "%the%", false)
-				.addFilter("createdAt", "!=", null).addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" }));
+	@Override
+	public Dml getDml() {
+		return BeanUtils.getInstance("dbist-example").get(DmlJdbc.class, Dml.class);
 	}
 }

@@ -97,6 +97,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 				query.setOperator(request.getParameter("operator"));
 		} else if (condition instanceof Filters) {
 			ValueUtils.populate(condition, query);
+		} else if (condition instanceof Filter) {
+			query.addFilter((Filter) condition);
 		} else {
 			query.addFilterAll(condition, fieldNames);
 		}
@@ -216,6 +218,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, pkCondition);
 		Object obj = select(selectList(clazz, query));
+		if (obj == null)
+			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
@@ -227,6 +231,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, pkCondition);
 		Object obj = selectWithLock(selectList(clazz, query));
+		if (obj == null)
+			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
@@ -238,6 +244,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, condition);
 		Object obj = select(selectList(clazz, query));
+		if (obj == null)
+			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 
@@ -249,6 +257,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, condition);
 		Object obj = selectWithLock(selectList(clazz, query));
+		if (obj == null)
+			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));
 	}
 

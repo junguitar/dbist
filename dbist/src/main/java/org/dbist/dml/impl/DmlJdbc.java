@@ -767,7 +767,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 			CTCLASS_BY_DBDATATYPE_MAP.put("date", pool.get(Date.class.getName()));
 			CTCLASS_BY_DBDATATYPE_MAP.put("datetime", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("datetime2", pool.get(Date.class.getName()));
 			CTCLASS_BY_DBDATATYPE_MAP.put("smalldatetime", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("time", pool.get(Date.class.getName()));
 			CTCLASS_BY_DBDATATYPE_MAP.put("timestamp", pool.get(Date.class.getName()));
 		} catch (NotFoundException e) {
 			logger.warn(e.getMessage(), e);

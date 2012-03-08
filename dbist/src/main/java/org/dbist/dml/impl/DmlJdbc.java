@@ -75,6 +75,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final String DBTYPE_MYSQL = "mysql";
 	private static final String DBTYPE_ORACLE = "oracle";
+	private static final String DBTYPE_SQLSERVER = "sqlserver";
 	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE);
 	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
@@ -266,11 +267,32 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// Select
 		buf.append("select");
-		if (ValueUtils.isEmpty(query.getField())) {
+		// Grouping fields
+		if (!ValueUtils.isEmpty(query.getGroup())) {
+			if (!ValueUtils.isEmpty(query.getField())) {
+				List<String> group = query.getGroup();
+				for (String fieldName : query.getField()) {
+					if (group.contains(fieldName))
+						continue;
+					throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + clazz.getName() + "." + fieldName);
+				}
+			}
+			int i = 0;
+			for (String fieldName : query.getGroup()) {
+				String columnName = table.toColumnName(fieldName);
+				if (columnName == null)
+					throw new DbistRuntimeException("Couldn't find fieldName[" + fieldName + "] of class[" + clazz.getName() + "]");
+				buf.append(i++ == 0 ? " " : ", ").append(fieldName);
+			}
+		}
+		// All fields
+		else if (ValueUtils.isEmpty(query.getField())) {
 			int i = 0;
 			for (Column column : table.getColumnList())
 				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
-		} else {
+		}
+		// Some fields
+		else {
 			int i = 0;
 			for (String fieldName : query.getField()) {
 				String columnName = table.toColumnName(fieldName);
@@ -285,6 +307,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Map<String, Object> paramMap = new ListOrderedMap();
 		appendFromWhere(table, query, lock, buf, paramMap);
 
+		// Group by
+		if (!ValueUtils.isEmpty(query.getGroup())) {
+			buf.append(" group by");
+			int i = 0;
+			for (String group : query.getGroup())
+				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(group));
+		}
+
 		// Order by
 		if (!ValueUtils.isEmpty(query.getOrder())) {
 			buf.append(" order by");
@@ -293,9 +323,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(order.getField())).append(order.isAscending() ? " asc" : " desc");
 		}
 
-		appendLock(buf, lock);
+		if (ValueUtils.isEmpty(query.getGroup()))
+			appendLock(buf, lock);
+		else if (lock)
+			throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
 
-		String sql = appyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize());
+		String sql = applyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize());
 
 		List<T> list = query(sql, paramMap, clazz, query.getPageIndex(), query.getPageSize());
 		return list;
@@ -303,7 +336,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private void appendLock(StringBuffer buf, boolean lock) {
 		buf.append(lock ? " for update" : "");
 	}
-	private String appyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
+	private String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
 		if (pageIndex < 0 || pageSize <= 0)
 			return sql;
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(dbType)) {
@@ -316,7 +349,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				String subsql = null;
 				int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
 				if (forUpdateIndex > -1) {
-					subsql = sql.substring(forUpdateIndex);
+					subsql = sql.substring(forUpdateIndex - 1);
 					sql = sql.substring(0, forUpdateIndex - 1);
 				}
 
@@ -479,11 +512,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final String DBFUNC_LOWERCASE_MYSQL = "lcase";
 	private static final String DBFUNC_LOWERCASE_ORACLE = "lower";
+	private static final String DBFUNC_LOWERCASE_SQLSERVER = "lower";
 	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
 	static {
 		DBFUNC_LOWERCASE_MAP = new HashMap<String, String>();
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_MYSQL, DBFUNC_LOWERCASE_MYSQL);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_ORACLE, DBFUNC_LOWERCASE_ORACLE);
+		DBFUNC_LOWERCASE_MAP.put(DBTYPE_SQLSERVER, DBFUNC_LOWERCASE_SQLSERVER);
 	}
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
 		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
@@ -602,7 +637,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotEmpty("sql", sql);
 		ValueUtils.assertNotEmpty("requiredType", requiredType);
 		sql = sql.trim();
-		sql = appyPagination(sql, paramMap, pageIndex, pageSize);
+		sql = applyPagination(sql, paramMap, pageIndex, pageSize);
 		return query(sql, paramMap, requiredType, pageIndex, pageSize);
 	}
 
@@ -696,7 +731,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 						ClassPool pool = ClassPool.getDefault();
 						CtClass cc = pool.makeClass("org.dbist.virtual." + ValueUtils.toCamelCase(_name, '_', true));
-						for (TableColumn tableColumn : getTableColumnList(table))
+						for (TableColumn tableColumn : getTableColumnList(table)) {
 							try {
 								cc.addField(new CtField(toCtClass(tableColumn.getDataType()), ValueUtils.toCamelCase(tableColumn.getName(), '_'), cc));
 							} catch (CannotCompileException e) {
@@ -704,6 +739,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 							} catch (NotFoundException e) {
 								throw new DbistRuntimeException(e);
 							}
+						}
 
 						try {
 							return cc.toClass();
@@ -718,9 +754,21 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		CTCLASS_BY_DBDATATYPE_MAP = new HashMap<String, CtClass>();
 		ClassPool pool = ClassPool.getDefault();
 		try {
-			CTCLASS_BY_DBDATATYPE_MAP.put("NUMBER", pool.get(BigDecimal.class.getName()));
-			CTCLASS_BY_DBDATATYPE_MAP.put("DATE", pool.get(Date.class.getName()));
-			CTCLASS_BY_DBDATATYPE_MAP.put("TIMESTAMP", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("number", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("int", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("bigint", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("smallint", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("tinyint", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("float", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("money", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("smallmoney", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("numeric", pool.get(BigDecimal.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("decimal", pool.get(BigDecimal.class.getName()));
+
+			CTCLASS_BY_DBDATATYPE_MAP.put("date", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("datetime", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("smalldatetime", pool.get(Date.class.getName()));
+			CTCLASS_BY_DBDATATYPE_MAP.put("timestamp", pool.get(Date.class.getName()));
 		} catch (NotFoundException e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -777,22 +825,27 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
 	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
+	private static final String QUERY_NUMBEROFTABLE_SQLSERVER = "select count(*) from ${domain}..sysobjects where xtype = 'U' and lower(name) = ?";
 	private static final Map<String, String> QUERY_NUMBEROFTABLE_MAP;
 	static {
 		QUERY_NUMBEROFTABLE_MAP = new HashMap<String, String>();
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_MYSQL, QUERY_NUMBEROFTABLE_MYSQL);
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_ORACLE, QUERY_NUMBEROFTABLE_ORACLE);
+		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_NUMBEROFTABLE_SQLSERVER);
 	}
 
 	// TODO QUERY_PKCOLUMNS_MYSQL
 	private static final String QUERY_PKCOLUMNS_MYSQL = "";
 	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
 			+ " where cons.constraint_name = conscol.constraint_name and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P'";
+	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(name) name from ${domain}..sysobjects tbl, ${domain}..syscolumns col"
+			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3";
 	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;
 	static {
 		QUERY_PKCOLUMNS_MAP = new HashMap<String, String>();
 		QUERY_PKCOLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_PKCOLUMNS_MYSQL);
 		QUERY_PKCOLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_PKCOLUMNS_ORACLE);
+		QUERY_PKCOLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_PKCOLUMNS_SQLSERVER);
 	}
 
 	private static final String MSG_QUERYNOTFOUND = "Couldn't find ${queryName} query of dbType: ${dbType}. this type maybe unsupported yet.";
@@ -841,12 +894,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	// TODO QUERY_COLUMNS_MYSQL
 	private static final String QUERY_COLUMNS_MYSQL = "";
-	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, data_type dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
+	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
+	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}..sysobjects tbl, ${domain}..syscolumns col, ${domain}..systypes type"
+			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
 	private static final Map<String, String> QUERY_COLUMNS_MAP;
 	static {
 		QUERY_COLUMNS_MAP = new HashMap<String, String>();
 		QUERY_COLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_COLUMNS_MYSQL);
 		QUERY_COLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNS_ORACLE);
+		QUERY_COLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNS_SQLSERVER);
 	}
 	private List<TableColumn> getTableColumnList(Table table) {
 		String sql = QUERY_COLUMNS_MAP.get(dbType);
@@ -862,12 +918,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	// TODO QUERY_COLUMN_MYSQL
 	private static final String QUERY_COLUMN_MYSQL = "";
-	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, data_type dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}..sysobjects tbl, ${domain}..syscolumns col, ${domain}..systypes type"
+			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
 	private static final Map<String, String> QUERY_COLUMN_MAP;
 	static {
 		QUERY_COLUMN_MAP = new HashMap<String, String>();
 		QUERY_COLUMN_MAP.put(DBTYPE_MYSQL, QUERY_COLUMN_MYSQL);
 		QUERY_COLUMN_MAP.put(DBTYPE_ORACLE, QUERY_COLUMN_ORACLE);
+		QUERY_COLUMN_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMN_SQLSERVER);
 	}
 	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
 	private void addColumn(Table table, Field field) {

@@ -230,7 +230,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		ValueUtils.assertNotNull("requiredType", requiredType);
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, pkCondition);
-		Object obj = selectWithLock(selectList(clazz, query));
+		Object obj = select(selectListWithLock(clazz, query));
 		if (obj == null)
 			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));
@@ -256,7 +256,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		ValueUtils.assertNotNull("requiredType", requiredType);
 		Class<?> clazz = getClass(tableName);
 		Query query = toPkQuery(clazz, condition);
-		Object obj = selectWithLock(selectList(clazz, query));
+		Object obj = select(selectListWithLock(clazz, query));
 		if (obj == null)
 			return null;
 		return ValueUtils.populate(obj, newInstance(requiredType));

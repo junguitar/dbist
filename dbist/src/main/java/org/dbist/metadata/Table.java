@@ -223,8 +223,7 @@ public class Table {
 		for (String fieldName : fieldNames) {
 			Column column = getColumnByFieldName(fieldName);
 			if (column.isPrimaryKey())
-				throw new DbistRuntimeException("Update primary key is not supported. " + getDomain() + "." + getName()
-						+ getPkColumnNameList().toArray());
+				throw new DbistRuntimeException("Update primary key is not supported. " + getDomain() + "." + getName() + getPkColumnNameList());
 			buf.append(i++ == 0 ? "" : ", ").append(toColumnName(fieldName)).append(" = :").append(fieldName);
 		}
 		for (String columnName : getPkColumnNameList())

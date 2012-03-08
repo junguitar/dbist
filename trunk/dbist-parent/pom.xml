@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-parent</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>pom</packaging>
 
 	<name>Dbist - Parent</name>
@@ -60,6 +59,21 @@
 		</extensions>
 	</build>
 
+	<repositories>
+		<repository>
+			<id>googlecode-repo-m2-releases</id>
+			<url>http://repo-m2.googlecode.com/svn/releases</url>
+		</repository>
+		<repository>
+			<id>googlecode-repo-m2-snapshots</id>
+			<url>http://repo-m2.googlecode.com/svn/snapshots</url>
+		</repository>
+		<repository>
+			<id>googlecode-repo-m2-thirdparty</id>
+			<url>http://repo-m2.googlecode.com/svn/thirdparty</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -83,6 +97,12 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.18</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc14</artifactId>
+			<version>10.2.0.4.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

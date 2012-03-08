@@ -137,7 +137,7 @@ public class Filters {
 			}
 		}
 		if (byLeftOperands && fieldNameSet.size() != 0)
-			throw new IllegalArgumentException("Some of condition was not found " + fieldNameSet.toArray(new String[fieldNameSet.size()]));
+			throw new IllegalArgumentException("Some of condition was not found " + fieldNameSet);
 		return this;
 	}
 	public Filters removeFilter(String... leftOperand) {

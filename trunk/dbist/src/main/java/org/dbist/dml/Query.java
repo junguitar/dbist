@@ -28,6 +28,7 @@ public class Query extends Filters {
 	private int pageIndex;
 	private int pageSize;
 	private List<String> field;
+	private List<String> group;
 	private List<Order> order;
 	public Query() {
 		super();
@@ -62,6 +63,21 @@ public class Query extends Filters {
 			this.field = new ArrayList<String>();
 		for (String f : field)
 			this.field.add(f);
+		return this;
+	}
+	public List<String> getGroup() {
+		return group;
+	}
+	public void setGroup(List<String> group) {
+		this.group = group;
+	}
+	public Query addGroup(String... group) {
+		if (ValueUtils.isEmpty(group))
+			return this;
+		if (this.group == null)
+			this.group = new ArrayList<String>();
+		for (String g : group)
+			this.group.add(g);
 		return this;
 	}
 	public List<Order> getOrder() {

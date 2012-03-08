@@ -11,12 +11,12 @@ Let's begin...
 
 == Installation ==
 
-=== Required ==
+=== Required ===
 
   # Oracle 10g or later - Required
   # Tomcat 7 (or another WAS which supports Servlet 3.0) - Required
 
-== Optional ==
+=== Optional ===
 
   # Java SE JDK 6
   # Maven2 or later

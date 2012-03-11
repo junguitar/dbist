@@ -358,9 +358,40 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize);
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
+	public <T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	@Override
+	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize);
+	}
+
 	@Override
 	public <T> T insert(Class<T> clazz, Object data) throws Exception {
+		return _insert(clazz, data);
+	}
+
+	@Override
+	public void insertBatch(Class<?> clazz, List<Object> list) throws Exception {
+		insertBatch(toRequiredType(list, clazz));
+	}
+
+	@Override
+	public <T> T insert(Class<T> clazz, Object data, String... fieldNames) throws Exception {
+		return _insert(clazz, data, fieldNames);
+	}
+
+	@Override
+	public void insertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception {
+		insertBatch(toRequiredType(list, clazz), fieldNames);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T _insert(Class<T> clazz, Object data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("data", data);
 		if (data.getClass().isAssignableFrom(clazz)) {
@@ -369,13 +400,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			return obj;
 		}
 		T obj = ValueUtils.populate(data, clazz.newInstance());
-		insert(obj);
+		insert(obj, fieldNames);
 		return obj;
-	}
-
-	@Override
-	public void insertBatch(Class<?> clazz, List<Object> list) throws Exception {
-		insertBatch(toRequiredType(list, clazz));
 	}
 
 	@Override
@@ -385,7 +411,17 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public void insertBatch(String tableName, List<Object> list) throws Exception {
-		insertBatch(toRequiredType(list, getClass(tableName)));
+		insertBatch(getClass(tableName), list);
+	}
+
+	@Override
+	public void insert(String tableName, Object data, String... fieldNames) throws Exception {
+		insert(getClass(tableName), data, fieldNames);
+	}
+
+	@Override
+	public void insertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+		insertBatch(getClass(tableName), list, fieldNames);
 	}
 
 	@Override
@@ -395,7 +431,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public void updateBatch(Class<?> clazz, List<Object> list) throws Exception {
-		_updateBatch(clazz, list);
+		updateBatch(toRequiredType(list, clazz));
 	}
 
 	@Override
@@ -405,10 +441,10 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public void updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
-		_updateBatch(clazz, list, fieldNames);
+		updateBatch(toRequiredType(list, clazz, fieldNames), fieldNames);
 	}
 
-	public <T> T _update(Class<T> clazz, Object data, String... fieldNames) throws Exception {
+	private <T> T _update(Class<T> clazz, Object data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("data", data);
 		if (data.getClass().equals(clazz)) {
@@ -440,10 +476,6 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 		return dataList;
 	}
 
-	public void _updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
-		updateBatch(toRequiredType(list, clazz, fieldNames), fieldNames);
-	}
-
 	@Override
 	public void update(String tableName, Object data) throws Exception {
 		update(getClass(tableName), data);
@@ -466,14 +498,32 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 
 	@Override
 	public void upsert(Object data) throws Exception {
-		if (select(data) == null)
-			insert(data);
-		else
-			update(data);
+		_upsert(data);
 	}
 
 	@Override
 	public void upsertBatch(List<?> list) throws Exception {
+		_upsertBatch(list);
+	}
+
+	@Override
+	public void upsert(Object data, String... fieldNames) throws Exception {
+		_upsert(data, fieldNames);
+	}
+
+	@Override
+	public void upsertBatch(List<?> list, String... fieldNames) throws Exception {
+		_upsertBatch(list, fieldNames);
+	}
+
+	public void _upsert(Object data, String... fieldNames) throws Exception {
+		if (select(data) == null)
+			insert(data, fieldNames);
+		else
+			update(data, fieldNames);
+	}
+
+	public void _upsertBatch(List<?> list, String... fieldNames) throws Exception {
 		List<Object> insertList = new ArrayList<Object>();
 		List<Object> updateList = new ArrayList<Object>();
 		for (Object data : list) {
@@ -482,8 +532,8 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			else
 				updateList.add(data);
 		}
-		insertBatch(insertList);
-		updateBatch(updateList);
+		insertBatch(insertList, fieldNames);
+		updateBatch(updateList, fieldNames);
 	}
 
 	@Override
@@ -494,7 +544,19 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public <T> List<T> upsertBatch(Class<T> clazz, List<Object> list) throws Exception {
 		List<T> newList = toRequiredType(list, clazz);
-		upsertBatch(toRequiredType(list, clazz));
+		upsertBatch(newList);
+		return newList;
+	}
+
+	@Override
+	public <T> T upsert(Class<T> clazz, Object data, String... fieldNames) throws Exception {
+		return select(clazz, data) == null ? insert(clazz, data, fieldNames) : update(clazz, data, fieldNames);
+	}
+
+	@Override
+	public <T> List<T> upsertBatch(Class<T> clazz, List<Object> list, String... fieldNames) throws Exception {
+		List<T> newList = toRequiredType(list, clazz, fieldNames);
+		upsertBatch(newList);
 		return newList;
 	}
 
@@ -506,6 +568,16 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public void upsertBatch(String tableName, List<Object> list) throws Exception {
 		upsertBatch(getClass(tableName), list);
+	}
+
+	@Override
+	public void upsert(String tableName, Object data, String... fieldNames) throws Exception {
+		upsert(getClass(tableName), data, fieldNames);
+	}
+
+	@Override
+	public void upsertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+		upsertBatch(getClass(tableName), list, fieldNames);
 	}
 
 	@Override

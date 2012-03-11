@@ -12,8 +12,8 @@ Let's begin...
 == Installation ==
 
 _Required_
-  # DBMS (Oracle 10g(or later), SQLServer2000(or later) or MySQL 5(or later)) - Required
-  # Tomcat 7 (or another WAS which supports Servlet 3.0) - Required
+  # DBMS - Oracle 10g(or later), SQLServer2000(or later) or MySQL 5(or later)
+  # Tomcat 7 (or another WAS which supports Servlet 3.0)
 
 _Optional_
   # Java SE JDK 6

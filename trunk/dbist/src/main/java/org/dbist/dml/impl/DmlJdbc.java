@@ -238,6 +238,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private void appendFromWhere(Table table, Query query, boolean lock, StringBuffer buf, Map<String, Object> paramMap) {
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
+		if (lock && DBTYPE_SQLSERVER.equals(getDbType()))
+			buf.append(" with (updlock, rowlock)");
 
 		// Where
 		appendWhere(buf, table, query, 0, paramMap);
@@ -348,7 +350,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return list;
 	}
 	private void appendLock(StringBuffer buf, boolean lock) {
-		buf.append(lock ? " for update" : "");
+		if (!lock || DBTYPE_SQLSERVER.equals(getDbType()))
+			return;
+		buf.append(" for update");
 	}
 	private String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
 		if (pageIndex < 0 || pageSize <= 0)
@@ -356,18 +360,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType())) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
+			String subsql = null;
+			int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
+			if (forUpdateIndex > -1) {
+				subsql = sql.substring(forUpdateIndex - 1);
+				sql = sql.substring(0, forUpdateIndex - 1);
+			}
+
+			StringBuffer buf = new StringBuffer();
 			// Oracle
 			if (DBTYPE_ORACLE.equals(getDbType())) {
 				int fromIndex = pageIndex * pageSize;
 				int toIndex = fromIndex + pageSize;
-				String subsql = null;
-				int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
-				if (forUpdateIndex > -1) {
-					subsql = sql.substring(forUpdateIndex - 1);
-					sql = sql.substring(0, forUpdateIndex - 1);
-				}
-
-				StringBuffer buf = new StringBuffer();
 				if (pageIndex > 0) {
 					_paramMap.put("__fromIndex", fromIndex);
 					_paramMap.put("__toIndex", toIndex);
@@ -377,9 +381,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					_paramMap.put("__toIndex", toIndex);
 					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex");
 				}
-				if (subsql != null)
-					buf.append(subsql);
-				return buf.toString();
 
 			}
 			// MySQL
@@ -388,12 +389,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				if (pageIndex > 0) {
 					_paramMap.put("__fromIndex", fromIndex);
 					_paramMap.put("__pageSize", pageSize);
-					return sql + " limit :__fromIndex, :__pageSize";
+					buf.append(sql).append(" limit :__fromIndex, :__pageSize");
 				} else {
 					_paramMap.put("__pageSize", pageSize);
-					return sql + " limit :__pageSize";
+					buf.append(sql).append(" limit :__pageSize");
 				}
 			}
+			if (subsql != null)
+				buf.append(subsql);
+			return buf.toString();
 		}
 		// SQLServer
 		else if (DBTYPE_SQLSERVER.equals(getDbType())) {

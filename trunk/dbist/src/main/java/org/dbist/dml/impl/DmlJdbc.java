@@ -116,8 +116,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 			this.domainList = domainList;
 		}
-		if (maxSqlByPathCacheSize != 0)
-			sqlByPathCache = Collections.synchronizedMap(new LRUMap(1000));
+		if (maxSqlByPathCacheSize > 0)
+			sqlByPathCache = Collections.synchronizedMap(new LRUMap(maxSqlByPathCacheSize));
 		if (debug)
 			logger.debug("dml loaded (dbType: " + getDbType() + ")");
 	}

@@ -120,6 +120,8 @@ public interface Dml {
 	 */
 	<T> void insert(T data) throws Exception;
 	<T> void insertBatch(List<T> list) throws Exception;
+	<T> void insert(T data, String... fieldNames) throws Exception;
+	<T> void insertBatch(List<T> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.
@@ -133,9 +135,13 @@ public interface Dml {
 	 */
 	<T> T insert(Class<T> clazz, Object data) throws Exception;
 	void insertBatch(Class<?> clazz, List<Object> list) throws Exception;
+	<T> T insert(Class<T> clazz, Object data, String... fieldNames) throws Exception;
+	void insertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception;
 
 	void insert(String tableName, Object data) throws Exception;
 	void insertBatch(String tableName, List<Object> list) throws Exception;
+	void insert(String tableName, Object data, String... fieldNames) throws Exception;
+	void insertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Update a data to the database table mapped to T class.
@@ -184,6 +190,8 @@ public interface Dml {
 	 */
 	void upsert(Object data) throws Exception;
 	void upsertBatch(List<?> list) throws Exception;
+	void upsert(Object data, String... fieldNames) throws Exception;
+	void upsertBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data to the database table mapped to T class.
@@ -196,10 +204,14 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T upsert(Class<T> clazz, Object data) throws Exception;
-	<T> List<T> upsertBatch(Class<T> clazz, List<Object> data) throws Exception;
+	<T> List<T> upsertBatch(Class<T> clazz, List<Object> list) throws Exception;
+	<T> T upsert(Class<T> clazz, Object data, String... fieldNames) throws Exception;
+	<T> List<T> upsertBatch(Class<T> clazz, List<Object> list, String... fieldNames) throws Exception;
 
 	void upsert(String tableName, Object data) throws Exception;
 	void upsertBatch(String tableName, List<Object> list) throws Exception;
+	void upsert(String tableName, Object data, String... fieldNames) throws Exception;
+	void upsertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Delete a data to the database table mapped to T class.
@@ -283,8 +295,10 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
-	<T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Select some data as the requiredType by the query (SQL query) and the paramMap
@@ -299,6 +313,8 @@ public interface Dml {
 	 */
 	<T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 	<T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
+	<T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

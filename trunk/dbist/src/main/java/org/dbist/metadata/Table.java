@@ -165,33 +165,53 @@ public class Table {
 		return column == null ? null : column.getField().getName();
 	}
 
-	public String getInsertSql() {
-		if (insertSql != null)
-			return insertSql;
-		synchronized (this) {
+	public String getInsertSql(String... fieldNames) {
+		// Insert all fields
+		if (ValueUtils.isEmpty(fieldNames)) {
 			if (insertSql != null)
 				return insertSql;
-			StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
-			int i = 0;
-			for (Column column : getColumnList())
-				buf.append(i++ == 0 ? "" : ", ").append(column.getName());
-			buf.append(") values(");
-			i = 0;
-			for (Column column : getColumnList())
-				buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
-			buf.append(")");
-			insertSql = buf.toString();
+			synchronized (this) {
+				if (insertSql != null)
+					return insertSql;
+				StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+				int i = 0;
+				for (Column column : getColumnList())
+					buf.append(i++ == 0 ? "" : ", ").append(column.getName());
+				buf.append(") values(");
+				i = 0;
+				for (Column column : getColumnList())
+					buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
+				buf.append(")");
+				insertSql = buf.toString();
+			}
+			return insertSql;
 		}
-		return insertSql;
+
+		// Insert some fields
+		StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+		int i = 0;
+		List<String> pkFieldNameList = ValueUtils.toList(getPkFieldNames());
+		for (String fieldName : fieldNames) {
+			if (pkFieldNameList.contains(fieldName))
+				pkFieldNameList.remove(fieldName);
+			Column column = getColumnByFieldName(fieldName);
+			if (column == null)
+				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
+			buf.append(i++ == 0 ? "" : ", ").append(column.getName());
+		}
+		for (String fieldName : pkFieldNameList)
+			buf.append(i++ == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
+		buf.append(") values(");
+		i = 0;
+		for (String fieldName : fieldNames)
+			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
+		for (String fieldName : pkFieldNameList)
+			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
+		buf.append(")");
+		return buf.toString();
 	}
 
-	public String getUpdateSql() {
-		return _getUpdateSql();
-	}
 	public String getUpdateSql(String... fieldNames) {
-		return _getUpdateSql(fieldNames);
-	}
-	private String _getUpdateSql(String... fieldNames) {
 		// Update all fields
 		if (ValueUtils.isEmpty(fieldNames)) {
 			if (updateSql != null)
@@ -222,8 +242,10 @@ public class Table {
 		int j = 0;
 		for (String fieldName : fieldNames) {
 			Column column = getColumnByFieldName(fieldName);
+			if (column == null)
+				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
 			if (column.isPrimaryKey())
-				throw new DbistRuntimeException("Update primary key is not supported. " + getDomain() + "." + getName() + getPkColumnNameList());
+				throw new DbistRuntimeException("Updating primary key is not supported. " + getDomain() + "." + getName() + getPkColumnNameList());
 			buf.append(i++ == 0 ? "" : ", ").append(toColumnName(fieldName)).append(" = :").append(fieldName);
 		}
 		for (String columnName : getPkColumnNameList())

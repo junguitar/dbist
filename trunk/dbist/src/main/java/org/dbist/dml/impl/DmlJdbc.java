@@ -15,6 +15,7 @@
  */
 package org.dbist.dml.impl;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.DatabaseMetaData;
@@ -22,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,9 +42,11 @@ import javax.sql.DataSource;
 
 import net.sf.common.util.Closure;
 import net.sf.common.util.ReflectionUtils;
+import net.sf.common.util.ResourceUtils;
 import net.sf.common.util.SyncCtrlUtils;
 import net.sf.common.util.ValueUtils;
 
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.collections.map.ListOrderedMap;
 import org.dbist.annotation.Ignore;
 import org.dbist.dml.AbstractDml;
@@ -85,7 +89,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private DataSource dataSource;
 	private JdbcOperations jdbcOperations;
 	private NamedParameterJdbcOperations namedParameterJdbcOperations;
+	private int maxSqlByPathCacheSize = 1000;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		boolean debug = logger.isDebugEnabled();
@@ -110,52 +116,70 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 			this.domainList = domainList;
 		}
+		if (maxSqlByPathCacheSize != 0)
+			sqlByPathCache = Collections.synchronizedMap(new LRUMap(1000));
 		if (debug)
 			logger.debug("dml loaded (dbType: " + getDbType() + ")");
 	}
 
 	@Override
 	public <T> void insert(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-		Table table = getTable(data);
-		String sql = table.getInsertSql();
-		Map<String, ?> paramMap = toParamMap(table, data);
-		updateBySql(sql, paramMap);
+		_insert(data);
 	}
 
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
+		_insertBatch(list);
+	}
+
+	@Override
+	public <T> void insert(T data, String... fieldNames) throws Exception {
+		_insert(data, fieldNames);
+	}
+
+	@Override
+	public <T> void insertBatch(List<T> list, String... fieldNames) throws Exception {
+		_insertBatch(list, fieldNames);
+	}
+
+	private <T> void _insert(T data, String... fieldNames) throws Exception {
+		ValueUtils.assertNotNull("data", data);
+		Table table = getTable(data);
+		String sql = table.getInsertSql(fieldNames);
+		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
+		updateBySql(sql, paramMap);
+	}
+
+	private <T> void _insertBatch(List<T> list, String... fieldNames) throws Exception {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
-		String sql = table.getInsertSql();
-		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
+		String sql = table.getInsertSql(fieldNames);
+		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
 		updateBatchBySql(sql, paramMapList);
 	}
 
 	@Override
 	public <T> void update(T data) throws Exception {
-		ValueUtils.assertNotNull("data", data);
-		Table table = getTable(data);
-		String sql = table.getUpdateSql();
-		Map<String, ?> paramMap = toParamMap(table, data);
-		// TODO DataNotFoundException message
-		if (updateBySql(sql, paramMap) != 1)
-			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
+		_update(data);
 	}
 
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
-		if (ValueUtils.isEmpty(list))
-			return;
-		Table table = getTable(list.get(0));
-		String sql = table.getUpdateSql();
-		List<Map<String, ?>> paramMapList = toParamMapList(table, list);
-		updateBatchBySql(sql, paramMapList);
+		_updateBatch(list);
 	}
 
 	@Override
 	public <T> void update(T data, String... fieldNames) throws Exception {
+		_update(data, fieldNames);
+	}
+
+	@Override
+	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
+		_updateBatch(list, fieldNames);
+	}
+
+	private <T> void _update(T data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getUpdateSql(fieldNames);
@@ -165,8 +189,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
 	}
 
-	@Override
-	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
+	private <T> void _updateBatch(List<T> list, String... fieldNames) throws Exception {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
@@ -699,6 +722,47 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
+	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectListByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	@Override
+	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectPageByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize);
+	}
+
+	private Map<String, String> sqlByPathCache;
+	private String getSqlByPath(final String path) throws IOException {
+		ValueUtils.assertNotNull("path", path);
+		if (sqlByPathCache == null)
+			return _getSqlByPath(path);
+		if (sqlByPathCache.containsKey(path))
+			return sqlByPathCache.get(path);
+		return SyncCtrlUtils.wrap("DmlJdbc.sqlByPathCache." + path, sqlByPathCache, path, new Closure<String, IOException>() {
+			@Override
+			public String execute() throws IOException {
+				if (sqlByPathCache.containsKey(path))
+					return sqlByPathCache.get(path);
+				return _getSqlByPath(path);
+			}
+		});
+	}
+	private String _getSqlByPath(String path) throws IOException {
+		String _path = path;
+		if (_path.endsWith("/") || ResourceUtils.isDirectory(_path)) {
+			if (!_path.endsWith("/"))
+				_path += "/";
+			if (ResourceUtils.exists(_path + getDbType() + ".sql"))
+				path = _path + getDbType() + ".sql";
+			else if (ResourceUtils.exists(_path + "ansi.sql"))
+				path = _path + "ansi.sql";
+		}
+		return ResourceUtils.readText(path);
+	}
+
+	@Override
 	public <T> int deleteList(Class<T> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
@@ -743,6 +807,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 	public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
 		this.namedParameterJdbcOperations = namedParameterJdbcOperations;
+	}
+	public int getMaxSqlByPathCacheSize() {
+		return maxSqlByPathCacheSize;
+	}
+	public void setMaxSqlByPathCacheSize(int maxSqlByPathCacheSize) {
+		this.maxSqlByPathCacheSize = maxSqlByPathCacheSize;
 	}
 
 	private Map<String, Class<?>> classByTableNameCache = new ConcurrentHashMap<String, Class<?>>();
@@ -868,7 +938,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_NUMBEROFTABLE_SQLSERVER);
 	}
 
-	// TODO QUERY_PKCOLUMNS_MYSQL
 	private static final String QUERY_PKCOLUMNS_MYSQL = "select lower(column_name) name from information_schema.key_column_usage"
 			+ " where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
 	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
@@ -928,7 +997,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final RowMapper<TableColumn> TABLECOLUMN_ROWMAPPER = new TableColumnRowMapper();
 
-	// TODO QUERY_COLUMNS_MYSQL
 	private static final String QUERY_COLUMNS_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
@@ -952,7 +1020,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return jdbcOperations.query(sql, new Object[] { tableName }, TABLECOLUMN_ROWMAPPER);
 	}
 
-	// TODO QUERY_COLUMN_MYSQL
 	private static final String QUERY_COLUMN_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"

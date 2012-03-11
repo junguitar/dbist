@@ -42,69 +42,63 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public Table getTable(String obj) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T select(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T selectWithLock(T data) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public <T> void insert(T data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public <T> void insertBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
+		
+	}
 
+	@Override
+	public <T> void insert(T data, String... fieldNames) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <T> void insertBatch(List<T> list, String... fieldNames) throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public <T> void update(T data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public <T> void updateBatch(List<T> list) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public <T> void update(T data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public <T> void delete(T data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void deleteBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -126,13 +120,27 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public <T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

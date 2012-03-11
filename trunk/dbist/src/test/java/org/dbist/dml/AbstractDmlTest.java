@@ -16,6 +16,7 @@
 package org.dbist.dml;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import junit.framework.Assert;
@@ -139,6 +140,7 @@ public abstract class AbstractDmlTest {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void selectList() throws Exception {
 		logger.info("case " + i++ + ": select list");
@@ -176,6 +178,26 @@ public abstract class AbstractDmlTest {
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			paramMap.put("name", "test");
 			for (Map<String, Object> map : dml.selectListBySql("select * from blog where name <> :name", paramMap, Map.class, 0, 10)) {
+				logger.debug("\r\n\r\nselected data: ");
+				for (String key : map.keySet())
+					logger.debug("\t" + map.get(key));
+			}
+		}
+
+		logger.info("case " + i++ + ": select group by sql");
+		{
+			List<Map> list = dml.selectListBySqlPath("org/dbist/dml/test.sql", null, Map.class, 0, 10);
+			for (Map<String, Object> map : list) {
+				logger.debug("\r\n\r\nselected data: ");
+				for (String key : map.keySet())
+					logger.debug("\t" + map.get(key));
+			}
+		}
+		{
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("abc", "test");
+			List<Map> list = dml.selectListBySqlPath("org/dbist/dml/test", paramMap, Map.class, 0, 10);
+			for (Map<String, Object> map : list) {
 				logger.debug("\r\n\r\nselected data: ");
 				for (String key : map.keySet())
 					logger.debug("\t" + map.get(key));

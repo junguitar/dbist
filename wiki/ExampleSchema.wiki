@@ -1,42 +1,95 @@
 #summary Example schema.
 
+=== Oracle ===
+
 {{{
 CREATE TABLE "USERS" (
-    "USERNAME"   VARCHAR2(100 CHAR) NOT NULL ENABLE,
-    "PWD"        VARCHAR2(100 CHAR),
-    "FIRST_NAME" VARCHAR2(100 CHAR),
-    "LAST_NAME"  VARCHAR2(100 CHAR),
-    "EMAIL"      VARCHAR2(100 CHAR),
-    PRIMARY KEY ("USERNAME")
+	"USERNAME"   VARCHAR2(100 CHAR) NOT NULL,
+	"PWD"        VARCHAR2(100 CHAR),
+	"FIRST_NAME" VARCHAR2(100 CHAR),
+	"LAST_NAME"  VARCHAR2(100 CHAR),
+	"EMAIL"      VARCHAR2(100 CHAR),
+	PRIMARY KEY ("USERNAME")
 )
 
 CREATE TABLE "BLOG" (
-    "ID"          VARCHAR2(100 CHAR) NOT NULL ENABLE,
-    "NAME"        VARCHAR2(100 CHAR),
-    "DESCRIPTION" VARCHAR2(200 CHAR),
-    "OWNER"       VARCHAR2(100 CHAR),
-    "CREATED_AT" DATE,
-    "UPDATED_AT" DATE,
-    PRIMARY KEY ("ID")
+	"ID"          VARCHAR2(100 CHAR) NOT NULL,
+	"NAME"        VARCHAR2(100 CHAR),
+	"DESCRIPTION" VARCHAR2(200 CHAR),
+	"OWNER"       VARCHAR2(100 CHAR),
+	"CREATED_AT"  DATE,
+	"UPDATED_AT"  DATE,
+	PRIMARY KEY ("ID")
 )
 
 CREATE TABLE "POST" (
-    "ID"      VARCHAR2(100 CHAR) NOT NULL ENABLE,
-    "BLOG_ID" VARCHAR2(100 CHAR),
-    "TITLE"   VARCHAR2(200 CHAR),
-    "AUTHOR"  VARCHAR2(100 CHAR),
-    "CREATED_AT" DATE,
-    "UPDATED_AT" DATE,
-    "CONTENT" CLOB,
-    PRIMARY KEY ("ID")
+	"ID"         VARCHAR2(100 CHAR) NOT NULL,
+	"BLOG_ID"    VARCHAR2(100 CHAR),
+	"TITLE"      VARCHAR2(200 CHAR),
+	"AUTHOR"     VARCHAR2(100 CHAR),
+	"CREATED_AT" DATE,
+	"UPDATED_AT" DATE,
+	"CONTENT"    CLOB,
+	PRIMARY KEY ("ID")
 )
 
 CREATE TABLE "COMMENTS" (
-    "ID"      VARCHAR2(100 CHAR) NOT NULL ENABLE,
-    "POST_ID" VARCHAR2(100 CHAR),
-    "AUTHOR"  VARCHAR2(100 CHAR),
-    "CREATED_AT" DATE,
-    "CONTENT" VARCHAR2(1000 CHAR),
-    PRIMARY KEY ("ID")
+	"ID"         VARCHAR2(100 CHAR) NOT NULL,
+	"POST_ID"    VARCHAR2(100 CHAR),
+	"AUTHOR"     VARCHAR2(100 CHAR),
+	"CREATED_AT" DATE,
+	"CONTENT"    VARCHAR2(1000 CHAR),
+	PRIMARY KEY ("ID")
+)
+}}}
+
+=== SQL Server ===
+
+{{{
+CREATE TABLE [USERS] (
+	[username]   [varchar] (100) NOT NULL,
+	[pwd]        [varchar] (100),
+	[first_name] [varchar] (100),
+	[last_name]  [varchar] (100),
+	[email]      [varchar] (100),
+	PRIMARY KEY (
+		[username]
+	)
+)
+
+CREATE TABLE [BLOG] (
+	[id]          [varchar] (100) NOT NULL,
+	[name]        [varchar] (100),
+	[description] [varchar] (200),
+	[owner]       [varchar] (100),
+	[created_at]  [datetime],
+	[updated_at]  [datetime],
+	PRIMARY KEY (
+		[id]
+	)
+)
+
+CREATE TABLE [POST] (
+	[id]         [varchar] (100) NOT NULL,
+	[blog_id]    [varchar] (100),
+	[title]      [varchar] (200),
+	[author]     [varchar] (100),
+	[created_at] [datetime],
+	[updated_at] [datetime],
+	[content]    [text],
+	PRIMARY KEY (
+		[id]
+	)
+)
+
+CREATE TABLE [COMMENTS] (
+	[id]         [varchar] (100) NOT NULL,
+	[post_id]    [varchar] (100),
+	[author]     [varchar] (100),
+	[created_at] [datetime],
+	[content]    [varchar] (1000),
+	PRIMARY KEY (
+		[id]
+	)
 )
 }}}

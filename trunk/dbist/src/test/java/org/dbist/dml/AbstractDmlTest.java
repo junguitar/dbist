@@ -122,6 +122,11 @@ public abstract class AbstractDmlTest {
 			dml.select(Blog.class, new Query().addField("id", "name").addFilter("id", "1"));
 			dml.selectWithLock(Blog.class, new Query().addField("id", "name").addFilter("id", "1"));
 		}
+
+		logger.info("case " + i++ + ": select size by sql");
+		{
+			logger.info("size: " + dml.selectBySql("select count(*) from blog", null, Integer.class));
+		}
 	}
 
 	class Id {
@@ -144,6 +149,16 @@ public abstract class AbstractDmlTest {
 				logger.debug("selected data: " + data.getId());
 		}
 
+		logger.info("case " + i++ + ": select list by subfilters");
+		{
+			Query query = new Query(0, 10);
+			query.addFilters(new Filters("or").addFilter("name", "test").addFilter("name", "1")).addFilter("owner", "!=", "junguita@hotmail.com");
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			for (Blog data : dml.selectListWithLock(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+		}
+
 		logger.info("case " + i++ + ": select group by list");
 		{
 			for (Blog data : dml.selectList(Blog.class, new Query().addGroup("owner", "name")))
@@ -155,6 +170,22 @@ public abstract class AbstractDmlTest {
 			} catch (DbistRuntimeException e) {
 			}
 		}
+
+		logger.info("case " + i++ + ": select list by sql");
+		{
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("name", "test");
+			for (Map<String, Object> map : dml.selectListBySql("select * from blog where name <> :name", paramMap, Map.class, 0, 10)) {
+				logger.debug("\r\n\r\nselected data: ");
+				for (String key : map.keySet())
+					logger.debug("\t" + map.get(key));
+			}
+		}
+	}
+
+	@Test
+	public void selectSize() throws Exception {
+
 	}
 
 	@Test
@@ -164,6 +195,7 @@ public abstract class AbstractDmlTest {
 			Query query = new Query();
 			query.addField("id", "name");
 			query.addOrder("name", true);
+			query.addFilter("name", "!=", "test");
 			query.addFilter("description", "like", "%the%", false);
 			query.addFilter("createdAt", "!=", null);
 			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });
@@ -175,6 +207,7 @@ public abstract class AbstractDmlTest {
 		{
 			Query query = new Query();
 			query.addOrder("name", true);
+			query.addFilter("name", "!=", "test");
 			query.addFilter("description", "like", "%the%", false);
 			query.addFilter("createdAt", "!=", null);
 			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });

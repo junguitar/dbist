@@ -33,8 +33,16 @@ public class Query extends Filters {
 	public Query() {
 		super();
 	}
+	public Query(String operator) {
+		super(operator);
+	}
 	public Query(int pageIndex, int pageSize) {
-		this();
+		super();
+		this.pageIndex = pageIndex;
+		this.pageSize = pageSize;
+	}
+	public Query(String operator, int pageIndex, int pageSize) {
+		super(operator);
 		this.pageIndex = pageIndex;
 		this.pageSize = pageSize;
 	}

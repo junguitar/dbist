@@ -37,7 +37,16 @@ import org.springframework.beans.factory.InitializingBean;
  * @since 2012. 1. 5. (version 0.0.1)
  */
 public abstract class AbstractDml implements Dml, InitializingBean {
+	private String dbType;
 	private Preprocessor preprocessor;
+
+	@Override
+	public String getDbType() {
+		return dbType;
+	}
+	public void setDbType(String dbType) {
+		this.dbType = dbType == null ? null : dbType.toLowerCase();
+	}
 
 	@Override
 	public Table getTable(String name) {
@@ -272,9 +281,9 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	@Override
 	public <T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("query", sql);
-		ValueUtils.assertNotNull("paramMap", paramMap);
 		ValueUtils.assertNotNull("requiredType", requiredType);
-		return select(selectListByQl(sql, paramMap, requiredType, 0, 2));
+		//		return select(selectListByQl(sql, paramMap, requiredType, 0, 2));
+		return select(selectListByQl(sql, paramMap, requiredType, 0, 0));
 	}
 
 	@Override

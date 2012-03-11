@@ -5,14 +5,14 @@
 == Introduction ==
 
 Welcome to be a Dbist! This framework is easy to use. It'll takes only a few minutes before you start DB programming, if you're already prepared to program a java application.<br><br>
-Dbist currently supports Oracle only, but it'll be extended to other DB types soon. (SQLServer, DB2, ...)<br>
-If you're an oracle user, you can start right now.<br>
+Dbist currently supports Oracle, SQLServer and MySQL, but it'll be extended to other DB types soon. (HSQL, DB2, ...)<br>
+If you're an oracle(sqlserver or mysql) user, you can start right now.<br>
 Let's begin...
 
 == Installation ==
 
 _Required_
-  # Oracle 10g or later - Required
+  # DBMS (Oracle 10g(or later), SQLServer2000(or later) or MySQL 5(or later)) - Required
   # Tomcat 7 (or another WAS which supports Servlet 3.0) - Required
 
 _Optional_
@@ -23,7 +23,7 @@ _Optional_
 
 == Running Example Sources ==
 
-  # Create an Database to your Oracle (ex. dbist)
+  # Create an Database to your DBMS (ex. dbist)
   # Run [ExampleSchema this script] to the Database 
   # Download this [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.2/dbist-example-webapp-1.0.2.war dbist-example-webapp-1.0.2.war] file and modify the file name as "dbist-example.war"<br>(or check-out the example project from [http://dbist.googlecode.com/svn/tags/dbist-example-webapp-1.0.2/ the dbist SVN])
   # Publish this example to your tomcat server

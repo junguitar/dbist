@@ -35,6 +35,13 @@ public class Filters {
 	private String operator;
 	private List<Filter> filter;
 	private List<Filters> filters;
+	public Filters() {
+		super();
+	}
+	public Filters(String operator) {
+		super();
+		this.operator = operator;
+	}
 	public String getOperator() {
 		return operator;
 	}

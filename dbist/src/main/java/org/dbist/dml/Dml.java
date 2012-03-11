@@ -28,6 +28,7 @@ import org.dbist.processor.Preprocessor;
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public interface Dml {
+	String getDbType();
 	Class<?> getClass(String tableName);
 	Table getTable(Object obj);
 	Table getTable(String obj);

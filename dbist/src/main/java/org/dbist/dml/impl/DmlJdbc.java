@@ -76,11 +76,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String DBTYPE_MYSQL = "mysql";
 	private static final String DBTYPE_ORACLE = "oracle";
 	private static final String DBTYPE_SQLSERVER = "sqlserver";
-	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE);
+	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER);
 	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
 
-	private String dbType;
 	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
 	private DataSource dataSource;
@@ -89,15 +88,30 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		boolean debug = logger.isDebugEnabled();
 		super.afterPropertiesSet();
 		ValueUtils.assertNotEmpty("domain", getDomain());
 		ValueUtils.assertNotEmpty("dataSource", getDataSource());
 		ValueUtils.assertNotEmpty("jdbcOperations", getJdbcOperations());
 		ValueUtils.assertNotEmpty("namedParameterJdbcOperations", getNamedParameterJdbcOperations());
 		DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
-		dbType = metadata.getDatabaseProductName().toLowerCase();
-		if (!DBTYPE_SUPPORTED_LIST.contains(dbType))
+		if (ValueUtils.isEmpty(getDbType()))
+			setDbType(metadata.getDatabaseProductName().toLowerCase());
+		if (getDbType().startsWith("microsoft sql server"))
+			setDbType(DBTYPE_SQLSERVER);
+		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()))
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
+		if (DBTYPE_SQLSERVER.equals(getDbType())) {
+			List<String> domainList = new ArrayList<String>(this.domainList.size());
+			for (String domain : this.domainList) {
+				if (domain.endsWith("."))
+					continue;
+				domainList.add(domain + ".");
+			}
+			this.domainList = domainList;
+		}
+		if (debug)
+			logger.debug("dml loaded (dbType: " + getDbType() + ")");
 	}
 
 	@Override
@@ -330,7 +344,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		String sql = applyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize());
 
-		List<T> list = query(sql, paramMap, clazz, query.getPageIndex(), query.getPageSize());
+		List<T> list = query(sql, paramMap, clazz, table, query.getPageIndex(), query.getPageSize());
 		return list;
 	}
 	private void appendLock(StringBuffer buf, boolean lock) {
@@ -339,13 +353,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
 		if (pageIndex < 0 || pageSize <= 0)
 			return sql;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(dbType)) {
-			int fromIndex = pageIndex * pageSize;
-			int toIndex = fromIndex + pageSize;
+		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType())) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
 			// Oracle
-			if (DBTYPE_ORACLE.equals(dbType)) {
+			if (DBTYPE_ORACLE.equals(getDbType())) {
+				int fromIndex = pageIndex * pageSize;
+				int toIndex = fromIndex + pageSize;
 				String subsql = null;
 				int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
 				if (forUpdateIndex > -1) {
@@ -353,7 +367,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					sql = sql.substring(0, forUpdateIndex - 1);
 				}
 
-				StringBuffer buf = new StringBuffer(sql.length() + 100);
+				StringBuffer buf = new StringBuffer();
 				if (pageIndex > 0) {
 					_paramMap.put("__fromIndex", fromIndex);
 					_paramMap.put("__toIndex", toIndex);
@@ -369,27 +383,37 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 			}
 			// MySQL
-			else if (DBTYPE_MYSQL.equals(dbType)) {
+			else if (DBTYPE_MYSQL.equals(getDbType())) {
+				int fromIndex = pageIndex * pageSize;
 				if (pageIndex > 0) {
 					_paramMap.put("__fromIndex", fromIndex);
-					_paramMap.put("__toIndex", toIndex);
-					return " limit :__fromIndex, :__toIndex";
+					_paramMap.put("__pageSize", pageSize);
+					return sql + " limit :__fromIndex, :__pageSize";
 				} else {
-					_paramMap.put("__toIndex", toIndex);
-					return " limit :__toIndex";
+					_paramMap.put("__pageSize", pageSize);
+					return sql + " limit :__pageSize";
 				}
 			}
 		}
+		// SQLServer
+		else if (DBTYPE_SQLSERVER.equals(getDbType())) {
+			String lowerSql = sql.toLowerCase();
+			int selectIndex = lowerSql.indexOf("select");
+			int distinctIndex = lowerSql.indexOf("distinct");
+			int topIndex = distinctIndex > 0 && distinctIndex < selectIndex + 13 ? distinctIndex + 8 : selectIndex + 6;
+			return new StringBuffer(sql).insert(topIndex, " top " + ((pageIndex + 1) * pageSize)).toString();
+		}
 		return sql;
 	}
-	private <T> List<T> query(String sql, Map<String, ?> paramMap, final Class<T> requiredType, final int pageIndex, final int pageSize)
-			throws Exception {
+
+	private <T> List<T> query(String sql, Map<String, ?> paramMap, final Class<T> requiredType, final Table table, final int pageIndex,
+			final int pageSize) throws Exception {
 		List<T> list = null;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(dbType) || pageIndex < 0 || pageSize <= 0) {
+		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || pageIndex < 0 || pageSize <= 0) {
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
 				@Override
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
-					return newInstance(rs, requiredType);
+					return newInstance(rs, requiredType, table);
 				}
 			});
 		} else {
@@ -397,11 +421,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				@Override
 				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<T> list = new ArrayList<T>();
-					int offset = pageIndex * pageSize;
-					for (int i = 0; i < offset; i++)
+					int fromIndex = pageIndex * pageSize;
+					for (int i = 0; i < fromIndex; i++)
 						rs.next();
-					while (rs.next())
-						list.add(newInstance(rs, requiredType));
+					int i = 0;
+					while (rs.next()) {
+						if (i++ == pageSize)
+							break;
+						list.add(newInstance(rs, requiredType, table));
+					}
 					return list;
 				}
 			});
@@ -411,7 +439,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static Map<Class<?>, Map<String, Field>> classFieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
 
 	@SuppressWarnings("unchecked")
-	private static <T> T newInstance(ResultSet rs, Class<T> clazz) throws SQLException {
+	private <T> T newInstance(ResultSet rs, Class<T> clazz, Table table) throws SQLException {
 		if (ValueUtils.isPrimitive(clazz))
 			return (T) toRequiredType(rs, 1, clazz);
 
@@ -443,22 +471,27 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (int i = 0; i < metadata.getColumnCount();) {
 				i++;
 				String name = metadata.getColumnName(i);
-				Field field;
+				Field field = null;
 				if (fieldCache.containsKey(name)) {
 					field = fieldCache.get(name);
 				} else {
-					field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
-					if (field == null) {
-						for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
-							if (!f.getName().equalsIgnoreCase(name))
-								continue;
-							field = f;
-							break;
-						}
+					if (table != null) {
+						field = table.getFieldByColumnName(name);
 						if (field == null)
-							field = ReflectionUtils.NULL_FIELD;
+							field = table.getField(name);
 					}
-					fieldCache.put(name, field);
+					if (field == null) {
+						field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
+						if (field == null) {
+							for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
+								if (!f.getName().equalsIgnoreCase(name))
+									continue;
+								field = f;
+								break;
+							}
+						}
+					}
+					fieldCache.put(name, field == null ? ReflectionUtils.NULL_FIELD : field);
 				}
 				if (field == null || ReflectionUtils.NULL_FIELD.equals(field))
 					continue;
@@ -510,7 +543,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return rs.getObject(index);
 	}
 
-	private static final String DBFUNC_LOWERCASE_MYSQL = "lcase";
+	private static final String DBFUNC_LOWERCASE_MYSQL = "lower";
 	private static final String DBFUNC_LOWERCASE_ORACLE = "lower";
 	private static final String DBFUNC_LOWERCASE_SQLSERVER = "lower";
 	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
@@ -527,6 +560,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (!ValueUtils.isEmpty(filters.getFilter())) {
 			for (Filter filter : filters.getFilter()) {
 				String operator = ValueUtils.toString(filter.getOperator(), "=").trim();
+				if ("!=".equals(operator))
+					operator = "<>";
 				String lo = filter.getLeftOperand();
 				String columnName = table.toColumnName(lo);
 				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
@@ -542,7 +577,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 				// check and process case sensitive
 				if (!filter.isCaseSensitive()) {
-					columnName = DBFUNC_LOWERCASE_MAP.get(dbType) + "(" + columnName + ")";
+					columnName = DBFUNC_LOWERCASE_MAP.get(getDbType()) + "(" + columnName + ")";
 					List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
 					for (Object ro : rightOperand) {
 						if (ro != null && ro instanceof String)
@@ -583,8 +618,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					if ("in".equals(operator))
 						operator = "=";
 					else if ("not in".equals(operator))
-						operator = "!=";
-					String subLogicalOperator = "!=".equals(operator) ? " and " : " or ";
+						operator = "<>";
+					String subLogicalOperator = "<>".equals(operator) ? " and " : " or ";
 					buf.append("(");
 					int k = 0;
 					for (Object ro : rightOperand) {
@@ -606,7 +641,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				paramMap.put(key, rightOperand);
 				if ("=".equals(operator))
 					operator = "in";
-				else if ("!=".equals(operator))
+				else if ("<>".equals(operator))
 					operator = "not in";
 				buf.append(columnName).append(" ").append(operator).append(" (:").append(key).append(")");
 			}
@@ -627,7 +662,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		buf.append(columnName);
 		if ("=".equals(operator) || "in".equals(operator))
 			operator = "is";
-		else if ("!=".equals(operator) || "not in".equals(operator))
+		else if ("<>".equals(operator) || "not in".equals(operator))
 			operator = "is not";
 		buf.append(" ").append(operator).append(" null");
 	}
@@ -636,13 +671,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	public <T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		ValueUtils.assertNotEmpty("sql", sql);
 		ValueUtils.assertNotEmpty("requiredType", requiredType);
+		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		sql = sql.trim();
 		sql = applyPagination(sql, paramMap, pageIndex, pageSize);
-		return query(sql, paramMap, requiredType, pageIndex, pageSize);
+		return query(sql, paramMap, requiredType, null, pageIndex, pageSize);
 	}
 
 	@Override
 	public <T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		Page<T> page = new Page<T>();
 		page.setIndex(pageIndex);
 		page.setSize(pageSize);
@@ -673,12 +710,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.update(buf.toString(), paramMap);
 	}
 
-	public String getDbType() {
-		return dbType;
-	}
-	public void setDbType(String dbType) {
-		this.dbType = dbType == null ? null : dbType.toLowerCase();
-	}
 	public String getDomain() {
 		return domain;
 	}
@@ -690,9 +721,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 		for (String d : StringUtils.tokenizeToStringArray(domain, ","))
 			domainList.add(d);
-	}
-	public List<String> getDomainList() {
-		return domainList;
 	}
 	public DataSource getDataSource() {
 		return dataSource;
@@ -827,7 +855,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
 	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
-	private static final String QUERY_NUMBEROFTABLE_SQLSERVER = "select count(*) from ${domain}..sysobjects where xtype = 'U' and lower(name) = ?";
+	private static final String QUERY_NUMBEROFTABLE_SQLSERVER = "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
 	private static final Map<String, String> QUERY_NUMBEROFTABLE_MAP;
 	static {
 		QUERY_NUMBEROFTABLE_MAP = new HashMap<String, String>();
@@ -837,11 +865,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	// TODO QUERY_PKCOLUMNS_MYSQL
-	private static final String QUERY_PKCOLUMNS_MYSQL = "";
+	private static final String QUERY_PKCOLUMNS_MYSQL = "select lower(column_name) name from information_schema.key_column_usage"
+			+ " where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
 	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
-			+ " where cons.constraint_name = conscol.constraint_name and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P'";
-	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(name) name from ${domain}..sysobjects tbl, ${domain}..syscolumns col"
-			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3";
+			+ " where cons.constraint_name = conscol.constraint_name and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
+	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
+			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
 	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;
 	static {
 		QUERY_PKCOLUMNS_MAP = new HashMap<String, String>();
@@ -855,10 +884,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	//	private static final
 	private <T> Table checkAndPopulateDomainAndName(Table table, String... tableNameCandidates) {
 		// Check table existence and populate
-		String sql = QUERY_NUMBEROFTABLE_MAP.get(dbType);
+		String sql = QUERY_NUMBEROFTABLE_MAP.get(getDbType());
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
-					ValueUtils.toMap("queryName: number of table", "dbType:" + dbType)));
+					ValueUtils.toMap("queryName: number of table", "dbType:" + getDbType())));
 
 		List<String> domainNameList = ValueUtils.isEmpty(table.getDomain()) ? this.domainList : ValueUtils.toList(table.getDomain());
 
@@ -883,9 +912,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		// populate PK name
-		sql = QUERY_PKCOLUMNS_MAP.get(dbType);
+		sql = QUERY_PKCOLUMNS_MAP.get(getDbType());
 		if (sql == null)
-			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND, ValueUtils.toMap("queryName: primary key", "dbType:" + dbType)));
+			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
+					ValueUtils.toMap("queryName: primary key", "dbType:" + getDbType())));
 		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
 		table.setPkColumnNameList(jdbcOperations.queryForList(sql, String.class, table.getName()));
 
@@ -895,9 +925,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final RowMapper<TableColumn> TABLECOLUMN_ROWMAPPER = new TableColumnRowMapper();
 
 	// TODO QUERY_COLUMNS_MYSQL
-	private static final String QUERY_COLUMNS_MYSQL = "";
+	private static final String QUERY_COLUMNS_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
-	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}..sysobjects tbl, ${domain}..syscolumns col, ${domain}..systypes type"
+	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
 	private static final Map<String, String> QUERY_COLUMNS_MAP;
 	static {
@@ -907,10 +937,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		QUERY_COLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNS_SQLSERVER);
 	}
 	private List<TableColumn> getTableColumnList(Table table) {
-		String sql = QUERY_COLUMNS_MAP.get(dbType);
+		String sql = QUERY_COLUMNS_MAP.get(getDbType());
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
-					ValueUtils.toMap("queryName: table columns", "dbType:" + dbType)));
+					ValueUtils.toMap("queryName: table columns", "dbType:" + getDbType())));
 		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
 
 		String tableName = table.getName();
@@ -919,9 +949,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	// TODO QUERY_COLUMN_MYSQL
-	private static final String QUERY_COLUMN_MYSQL = "";
+	private static final String QUERY_COLUMN_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
-	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}..sysobjects tbl, ${domain}..syscolumns col, ${domain}..systypes type"
+	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
 	private static final Map<String, String> QUERY_COLUMN_MAP;
 	static {
@@ -936,10 +966,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ignoreAnn != null)
 			return;
 
-		String sql = QUERY_COLUMN_MAP.get(dbType);
+		String sql = QUERY_COLUMN_MAP.get(getDbType());
 		if (sql == null)
-			throw new IllegalArgumentException(
-					ValueUtils.populate(MSG_QUERYNOTFOUND, ValueUtils.toMap("queryName: table column", "dbType:" + dbType)));
+			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
+					ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
 		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
 
 		String tableName = table.getName();

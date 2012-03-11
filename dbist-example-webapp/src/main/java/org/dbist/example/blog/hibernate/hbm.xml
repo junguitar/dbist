@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
-<hibernate-mapping schema="dbist"
-	package="org.dbist.example.blog.hibernate">
+<hibernate-mapping package="org.dbist.example.blog.hibernate">
 
 	<class name="User" table="users">
 		<id name="username" type="string" length="100" />
 		<property name="password" column="pwd" type="string" length="100" />
-		<property name="firstName" column="first_name" type="string"
-			length="100" />
-		<property name="lastName" column="last_name" type="string"
-			length="100" />
+		<property name="firstName" column="first_name" type="string" length="100" />
+		<property name="lastName" column="last_name" type="string" length="100" />
 		<property name="email" type="string" length="100" />
 	</class>
 
@@ -24,8 +21,7 @@
 
 	<class name="Post">
 		<id name="id" type="string" length="100" />
-		<property name="blogId" column="blog_id" type="string"
-			length="100" />
+		<property name="blogId" column="blog_id" type="string" length="100" />
 		<property name="title" type="string" length="200" />
 		<property name="author" type="string" length="100" />
 		<property name="createdAt" column="created_at" type="date" />
@@ -35,8 +31,7 @@
 
 	<class name="Comment" table="comments">
 		<id name="id" type="string" length="100" />
-		<property name="postId" column="post_id" type="string"
-			length="100" />
+		<property name="postId" column="post_id" type="string" length="100" />
 		<property name="author" type="string" length="100" />
 		<property name="createdAt" column="created_at" type="date" />
 		<property name="content" type="string" length="1000" />

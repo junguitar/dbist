@@ -28,10 +28,19 @@
 If the "DATA" table has a primary key
 
 {{{
+SELECT * FROM DATA WHERE id = 'x'
+}}}
+
+{{{
 Data data = dml.select(Data.class, "x");
 }}}
 
 If the "DATA" table has composite keys and the field names are 'pk1' and 'pk2'
+
+{{{
+SELECT * FROM DATA WHERE pk1 = 'x' and pk2 = 'y'
+}}}
+
 {{{
 // By Array
 Data data = dml.select(Data.class, "x", "y");
@@ -42,7 +51,7 @@ id.add("x");
 id.add("y");
 Data data = dml.select(Data.class, id);
 
-// By HttpServletRequest parameters (parameters must have keys 'pk1', 'pk2')
+// By HttpServletRequest parameters (parameters must have values of 'pk1', 'pk2')
 Data data = dml.select(Data.class, request);
 
 // By Map
@@ -67,7 +76,11 @@ Data data = dml.select(Data.class, otherData);
 If the "DATA" table has candidate keys and the field names are 'ck1' and 'ck2'
 
 {{{
-// By HttpServletRequest parameters (parameters must have keys 'pk1', 'pk2')
+SELECT * FROM DATA WHERE ck1 = 'x' and ck2 = 'y'
+}}}
+
+{{{
+// By HttpServletRequest parameters (parameters must have values of 'ck1', 'ck2')
 Data data = dml.selectByCondition(Data.class, request);
 
 // By Map

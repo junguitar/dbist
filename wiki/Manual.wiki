@@ -325,6 +325,8 @@ List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data.sql", nu
     * sqlserver.sql
     * mysql.sql
 
+If the dbType of dataSource is 'oracle', it'll check oracle.sql, ansi.sql order
+
 {{{
 // Map List
 List<Map> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, Map.class, 0, 0);

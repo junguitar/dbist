@@ -251,6 +251,40 @@ List<Data> list = dml.selectList(Data.class, query);
 
 == Select Data by SQL Path ==
 
+  * SQL file content
+
+{{{
+select * from DATA
+}}}
+
+=== By SQL Filepath or Classpath ===
+
+  * org/dbist/sample/sql/select_data.sql
+
+{{{
+// Map List
+List<Map> list = selectListBySqlPath("org/dbist/sample/sql/select_data.sql", null, Map.class, 0, 0);
+
+// Data List
+List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data.sql", null, Data.class, 0, 0);
+}}}
+
+=== By SQL Directory Path or Package Path ===
+
+  * org/dbist/sample/sql/select_data
+    * ansi.sql (default)
+    * oracle.sql
+    * sqlserver.sql
+    * mysql.sql
+
+{{{
+// Map List
+List<Map> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, Map.class, 0, 0);
+
+// Data List
+List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, Data.class, 0, 0);
+}}}
+
 = Annotation =
 
 == Table ==

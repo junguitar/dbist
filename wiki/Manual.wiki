@@ -89,11 +89,25 @@ otherData.setCk2("y");
 Data data = dml.select(Data.class, otherData);
 }}}
 
+=== Select Data List ===
+
 == How to Insert Data ==
+
+=== Insert a Data ===
+
+=== Insert Data List ===
 
 == How to Update Data ==
 
+=== Update a Data ===
+
+=== Insert Data List ===
+
 == How to Delete Data ==
+
+=== Delete a Data ===
+
+=== Delete Data List ===
 
 == How to use Query Class ==
 

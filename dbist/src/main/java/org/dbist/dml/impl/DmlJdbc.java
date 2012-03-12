@@ -695,27 +695,29 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
-		ValueUtils.assertNotEmpty("sql", sql);
+	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		ValueUtils.assertNotEmpty("ql", ql);
 		ValueUtils.assertNotEmpty("requiredType", requiredType);
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
-		sql = sql.trim();
-		sql = applyPagination(sql, paramMap, pageIndex, pageSize);
-		return query(sql, paramMap, requiredType, null, pageIndex, pageSize);
+		ql = ql.trim();
+		if (getPreprocessor() != null)
+			getPreprocessor().process(ql, paramMap);
+		ql = applyPagination(ql, paramMap, pageIndex, pageSize);
+		return query(ql, paramMap, requiredType, null, pageIndex, pageSize);
 	}
 
 	@Override
-	public <T> Page<T> selectPageByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		Page<T> page = new Page<T>();
 		page.setIndex(pageIndex);
 		page.setSize(pageSize);
-		page.setList(selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize));
-		int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
+		page.setList(selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize));
+		int forUpdateIndex = ql.toLowerCase().lastIndexOf("for update");
 		if (forUpdateIndex > -1)
-			sql = sql.substring(0, forUpdateIndex - 1);
-		sql = "select count(*) from (" + sql + ")";
-		page.setTotalSize(selectByQl(sql, paramMap, Integer.class));
+			ql = ql.substring(0, forUpdateIndex - 1);
+		ql = "select count(*) from (" + ql + ")";
+		page.setTotalSize(selectByQl(ql, paramMap, Integer.class));
 		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
 			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
 		return page;

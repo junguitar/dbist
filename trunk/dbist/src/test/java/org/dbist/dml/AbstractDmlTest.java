@@ -21,7 +21,6 @@ import java.util.Map;
 
 import junit.framework.Assert;
 
-import org.dbist.dml.impl.Blog;
 import org.dbist.exception.DbistRuntimeException;
 import org.junit.Before;
 import org.junit.Test;

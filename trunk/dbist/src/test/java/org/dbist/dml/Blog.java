@@ -1,4 +1,4 @@
-package org.dbist.dml.impl;
+package org.dbist.dml;
 
 import java.util.Date;
 

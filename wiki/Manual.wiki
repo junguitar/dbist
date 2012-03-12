@@ -4,9 +4,9 @@
 
 = Features =
 
-== ORM ==
+== Easy ORM ==
 
-== SQL Query ==
+== Easy SQL Query ==
 
 = Configurations =
 

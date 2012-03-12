@@ -11,7 +11,7 @@
 = Configurations =
 
 || *Name* || *Description* ||
-|| dmlJdbc.domain || Owner of oracle, database name of sqlserver, table schema of mysql ||
+|| dmlJdbc.domain || Owner of oracle, Database Name of sqlserver, Table Schema of mysql ||
 || dataSource.driverClassName || JDBC driver class name ||
 || dataSource.url || JDBC URL ||
 || dataSource.username || Database username ||

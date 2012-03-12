@@ -1,5 +1,7 @@
 #summary Manual
 
+<wiki:toc max_depth="1" />
+
   * [Manual#Features Features]
   * [Manual#Configurations Configurations]
   * [Manual#How_to_CRUD How to CRUD]

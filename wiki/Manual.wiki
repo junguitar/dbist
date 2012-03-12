@@ -167,6 +167,7 @@ or
 
 Query query = new Query();
 query.addOrder("a", true);
+query.addOrder("b", false);
 List<Data> list = dml.selectList(Data.class, query);
 }}}
 

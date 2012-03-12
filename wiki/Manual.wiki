@@ -22,6 +22,72 @@
 
 == How to Select Data ==
 
+=== Select a Data ===
+
+If the "DATA" table has a primary key
+
+{{{
+Data data = dml.select(Data.class, "x");
+}}}
+
+If the "DATA" table has composite keys and the field names are 'pk1' and 'pk2'
+{{{
+// By Array
+Data data = dml.select(Data.class, "x", "y");
+
+// By List
+List<Object> id = new ArrayList<Object>();
+id.add("x");
+id.add("y");
+Data data = dml.select(Data.class, id);
+
+// By HttpServletRequest parameters (parameters must have keys 'pk1', 'pk2')
+Data data = dml.select(Data.class, request);
+
+// By Map
+Map<String, Object> paramMap = new HashMap<String, Object>();
+paramMap.put("pk1", "x");
+paramMap.put("pk2", "y");
+Data data = dml.select(Data.class, paramMap);
+
+// By the object
+Data data = new Data();
+data.setPk1("x");
+data.setPk2("y");
+data = dml.select(data);
+
+// By another object
+OtherData otherData = new OtherData();
+otherData.setPk1("x");
+otherData.setPk2("y");
+Data data = dml.select(Data.class, otherData);
+}}}
+
+If the "DATA" table has candidate keys and the field names are 'ck1' and 'ck2'
+
+{{{
+// By HttpServletRequest parameters (parameters must have keys 'pk1', 'pk2')
+Data data = dml.selectByCondition(Data.class, request);
+
+// By Map
+Map<String, Object> paramMap = new HashMap<String, Object>();
+paramMap.put("pk1", "x");
+paramMap.put("pk2", "y");
+Data data = dml.selectByCondition(Data.class, paramMap);
+
+// By the object
+Data data = new Data();
+data.setCk1("l");
+data.setCk2("m");
+data = dml.selectByCondition(Data.class, data);
+
+// By another object
+OtherData otherData = new OtherData();
+otherData.setCk1("x");
+otherData.setCk2("y");
+Data data = dml.select(Data.class, otherData);
+}}}
+
 == How to Insert Data ==
 
 == How to Update Data ==
@@ -31,3 +97,7 @@
 == How to use Query Class ==
 
 = How to execute SQL Query =
+
+== Select Data by SQL String ==
+
+== Select Data by SQL Path ==

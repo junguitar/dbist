@@ -10,6 +10,8 @@
 
 = Configurations =
 
+  * config.properties
+
 || *Name* || *Description* ||
 || dmlJdbc.domain || Owner of oracle, Database Name of sqlserver, Table Schema of mysql ||
 || dataSource.driverClassName || JDBC driver class name ||
@@ -18,6 +20,48 @@
 || dataSource.password  || Database password ||
 || sqlAspect.enabled || Print SQL query at log ||
 || sqlAspect.prettyPrint || Print prettily formatted SQL query at log ||
+
+  * beans.xml (springframework)
+
+{{{
+	<bean class="net.sf.common.util.BeanUtils">
+		<property name="applicationContextName" value="${applicationContext.name}" />
+	</bean>
+
+	<!-- AOP -->
+	<aop:config>
+		<aop:aspect order="2" ref="sqlAspect">
+			<aop:around method="print" pointcut="execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.*(..))" />
+		</aop:aspect>
+	</aop:config>
+	<bean id="sqlAspect" class="org.dbist.aspect.SqlAspect">
+		<property name="enabled" value="${sqlAspect.enabled}" />
+		<property name="prettyPrint" value="${sqlAspect.prettyPrint}" />
+	</bean>
+	<!-- JDBC -->
+	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
+		<property name="domain" value="${dmlJdbc.domain}" />
+		<property name="preprocessor">
+			<bean class="org.dbist.processor.impl.VelocityPreprocessor" />
+		</property>
+		<property name="dataSource" ref="dataSourceJdbc" />
+		<property name="jdbcOperations" ref="jdbcOperations" />
+		<property name="namedParameterJdbcOperations" ref="namedParameterJdbcOperations" />
+	</bean>
+	<bean id="jdbcOperations" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSourceJdbc" />
+	</bean>
+	<bean id="namedParameterJdbcOperations" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+		<constructor-arg name="dataSource" index="0" ref="dataSourceJdbc" />
+	</bean>
+	<bean id="dataSourceJdbc" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${dataSource.driverClassName}" />
+		<property name="url" value="${dataSource.url}" />
+		<property name="username" value="${dataSource.username}" />
+		<property name="password" value="${dataSource.password}" />
+		<property name="maxActive" value="${dataSource.maxActive}" />
+	</bean>
+}}}
 
 = How to CRUD =
 

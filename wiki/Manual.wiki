@@ -13,7 +13,7 @@
   * config.properties
 
 || *Name* || *Description* ||
-|| applicationContext.name || Context Path of Webapp (default 'dbist') ||
+|| applicationContext.name || Context Path of your Webapp (default 'dbist') ||
 || dmlJdbc.domain || Owner of oracle, Database Name of sqlserver, Table Schema of mysql ||
 || dataSource.driverClassName || JDBC driver class name ||
 || dataSource.url || JDBC URL ||

@@ -114,6 +114,8 @@ Data data = dml.select(Data.class, query);
 
 === Select Data List ===
 
+=== Select Data Size(Count) ==
+
 == How to Insert Data ==
 
 === Insert a Data ===

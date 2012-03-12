@@ -30,15 +30,21 @@ import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Table;
 import org.dbist.processor.Preprocessor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author Steve M. Jung
  * @since 2012. 1. 5. (version 0.0.1)
  */
-public abstract class AbstractDml implements Dml, InitializingBean {
+public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanNameAware, InitializingBean {
 	private String dbType;
 	private Preprocessor preprocessor;
+	private String beanName;
+	private ApplicationContext applicationContext;
 
 	@Override
 	public String getDbType() {
@@ -63,7 +69,18 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+	@Override
 	public void afterPropertiesSet() throws Exception {
+	}
+	protected Dml getBean() {
+		return this.applicationContext.getBean(this.beanName, Dml.class);
 	}
 
 	protected <T> T select(List<T> list) {
@@ -408,7 +425,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			return obj;
 		}
 		T obj = ValueUtils.populate(data, clazz.newInstance());
-		insert(obj, fieldNames);
+		getBean().insert(obj, fieldNames);
 		return obj;
 	}
 
@@ -467,7 +484,7 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 			throw new DataNotFoundException("Couldn't find data from table[" + table.getDomain() + "." + table.getName() + "]");
 		}
 		obj = ValueUtils.populate(data, obj, fieldNames);
-		update(obj, fieldNames);
+		getBean().update(obj, fieldNames);
 		return obj;
 	}
 

@@ -19,12 +19,17 @@ import net.sf.common.util.BeanUtils;
 
 import org.dbist.dml.AbstractDmlTest;
 import org.dbist.dml.Dml;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Steve Jung
- * @since 2012. 3. 6.
+ * @since 2012. 3. 12.
  */
-public class DmlJdbcTest extends AbstractDmlTest {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath:WEB-INF/beans.xml", "classpath:WEB-INF/beans-mysql.xml" })
+public class DmlJdbcMysqlTest extends AbstractDmlTest {
 	@Override
 	public Dml getDml() {
 		return BeanUtils.getInstance("dbist-example").get(DmlJdbc.class, Dml.class);

@@ -25,18 +25,13 @@ import org.dbist.dml.impl.Blog;
 import org.dbist.exception.DbistRuntimeException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Steve Jung
  * @since 2012. 3. 6.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "classpath:WEB-INF/beans.xml")
 public abstract class AbstractDmlTest {
 	int i = 0;
 	protected Logger logger = LoggerFactory.getLogger(getClass());

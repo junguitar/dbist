@@ -9,7 +9,7 @@ Version 1.0.4
   * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-admin/1.0.4/dbist-admin-1.0.4.jar dbist-admin-1.0.4.jar]
   * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.4/dbist-example-webapp-1.0.4.war dbist-example-1.0.4.war]
 
-By Maven Configurations
+Using Maven Configurations
 
 {{{
 	<repositories>

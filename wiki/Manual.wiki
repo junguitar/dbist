@@ -129,14 +129,14 @@ Data data = dml.select(Data.class, otherData);
 
 == Select Data by SQL Path ==
 
-== Annotation ==
+= Annotation =
 
-=== Table ===
+== Table ==
 
-=== Column ===
+== Column ==
 
-=== Ignore ===
+== Ignore ==
 
-== Aspect ==
+= Aspect =
 
-=== SqlAspect ===
+== SqlAspect ==

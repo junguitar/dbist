@@ -701,7 +701,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		ql = ql.trim();
 		if (getPreprocessor() != null)
-			getPreprocessor().process(ql, paramMap);
+			ql = getPreprocessor().process(ql, paramMap);
 		ql = applyPagination(ql, paramMap, pageIndex, pageSize);
 		return query(ql, paramMap, requiredType, null, pageIndex, pageSize);
 	}

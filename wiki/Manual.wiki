@@ -24,6 +24,8 @@
   * beans.xml (springframework)
 
 {{{
+	<context:property-placeholder location="/WEB-INF/*.properties" />
+
 	<bean class="net.sf.common.util.BeanUtils">
 		<property name="applicationContextName" value="${applicationContext.name}" />
 	</bean>

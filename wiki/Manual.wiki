@@ -141,7 +141,7 @@ selecdt a, b from DATA
 }}}
 
 {{{
-dml.selectList(Data.class, new Query().addField("a", "b"));
+List<Data> list = dml.selectList(Data.class, new Query().addField("a", "b"));
 }}}
 
 === Filter ===
@@ -150,7 +150,35 @@ dml.selectList(Data.class, new Query().addField("a", "b"));
 
 === Order By ===
 
+{{{
+select * from DATA order by a asc, b desc
+}}}
+
+{{{
+List<Data> list = dml.selectList(Data.class, new Query().addOrder("a", true).addOrder("b", false));
+
+or
+
+Query query = new Query();
+query.addOrder("a", true);
+List<Data> list = dml.selectList(Data.class, query);
+}}}
+
 === Group By ===
+
+{{{
+select a, b from DATA group by a, b
+}}}
+
+{{{
+List<Data> list = dml.selectList(Data.class, new Query().addGroup("a", "b"));
+
+or
+
+Query query = new Query();
+query.addGroup("a", "b");
+List<Data> list = dml.selectList(Data.class, query);
+}}}
 
 === Pagination ===
 

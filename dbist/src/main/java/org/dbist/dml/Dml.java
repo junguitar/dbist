@@ -96,6 +96,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
+	<T> T selectByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
 	 * Select a data as the requiredType by the query (SQL query) and the paramMap
@@ -107,6 +108,7 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
+	<T> T selectBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
 	 * Insert a data to the database table mapped to T class.

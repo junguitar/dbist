@@ -279,11 +279,19 @@ public abstract class AbstractDml implements Dml, InitializingBean {
 	}
 
 	@Override
-	public <T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
-		ValueUtils.assertNotNull("query", sql);
-		ValueUtils.assertNotNull("requiredType", requiredType);
-		//		return select(selectListByQl(sql, paramMap, requiredType, 0, 2));
-		return select(selectListByQl(sql, paramMap, requiredType, 0, 0));
+	public <T> T selectByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		//		return select(selectListByQl(ql, paramMap, requiredType, 0, 2));
+		return select(selectListByQl(ql, paramMap, requiredType, 0, 0));
+	}
+
+	@Override
+	public <T> T selectByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		return select(selectListByQlPath(qlPath, paramMap, requiredType, 0, 0));
+	}
+
+	@Override
+	public <T> T selectBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
+		return select(selectListBySqlPath(sqlPath, paramMap, requiredType, 0, 0));
 	}
 
 	@Override

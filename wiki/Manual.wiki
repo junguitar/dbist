@@ -38,6 +38,7 @@
 		<property name="enabled" value="${sqlAspect.enabled}" />
 		<property name="prettyPrint" value="${sqlAspect.prettyPrint}" />
 	</bean>
+
 	<!-- JDBC -->
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
 		<property name="domain" value="${dmlJdbc.domain}" />

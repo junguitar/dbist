@@ -71,6 +71,11 @@ OtherData otherData = new OtherData();
 otherData.setPk1("x");
 otherData.setPk2("y");
 Data data = dml.select(Data.class, otherData);
+
+// By Query object
+Query query = new Query().addFilter("pk1", "x");
+Query query = new Query().addFilter("pk2", "y");
+Data data = dml.select(Data.class, query);
 }}}
 
 If the "DATA" table has candidate keys and the field names are 'ck1' and 'ck2'
@@ -100,6 +105,11 @@ OtherData otherData = new OtherData();
 otherData.setCk1("x");
 otherData.setCk2("y");
 Data data = dml.select(Data.class, otherData);
+
+// By Query object
+Query query = new Query().addFilter("ck1", "x");
+Query query = new Query().addFilter("ck2", "y");
+Data data = dml.select(Data.class, query);
 }}}
 
 === Select Data List ===

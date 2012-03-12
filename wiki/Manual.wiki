@@ -153,3 +153,13 @@ Data data = dml.select(Data.class, otherData);
 = Aspect =
 
 == SqlAspect ==
+
+= DML =
+
+== JDBC ==
+
+== Hibernate ==
+
+== JPA ==
+
+== JDO ==

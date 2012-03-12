@@ -1,6 +1,6 @@
 #summary Manual
 
-<wiki:toc max_depth="1" />
+<wiki:toc max_depth="2" />
 
   * [Manual#Features Features]
   * [Manual#Configurations Configurations]

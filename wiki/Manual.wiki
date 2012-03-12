@@ -73,8 +73,8 @@ otherData.setPk2("y");
 Data data = dml.select(Data.class, otherData);
 
 // By Query object
-Query query = new Query().addFilter("pk1", "x");
-Query query = new Query().addFilter("pk2", "y");
+Query query = new Query();
+query.addFilter("pk1", "x").addFilter("pk2", "y");
 Data data = dml.select(Data.class, query);
 }}}
 
@@ -107,8 +107,8 @@ otherData.setCk2("y");
 Data data = dml.select(Data.class, otherData);
 
 // By Query object
-Query query = new Query().addFilter("ck1", "x");
-Query query = new Query().addFilter("ck2", "y");
+Query query = new Query();
+query.addFilter("ck1", "x").addFilter("ck2", "y");
 Data data = dml.select(Data.class, query);
 }}}
 

@@ -1,9 +1,14 @@
 #summary Manual
 
-  * [Manual#Features]
-  * [Manual#Configurations]
-  * [Manual#How_to_CRUD_Data]
-  * [Manual#How_to_Execute_SQL_Query]
+  * [Manual#Features Features]
+  * [Manual#Configurations Configurations]
+  * [Manual#How_to_CRUD How to CRUD]
+    * [Manual#How_to_Select_Data How to Select Data]
+    * [Manual#How_to_Insert_Data How to Insert Data]
+    * [Manual#How_to_Update_Data How to Update Data]
+    * [Manual#How_to_Update_Data How to Update Data]
+    * [Manual#How_to_use_Query_Class How to use Query Class]
+  * [Manual#How_to_execute_SQL_Query How to execute SQL Query]
 
 = Features =
 
@@ -13,6 +18,16 @@
 
 = Configurations =
 
-= How to CRUD Data =
+= How to CRUD =
 
-= How to Execute SQL Query =
+== How to Select Data ==
+
+== How to Insert Data ==
+
+== How to Update Data ==
+
+== How to Delete Data ==
+
+== How to use Query Class ==
+
+= How to execute SQL Query =

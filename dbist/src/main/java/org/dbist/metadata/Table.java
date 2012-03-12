@@ -225,7 +225,7 @@ public class Table {
 				int j = 0;
 				for (Column column : getColumnList()) {
 					if (column.isPrimaryKey()) {
-						whereBuf.append(j++ == 0 ? "" : ", ").append(column.getName()).append(" = ").append(":").append(column.getField().getName());
+						whereBuf.append(j++ == 0 ? "" : " and ").append(column.getName()).append(" = ").append(":").append(column.getField().getName());
 						continue;
 					}
 					buf.append(i++ == 0 ? "" : ", ").append(column.getName()).append(" = :").append(column.getField().getName());

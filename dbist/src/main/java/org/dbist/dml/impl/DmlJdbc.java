@@ -242,7 +242,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ValueUtils.isEmpty(fieldNames)) {
 			for (Column column : table.getColumnList()) {
 				Field field = column.getField();
-				paramMap.put(field.getName(), field.get(data));
+				paramMap.put(field.getName(), toParamData(field.get(data)));
 			}
 			return paramMap;
 		}
@@ -253,9 +253,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			if (field == null)
 				throw new DbistRuntimeException("Couldn't find column of table[" + table.getDomain() + "." + table.getName() + "] by fieldName["
 						+ fieldName + "]");
-			paramMap.put(fieldName, field.get(data));
+			paramMap.put(fieldName, toParamData(field.get(data)));
 		}
 		return paramMap;
+	}
+	private static Object toParamData(Object data) {
+		if (data instanceof Character)
+			return data.toString();
+		return data;
 	}
 
 	private void appendFromWhere(Table table, Query query, boolean lock, StringBuffer buf, Map<String, Object> paramMap) {

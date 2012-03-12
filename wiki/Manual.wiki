@@ -152,7 +152,7 @@ Data data = dml.select(Data.class, otherData);
 
 = Aspect =
 
-== SqlAspect ==
+== SQL Aspect ==
 
 = DML =
 

@@ -136,6 +136,14 @@ Data data = dml.select(Data.class, query);
 
 === Field ===
 
+{{{
+selecdt a, b from DATA
+}}}
+
+{{{
+dml.selectList(Data.class, new Query().addField("a", "b"));
+}}}
+
 === Filter ===
 
 === Filters ===
@@ -145,6 +153,60 @@ Data data = dml.select(Data.class, query);
 === Group By ===
 
 === Pagination ===
+
+  * Page 1
+
+{{{
+// oracle
+select * from (select * from DATA) where rownum <= 10
+
+// sqlserver
+select top 10 * from DATA
+
+// mysql
+select * from DATA limit 10
+
+}}}
+
+{{{
+List<Data> list = dml.selectList(Data.class, new Query(0, 10));
+
+or
+
+Query query = new Query();
+query.setPageIndex(0);
+query.setPageSize(10);
+List<Data> list = dml.selectList(Data.class, query);
+}}}
+
+  * Page 2
+
+{{{
+// oracle
+select * from (
+    select data.*, rownum rownum_ from (
+        select * from DATA
+    ) 
+    data where rownum <= 10
+) where rownum_ > 0
+
+// sqlserver
+select top 20 * from DATA
+
+// mysql
+select * from DATA limit 10 : 10
+}}}
+
+{{{
+List<Data> list = dml.selectList(Data.class, new Query(1, 10));
+
+or
+
+Query query = new Query();
+query.setPageIndex(1);
+query.setPageSize(10);
+List<Data> list = dml.selectList(Data.class, query);
+}}}
 
 = How to execute SQL Query =
 

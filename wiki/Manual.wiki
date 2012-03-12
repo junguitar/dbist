@@ -335,11 +335,11 @@ List<Map> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, M
 List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, Data.class, 0, 0);
 }}}
 
-=== Preprocessor ===
+=== Preprocessors ===
 
 ==== Velocity Preprocessor ====
 
-= Annotation =
+= Annotations =
 
 == Table ==
 
@@ -347,7 +347,7 @@ List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, 
 
 == Ignore ==
 
-= Aspect =
+= Aspects =
 
 == SQL Aspect ==
 

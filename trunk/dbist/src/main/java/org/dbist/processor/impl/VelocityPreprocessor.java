@@ -30,7 +30,7 @@ public class VelocityPreprocessor implements Preprocessor {
 	VelocityEngine ve;
 
 	@Override
-	public String process(String value, Map<String, Object> contextMap) throws Exception {
+	public String process(String value, Map<String, ?> contextMap) throws Exception {
 		if (ve == null) {
 			synchronized (this) {
 				if (ve == null) {

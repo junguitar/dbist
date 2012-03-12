@@ -22,5 +22,5 @@ import java.util.Map;
  * @since 2012. 2. 5. (version 0.0.1)
  */
 public interface Preprocessor {
-	String process(String value, Map<String, Object> contextMap) throws Exception;
+	String process(String value, Map<String, ?> contextMap) throws Exception;
 }

@@ -406,8 +406,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public <T> T insert(Class<T> clazz, Object data, String... fieldNames) throws Exception {
-		return _insert(clazz, data, fieldNames);
+	public void insert(Class<?> clazz, Object data, String... fieldNames) throws Exception {
+		_insert(clazz, data, fieldNames);
 	}
 
 	@Override
@@ -574,15 +574,17 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public <T> T upsert(Class<T> clazz, Object data, String... fieldNames) throws Exception {
-		return select(clazz, data) == null ? insert(clazz, data, fieldNames) : update(clazz, data, fieldNames);
+	public void upsert(Class<?> clazz, Object data, String... fieldNames) throws Exception {
+		if (select(clazz, data) == null)
+			insert(clazz, data, fieldNames);
+		else
+			update(clazz, data, fieldNames);
 	}
 
 	@Override
-	public <T> List<T> upsertBatch(Class<T> clazz, List<Object> list, String... fieldNames) throws Exception {
-		List<T> newList = toRequiredType(list, clazz, fieldNames);
-		upsertBatch(newList);
-		return newList;
+	public void upsertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception {
+		List<?> newList = toRequiredType(list, clazz, fieldNames);
+		upsertBatch(newList, fieldNames);
 	}
 
 	@Override
@@ -639,10 +641,20 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public <T> void deleteByCondition(String tableName, Object condition) throws Exception {
+	public void deleteByCondition(String tableName, Object condition) throws Exception {
 		Object data = selectByCondition(tableName, condition, getClass(tableName));
 		if (data == null)
 			return;
 		delete(data);
+	}
+
+	@Override
+	public int executeBySql(String sql, Map<String, ?> paramMap) throws Exception {
+		return executeByQl(sql, paramMap);
+	}
+
+	@Override
+	public int executeBySqlPath(String sqlPath, Map<String, ?> paramMap) throws Exception {
+		return executeByQlPath(sqlPath, paramMap);
 	}
 }

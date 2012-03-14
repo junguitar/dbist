@@ -17,12 +17,14 @@ package org.dbist;
 
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
 import junit.framework.Assert;
 import net.sf.common.util.ReflectionUtils;
+import net.sf.common.util.ValueUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
@@ -79,5 +81,15 @@ public class DbistTest {
 		for (Field field : ReflectionUtils.getFieldList(obj, false)) {
 			System.out.println("field: " + field.getName());
 		}
+	}
+
+	@Test
+	public final void testContainsNull() throws Exception {
+		List<?> list = ValueUtils.toList("", "a", " ", null);
+		Assert.assertTrue(list.contains(""));
+		Assert.assertTrue(list.contains("a"));
+		Assert.assertTrue(list.contains(" "));
+		Assert.assertTrue(list.contains(null));
+		Assert.assertFalse(list.contains("b"));
 	}
 }

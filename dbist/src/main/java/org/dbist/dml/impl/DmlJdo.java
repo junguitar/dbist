@@ -42,55 +42,55 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void insert(T data) throws Exception {
+	public <T> T insert(T data) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void insertBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void insertBatch(List<T> list) throws Exception {
+	public void insert(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void insert(T data, String... fieldNames) throws Exception {
+	public void insertBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void insertBatch(List<T> list, String... fieldNames) throws Exception {
+	public void update(Object data) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void update(T data) throws Exception {
+	public void updateBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list) throws Exception {
+	public void update(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void update(T data, String... fieldNames) throws Exception {
+	public void updateBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public <T> void delete(T data) throws Exception {
+	public void delete(Object data) throws Exception {
 		// TODO Auto-generated method stub
 
 	}
@@ -102,7 +102,7 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> int selectSize(Class<T> clazz, Object condition) throws Exception {
+	public int selectSize(Class<?> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -146,7 +146,19 @@ public class DmlJdo extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> int deleteList(Class<T> clazz, Object condition) throws Exception {
+	public int deleteList(Class<?> clazz, Object condition) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int executeByQl(String ql, Map<String, ?> paramMap) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int executeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}

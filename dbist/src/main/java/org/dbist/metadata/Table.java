@@ -220,12 +220,12 @@ public class Table {
 				if (updateSql != null)
 					return updateSql;
 				StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
-				StringBuffer whereBuf = new StringBuffer(" where ");
+				StringBuffer whereBuf = new StringBuffer();
 				int i = 0;
 				int j = 0;
 				for (Column column : getColumnList()) {
 					if (column.isPrimaryKey()) {
-						whereBuf.append(j++ == 0 ? "" : " and ").append(column.getName()).append(" = ").append(":")
+						whereBuf.append(j++ == 0 ? " where " : " and ").append(column.getName()).append(" = ").append(":")
 								.append(column.getField().getName());
 						continue;
 					}
@@ -238,7 +238,6 @@ public class Table {
 
 		// Update some fields
 		StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
-		StringBuffer whereBuf = new StringBuffer(" where ");
 		int i = 0;
 		int j = 0;
 		for (String fieldName : fieldNames) {
@@ -249,8 +248,9 @@ public class Table {
 				throw new DbistRuntimeException("Updating primary key is not supported. " + getDomain() + "." + getName() + getPkColumnNameList());
 			buf.append(i++ == 0 ? "" : ", ").append(toColumnName(fieldName)).append(" = :").append(fieldName);
 		}
+		StringBuffer whereBuf = new StringBuffer();
 		for (String columnName : getPkColumnNameList())
-			whereBuf.append(j++ == 0 ? "" : ", ").append(columnName).append(" = ").append(":").append(toFieldName(columnName));
+			whereBuf.append(j++ == 0 ? " where " : " and ").append(columnName).append(" = ").append(":").append(toFieldName(columnName));
 		return buf.append(whereBuf).toString();
 	}
 

@@ -256,4 +256,11 @@ public abstract class AbstractDmlTest {
 			dml.selectList(Blog.class, query);
 		}
 	}
+
+	@Test
+	public void update() throws Exception {
+		Blog blog = dml.select(Blog.class, "1");
+		blog.setName("1 Name");
+		dml.update(blog, "name");
+	}
 }

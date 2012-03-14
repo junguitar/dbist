@@ -123,22 +123,23 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void insert(T data) throws Exception {
+	public <T> T insert(T data) throws Exception {
 		_insert(data);
+		return data;
 	}
 
 	@Override
-	public <T> void insertBatch(List<T> list) throws Exception {
+	public void insertBatch(List<?> list) throws Exception {
 		_insertBatch(list);
 	}
 
 	@Override
-	public <T> void insert(T data, String... fieldNames) throws Exception {
+	public void insert(Object data, String... fieldNames) throws Exception {
 		_insert(data, fieldNames);
 	}
 
 	@Override
-	public <T> void insertBatch(List<T> list, String... fieldNames) throws Exception {
+	public void insertBatch(List<?> list, String... fieldNames) throws Exception {
 		_insertBatch(list, fieldNames);
 	}
 
@@ -146,7 +147,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getInsertSql(fieldNames);
-		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
+		Map<String, Object> paramMap = toParamMap(table, data, fieldNames);
 		updateBySql(sql, paramMap);
 	}
 
@@ -160,22 +161,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void update(T data) throws Exception {
+	public void update(Object data) throws Exception {
 		_update(data);
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list) throws Exception {
+	public void updateBatch(List<?> list) throws Exception {
 		_updateBatch(list);
 	}
 
 	@Override
-	public <T> void update(T data, String... fieldNames) throws Exception {
+	public void update(Object data, String... fieldNames) throws Exception {
 		_update(data, fieldNames);
 	}
 
 	@Override
-	public <T> void updateBatch(List<T> list, String... fieldNames) throws Exception {
+	public void updateBatch(List<?> list, String... fieldNames) throws Exception {
 		_updateBatch(list, fieldNames);
 	}
 
@@ -183,10 +184,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getUpdateSql(fieldNames);
-		Map<String, ?> paramMap = toParamMap(table, data, fieldNames);
-		// TODO DataNotFoundException message
+		if (!ValueUtils.isEmpty(fieldNames)) {
+			List<String> fieldNameList = ValueUtils.toList(fieldNames);
+			for (String fieldName : table.getPkFieldNames())
+				fieldNameList.add(fieldName);
+			fieldNames = fieldNameList.toArray(new String[fieldNameList.size()]);
+		}
+		Map<String, Object> paramMap = toParamMap(table, data, fieldNames);
 		if (updateBySql(sql, paramMap) != 1)
-			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
+			throw new DataNotFoundException(toNotFoundErrorMessage(table, data, toParamMap(table, data, table.getPkFieldNames())));
+	}
+	private static <T> String toNotFoundErrorMessage(Table table, T data, Map<String, ?> paramMap) {
+		StringBuffer buf = new StringBuffer("Couldn't find data for update ").append(data.getClass().getName());
+		int i = 0;
+		for (String key : paramMap.keySet())
+			buf.append(i++ == 0 ? " " : ", ").append(key).append(":").append(paramMap.get(key));
+		return buf.toString();
 	}
 
 	private <T> void _updateBatch(List<T> list, String... fieldNames) throws Exception {
@@ -199,14 +212,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> void delete(T data) throws Exception {
+	public void delete(Object data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getDeleteSql();
-		Map<String, ?> paramMap = toParamMap(table, data, table.getPkFieldNames());
-		// TODO DataNotFoundException message
+		Map<String, Object> paramMap = toParamMap(table, data, table.getPkFieldNames());
 		if (updateBySql(sql, paramMap) != 1)
-			throw new DataNotFoundException("Couldn't find data for update " + data.getClass().getName());
+			throw new DataNotFoundException(toNotFoundErrorMessage(table, data, paramMap));
 	}
 
 	@Override
@@ -234,7 +246,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			paramMapList.add(toParamMap(table, data, fieldNames));
 		return paramMapList;
 	}
-	private <T> Map<String, ?> toParamMap(Table table, T data, String... fieldNames) throws Exception {
+	private <T> Map<String, Object> toParamMap(Table table, T data, String... fieldNames) throws Exception {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> paramMap = new ListOrderedMap();
 
@@ -274,7 +286,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> int selectSize(Class<T> clazz, Object condition) throws Exception {
+	public int selectSize(Class<?> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
 
@@ -585,6 +597,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_ORACLE, DBFUNC_LOWERCASE_ORACLE);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_SQLSERVER, DBFUNC_LOWERCASE_SQLSERVER);
 	}
+	@SuppressWarnings("unchecked")
+	private static final List<?> CASECHECK_TYPELIST = ValueUtils.toList(String.class, Character.class, char.class);
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
 		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
 
@@ -596,6 +610,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					operator = "<>";
 				String lo = filter.getLeftOperand();
 				String columnName = table.toColumnName(lo);
+				if (columnName == null) {
+					lo = lo.toLowerCase();
+					if (table.getColumn(lo) == null)
+						throw new DbistRuntimeException("Unknown field: " + filter.getLeftOperand() + " of table: " + table.getDomain() + "."
+								+ table.getName());
+					columnName = lo;
+				}
 				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
 				j++;
 
@@ -607,17 +628,26 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					continue;
 				}
 
+				Class<?> type = table.getFieldByColumnName(columnName).getType();
+
 				// check and process case sensitive
-				if (!filter.isCaseSensitive()) {
+				List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
+				if (!filter.isCaseSensitive() && CASECHECK_TYPELIST.contains(type)) {
 					columnName = DBFUNC_LOWERCASE_MAP.get(getDbType()) + "(" + columnName + ")";
-					List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
 					for (Object ro : rightOperand) {
-						if (ro != null && ro instanceof String)
+						if (ro == null)
+							;
+						else if (ro instanceof String)
 							ro = ((String) ro).toLowerCase();
+						else
+							ro = ro.toString().toLowerCase();
 						newRightOperand.add(ro);
 					}
-					rightOperand = newRightOperand;
+				} else {
+					for (Object ro : rightOperand)
+						newRightOperand.add(toParamValue(ro, type));
 				}
+				rightOperand = newRightOperand;
 
 				// case only one filter
 				if (rightOperand.size() == 1) {
@@ -636,17 +666,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					continue;
 				}
 
-				// check has null
-				boolean hasNull = false;
-				for (Object ro : rightOperand) {
-					if (ro != null)
-						continue;
-					hasNull = true;
-					break;
-				}
-
 				// case: has null so... (x = 'l' or x is null or...)
-				if (hasNull) {
+				if (rightOperand.contains(null)) {
 					if ("in".equals(operator))
 						operator = "=";
 					else if ("not in".equals(operator))
@@ -654,14 +675,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					String subLogicalOperator = "<>".equals(operator) ? " and " : " or ";
 					buf.append("(");
 					int k = 0;
-					for (Object ro : rightOperand) {
+					for (Object value : rightOperand) {
 						buf.append(k++ == 0 ? "" : subLogicalOperator);
-						if (ro == null) {
+						if (value == null) {
 							appendNullCondition(buf, table, columnName, operator);
 							continue;
 						}
 						String key = lo + i++;
-						paramMap.put(key, ro);
+						paramMap.put(key, value);
 						buf.append(columnName).append(" ").append(operator).append(" :").append(key);
 					}
 					buf.append(")");
@@ -690,6 +711,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		return i;
 	}
+
+	private Object toParamValue(Object value, Class<?> type) {
+		if (value == null)
+			return null;
+		if (value instanceof String && ((String) value).contains("%"))
+			return value;
+		if (!ValueUtils.isPrimitive(type))
+			return value;
+		value = ValueUtils.toRequiredType(value, type);
+		return value instanceof Character ? value.toString() : value;
+	}
+
 	private void appendNullCondition(StringBuffer buf, Table table, String columnName, String operator) {
 		buf.append(columnName);
 		if ("=".equals(operator) || "in".equals(operator))
@@ -708,7 +741,42 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (getPreprocessor() != null)
 			ql = getPreprocessor().process(ql, paramMap);
 		ql = applyPagination(ql, paramMap, pageIndex, pageSize);
+		adjustParamMap(paramMap);
 		return query(ql, paramMap, requiredType, null, pageIndex, pageSize);
+	}
+	private static void adjustParamMap(Map<String, ?> paramMap) {
+		if (paramMap == null || paramMap.isEmpty())
+			return;
+		List<String> charKeyList = null;
+		for (String key : paramMap.keySet()) {
+			Object value = paramMap.get(key);
+			if (value == null)
+				continue;
+			if (value instanceof List) {
+				@SuppressWarnings("unchecked")
+				List<Object> list = (List<Object>) value;
+				int size = list.size();
+				for (int i = 0; i < size; i++) {
+					Object item = list.get(i);
+					if (item == null || !(item instanceof Character))
+						continue;
+					list.remove(i);
+					list.add(i, item.toString());
+				}
+				continue;
+			}
+			if (!(value instanceof Character))
+				continue;
+			if (charKeyList == null)
+				charKeyList = new ArrayList<String>();
+			charKeyList.add(key);
+		}
+		if (charKeyList == null)
+			return;
+		@SuppressWarnings("unchecked")
+		Map<String, Object> map = (Map<String, Object>) paramMap;
+		for (String key : charKeyList)
+			map.put(key, paramMap.get(key).toString());
 	}
 
 	@Override
@@ -770,7 +838,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> int deleteList(Class<T> clazz, Object condition) throws Exception {
+	public int deleteList(Class<?> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
 
@@ -783,6 +851,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		appendFromWhere(table, query, false, buf, paramMap);
 
 		return this.namedParameterJdbcOperations.update(buf.toString(), paramMap);
+	}
+
+	@Override
+	public int executeByQl(String ql, Map<String, ?> paramMap) throws Exception {
+		ValueUtils.assertNotEmpty("ql", ql);
+		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
+		ql = ql.trim();
+		if (getPreprocessor() != null)
+			ql = getPreprocessor().process(ql, paramMap);
+		adjustParamMap(paramMap);
+		return this.namedParameterJdbcOperations.update(ql, paramMap);
+	}
+
+	@Override
+	public int executeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
+		return executeByQl(getSqlByPath(qlPath), paramMap);
 	}
 
 	public String getDomain() {
@@ -948,7 +1032,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String QUERY_PKCOLUMNS_MYSQL = "select lower(column_name) name from information_schema.key_column_usage"
 			+ " where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
 	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
-			+ " where cons.constraint_name = conscol.constraint_name and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
+			+ " where cons.constraint_name = conscol.constraint_name and cons.owner = conscol.owner and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
 	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
 	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;

@@ -394,7 +394,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			return;
 		buf.append(" for update");
 	}
-	private String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
+	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
 		if (pageIndex < 0 || pageSize <= 0)
 			return sql;
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType())) {
@@ -702,8 +702,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		if (!ValueUtils.isEmpty(filters.getFilters())) {
 			buf.append(i++ == 0 ? " where " : logicalOperator);
+			int k = 0;
 			for (Filters subFilters : filters.getFilters()) {
-				buf.append("(");
+				buf.append(k++ == 0 ? "" : logicalOperator).append("(");
 				i = appendWhere(buf, table, subFilters, i, paramMap);
 				buf.append(")");
 			}

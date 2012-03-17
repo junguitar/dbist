@@ -32,6 +32,8 @@ import org.dbist.exception.DbistRuntimeException;
  * @since 2011. 6. 2. (version 0.0.1)
  */
 public class Filters {
+	public static final String OPERATOR_AND = "and";
+	public static final String OPERATOR_OR = "or";
 	private String operator;
 	private List<Filter> filter;
 	private List<Filters> filters;

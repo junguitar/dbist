@@ -147,8 +147,10 @@ public abstract class AbstractDmlTest {
 
 		logger.info("case " + i++ + ": select list by subfilters");
 		{
-			Query query = new Query(0, 10);
-			query.addFilters(new Filters("or").addFilter("name", "test").addFilter("name", "1")).addFilter("owner", "!=", "junguita@hotmail.com");
+			Query query = new Query("or", 0, 10);
+			query.addFilter("owner", "!=", "junguita@hotmail.com");
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
 			for (Blog data : dml.selectList(Blog.class, query))
 				logger.debug("selected data: " + data.getId());
 			for (Blog data : dml.selectListWithLock(Blog.class, query))

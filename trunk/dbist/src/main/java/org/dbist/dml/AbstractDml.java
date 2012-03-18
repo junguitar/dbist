@@ -246,7 +246,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Object obj = select(selectList(clazz, query));
 		if (obj == null)
 			return null;
-		return ValueUtils.populate(obj, newInstance(requiredType));
+		String[] fieldNames = getFieldNames(query);
+		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
 	@Override
@@ -259,7 +260,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Object obj = select(selectListWithLock(clazz, query));
 		if (obj == null)
 			return null;
-		return ValueUtils.populate(obj, newInstance(requiredType));
+		String[] fieldNames = getFieldNames(query);
+		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
 	@Override
@@ -272,7 +274,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Object obj = select(selectList(clazz, query));
 		if (obj == null)
 			return null;
-		return ValueUtils.populate(obj, newInstance(requiredType));
+		String[] fieldNames = getFieldNames(query);
+		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
 	@Override
@@ -285,7 +288,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Object obj = select(selectListWithLock(clazz, query));
 		if (obj == null)
 			return null;
-		return ValueUtils.populate(obj, newInstance(requiredType));
+		String[] fieldNames = getFieldNames(query);
+		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
 	@Override
@@ -338,8 +342,9 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		ValueUtils.assertNotNull("requiredType", requiredType);
 		List<?> objList = selectList(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
+		String[] fieldNames = getFieldNames(condition);
 		for (Object obj : objList)
-			list.add(ValueUtils.populate(obj, newInstance(requiredType)));
+			list.add(ValueUtils.populate(obj, newInstance(requiredType), fieldNames));
 		return list;
 	}
 
@@ -349,9 +354,17 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		ValueUtils.assertNotNull("requiredType", requiredType);
 		List<?> objList = selectListWithLock(getClass(tableName), condition);
 		List<T> list = new ArrayList<T>();
+		String[] fieldNames = getFieldNames(condition);
 		for (Object obj : objList)
-			list.add(ValueUtils.populate(obj, newInstance(requiredType)));
+			list.add(ValueUtils.populate(obj, newInstance(requiredType), fieldNames));
 		return list;
+	}
+
+	private String[] getFieldNames(Object condition) {
+		if (!(condition instanceof Query))
+			return new String[0];
+		Query query = (Query) condition;
+		return ValueUtils.isEmpty(query.getField()) ? new String[0] : query.getField().toArray(new String[query.getField().size()]);
 	}
 
 	@Override

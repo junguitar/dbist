@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * @since 2012. 3. 6.
  */
 public abstract class AbstractDmlTest {
-	int i = 0;
+	private int i = 0;
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	protected Dml dml;
 

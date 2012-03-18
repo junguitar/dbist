@@ -466,8 +466,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<T> list = new ArrayList<T>();
 					int fromIndex = pageIndex * pageSize;
-					for (int i = 0; i < fromIndex; i++)
-						rs.next();
+					for (int i = 0; i < fromIndex; i++) {
+						if (rs.next())
+							continue;
+						return list;
+					}
 					int i = 0;
 					while (rs.next()) {
 						if (i++ == pageSize)

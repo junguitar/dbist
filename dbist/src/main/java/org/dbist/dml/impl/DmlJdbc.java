@@ -319,7 +319,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		final Query query = toQuery(table, condition);
 
 		StringBuffer buf = new StringBuffer();
-		final List<String> columnNameList = new ArrayList<String>();
 
 		// Select
 		buf.append("select");
@@ -334,12 +333,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				}
 			}
 			int i = 0;
-			for (String fieldName : query.getGroup()) {
-				String columnName = table.toColumnName(fieldName);
-				if (columnName == null)
-					throw new DbistRuntimeException("Couldn't find fieldName[" + fieldName + "] of class[" + clazz.getName() + "]");
-				buf.append(i++ == 0 ? " " : ", ").append(fieldName);
-			}
+			for (String group : query.getGroup())
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
 		}
 		// All fields
 		else if (ValueUtils.isEmpty(query.getField())) {
@@ -350,13 +345,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		// Some fields
 		else {
 			int i = 0;
-			for (String fieldName : query.getField()) {
-				String columnName = table.toColumnName(fieldName);
-				if (columnName == null)
-					throw new DbistRuntimeException("Couldn't find fieldName[" + fieldName + "] of class[" + clazz.getName() + "]");
-				buf.append(i++ == 0 ? " " : ", ").append(columnName);
-				columnNameList.add(columnName);
-			}
+			for (String fieldName : query.getField())
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName));
 		}
 
 		@SuppressWarnings("unchecked")
@@ -368,15 +358,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			buf.append(" group by");
 			int i = 0;
 			for (String group : query.getGroup())
-				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(group));
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
 		}
 
 		// Order by
 		if (!ValueUtils.isEmpty(query.getOrder())) {
 			buf.append(" order by");
 			int i = 0;
-			for (Order order : query.getOrder())
-				buf.append(i++ == 0 ? " " : ", ").append(table.toColumnName(order.getField())).append(order.isAscending() ? " asc" : " desc");
+			for (Order order : query.getOrder()) {
+				for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ","))
+					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+			}
 		}
 
 		if (ValueUtils.isEmpty(query.getGroup()))
@@ -612,14 +604,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				if ("!=".equals(operator))
 					operator = "<>";
 				String lo = filter.getLeftOperand();
-				String columnName = table.toColumnName(lo);
-				if (columnName == null) {
-					lo = lo.toLowerCase();
-					if (table.getColumn(lo) == null)
-						throw new DbistRuntimeException("Unknown field: " + filter.getLeftOperand() + " of table: " + table.getDomain() + "."
-								+ table.getName());
-					columnName = lo;
-				}
+				String columnName = toColumnName(table, lo);
 				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
 				j++;
 
@@ -714,6 +699,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		return i;
+	}
+
+	private static String toColumnName(Table table, String name) {
+		String columnName = table.toColumnName(name);
+		if (columnName != null)
+			return columnName;
+		columnName = name.toLowerCase();
+		if (table.getColumn(columnName) != null)
+			return columnName;
+
+		StringBuffer buf = new StringBuffer("Undeclared column/field: ").append(name);
+		buf.append(" of table").append(table.getClazz() == null ? "" : "(class)").append(": ");
+		buf.append(table.getDomain()).append(".").append(table.getName());
+		if (table.getClazz() != null)
+			buf.append("(").append(table.getClazz().getName()).append(")");
+		throw new DbistRuntimeException(buf.toString());
 	}
 
 	private Object toParamValue(Object value, Class<?> type) {

@@ -151,11 +151,11 @@ public class Filters {
 	}
 	public Filters removeFilter(String... leftOperand) {
 		if (this.filter == null || ValueUtils.isEmpty(leftOperand))
-			return null;
+			return this;
 		Set<String> set = ValueUtils.toSet(leftOperand);
 		Set<Filter> removeSet = new HashSet<Filter>(leftOperand.length);
 		for (Filter filter : this.filter) {
-			if (set.contains(filter.getLeftOperand()))
+			if (!set.contains(filter.getLeftOperand()))
 				continue;
 			removeSet.add(filter);
 		}

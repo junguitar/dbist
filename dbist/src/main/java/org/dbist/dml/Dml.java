@@ -77,7 +77,8 @@ public interface Dml {
 	 * The same as the <i>select</i> method above.<br>
 	 * But the selected data row will be locked during the current transaction scope.
 	 * 
-	 * @param data
+	 * @param clazz
+	 * @param pkCondition
 	 * @return
 	 * @throws Exception
 	 */
@@ -165,7 +166,7 @@ public interface Dml {
 	 * And return an instance of requiredType.<br>
 	 * In case of DmlJdbc ql means SQL query. In case of DmlHibernate ql means HQL query. ...
 	 * 
-	 * @param query
+	 * @param ql
 	 * @param paramMap
 	 * @param requiredType
 	 * @return
@@ -192,7 +193,7 @@ public interface Dml {
 	 * Select a data row by the sql and the paramMap.<br>
 	 * And return an instance of requiredType.<br>
 	 * 
-	 * @param query
+	 * @param sql
 	 * @param paramMap
 	 * @param requiredType
 	 * @return
@@ -352,8 +353,8 @@ public interface Dml {
 	 *            The object class mapped to a database table
 	 * @param clazz
 	 *            The object class mapped to a database table
-	 * @param condition
-	 *            The condition wanted to delete
+	 * @param pkCondition
+	 *            The PK condition wanted to delete
 	 * @return The data deleted
 	 * @throws Exception
 	 */
@@ -395,7 +396,7 @@ public interface Dml {
 	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query means HQL query. ...<br>
 	 * If you don't want pagination, you would input pageIndex: 0 and pageSize: 0
 	 * 
-	 * @param sql
+	 * @param ql
 	 * @param paramMap
 	 * @param requiredType
 	 * @param pageIndex
@@ -455,8 +456,6 @@ public interface Dml {
 	 * by condition parameter<br>
 	 * The data type of condition parameter can be Map, Query, Filters, Filter
 	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
 	 * @param clazz
 	 *            The object class mapped to a database table
 	 * @param condition

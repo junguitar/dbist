@@ -22,7 +22,7 @@ import org.dbist.metadata.Table;
 import org.dbist.processor.Preprocessor;
 
 /**
- * DML (Data Manipulation Languge) operator or DAO (Data Access Object) executing queries.
+ * This is a DML(Data Manipulation Languge) operator or a DAO(Data Access Object) which is executing queries.
  * 
  * @author Steve M. Jung
  * @since 2011. 6. 2. (version 0.0.1)
@@ -35,7 +35,7 @@ public interface Dml {
 	void setPreprocessor(Preprocessor preprocessor);
 
 	/**
-	 * Select a data from the database table mapped to T class by primary key fields' value of data parameter.<br>
+	 * Select a data row from the database table mapped to T class by primary key fields' value of data parameter.<br>
 	 * The data parameter must be set primary key fields' value.
 	 * 
 	 * @param <T>
@@ -46,11 +46,21 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(T data) throws Exception;
+
+	/**
+	 * The same as the <i>select</i> method above.<br>
+	 * But the selected data row will be locked during the current transaction scope.
+	 * 
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectWithLock(T data) throws Exception;
 
 	/**
-	 * Select a data from the database table mapped to T class by condition parameter.<br>
-	 * The data type of condition parameter can be primary key value (a value, array, List, or HttpServletRequest), Map, Query, Filters, Filter
+	 * Select a data row from the database table mapped to T class by PK condition parameters.<br>
+	 * The data type of the condition parameters can be an instance of primary key value(a value, a Data Model Object, array, List, or
+	 * HttpServletRequest), Map, Query, Filters, or Filter
 	 * 
 	 * @param <T>
 	 *            The object class mapped to a database table
@@ -62,11 +72,20 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T select(Class<T> clazz, Object... pkCondition) throws Exception;
+
+	/**
+	 * The same as the <i>select</i> method above.<br>
+	 * But the selected data row will be locked during the current transaction scope.
+	 * 
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception;
 
 	/**
-	 * Select a data from the database table mapped to T class by condition parameter.<br>
-	 * The data type of condition parameter can be primary key value (a value, array, List, or HttpServletRequest), Map, Query, Filters, Filter
+	 * Select a data row from the database table mapped to T class by condition parameter.<br>
+	 * The data type of the condition parameter can be an instance of Data Model, Map, Query, Filters, or Filter
 	 * 
 	 * @param <T>
 	 *            The object class mapped to a database table
@@ -78,16 +97,73 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectByCondition(Class<T> clazz, Object condition) throws Exception;
+
+	/**
+	 * The same as the <i>selectByCondition</i> method above.<br>
+	 * But the selected data row will be locked during the current transaction scope.
+	 * 
+	 * @param clazz
+	 * @param condition
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception;
 
+	/**
+	 * Select a data row from the database table of the tableName by PK condition parameter.<br>
+	 * And return an instance of requiredType.<br>
+	 * The data type of the condition parameters can be an instance of primary key value(a value, a Data Model Object, array, List, or
+	 * HttpServletRequest), Map, Query, Filters, or Filter
+	 * 
+	 * @param tableName
+	 * @param pkCondition
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T select(String tableName, Object pkCondition, Class<T> requiredType) throws Exception;
+
+	/**
+	 * The same as the <i>select</i> method above.<br>
+	 * But the selected data row will be locked during the current transaction scope.
+	 * 
+	 * @param tableName
+	 * @param pkCondition
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectWithLock(String tableName, Object pkCondition, Class<T> requiredType) throws Exception;
+
+	/**
+	 * Select a data row from the database table of the tableName by PK condition parameter.<br>
+	 * And return an instance of requiredType.<br>
+	 * The data type of the condition parameter can be an instance of Data Model, Map, Query, Filters, or Filter
+	 * 
+	 * @param tableName
+	 * @param condition
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectByCondition(String tableName, Object condition, Class<T> requiredType) throws Exception;
+
+	/**
+	 * The same as the <i>selectByCondition</i> method above.<br>
+	 * But the selected data row will be locked during the current transaction scope.
+	 * 
+	 * @param tableName
+	 * @param condition
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectByConditionWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception;
 
 	/**
-	 * Select a data as the requiredType by the query and the paramMap<br>
-	 * In case of DmlJdbc query means SQL query. In case of DmlHibernate query means HQL query. ...
+	 * Select a data row by the ql and the paramMap.<br>
+	 * And return an instance of requiredType.<br>
+	 * In case of DmlJdbc ql means SQL query. In case of DmlHibernate ql means HQL query. ...
 	 * 
 	 * @param query
 	 * @param paramMap
@@ -95,11 +171,26 @@ public interface Dml {
 	 * @return
 	 * @throws Exception
 	 */
-	<T> T selectByQl(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
+	<T> T selectByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
+
+	/**
+	 * Select a data row by the qlPath and the paramMap.<br>
+	 * And return an instance of requiredType.<br>
+	 * qlPath can be a classpath or filepath of ql file<br>
+	 * If the target of the path is a directory, it'll find the <i>&lt;dbType&gt;</i>.sql or ansi.sql file in the directory.<br>
+	 * In case of DmlJdbc ql means SQL query. In case of DmlHibernate query means HQL query. ...
+	 * 
+	 * @param qlPath
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
-	 * Select a data as the requiredType by the query (SQL query) and the paramMap
+	 * Select a data row by the sql and the paramMap.<br>
+	 * And return an instance of requiredType.<br>
 	 * 
 	 * @param query
 	 * @param paramMap
@@ -108,25 +199,59 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T selectBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
+
+	/**
+	 * Select a data row by the sqlPath and the paramMap.<br>
+	 * And return an instance of requiredType.<br>
+	 * sqlPath can be a classpath or filepath of sql file<br>
+	 * If the target of the path is a directory, it'll find the <i>&lt;dbType&gt;</i>.sql or ansi.sql file in the directory.<br>
+	 * 
+	 * @param sqlPath
+	 * @param paramMap
+	 * @param requiredType
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T selectBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
 
 	/**
-	 * Insert a data to the database table mapped to T class.
+	 * Insert a data row to the database table mapped to the data class.
 	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
 	 * @param data
 	 *            The data to insert
-	 * @return The data inserted
 	 * @throws Exception
 	 */
-	<T> T insert(T data) throws Exception;
+	void insert(Object data) throws Exception;
+
+	/**
+	 * Insert data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @throws Exception
+	 */
 	void insertBatch(List<?> list) throws Exception;
+
+	/**
+	 * Insert some fields of a data row to the database table mapped to the data class.
+	 * 
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void insert(Object data, String... fieldNames) throws Exception;
+
+	/**
+	 * Insert some fields of data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void insertBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Insert a data to the database table mapped to T class.
+	 * Insert a data row to the database table mapped to T class.<br>
+	 * And return the inserted data instance.
 	 * 
 	 * @param clazz
 	 *            The class mapped to a database table
@@ -146,13 +271,10 @@ public interface Dml {
 	void insertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Update a data to the database table mapped to T class.
+	 * Update a data row to the database table mapped to the data class.
 	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
 	 * @param data
 	 *            The data to update
-	 * @return The data updated
 	 * @throws Exception
 	 */
 	void update(Object data) throws Exception;
@@ -161,7 +283,7 @@ public interface Dml {
 	void updateBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Update a data to the database table mapped to T class.
+	 * Update a data row to the database table mapped to T class.
 	 * 
 	 * @param clazz
 	 *            The class mapped to a database table
@@ -181,13 +303,10 @@ public interface Dml {
 	void updateBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Upsert (Insert or update) a data to the database table mapped to T class.
+	 * Upsert (Insert or update) a data row to the database table mapped to the data class.
 	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
 	 * @param data
 	 *            The data to upsert
-	 * @return The data upserted
 	 * @throws Exception
 	 */
 	void upsert(Object data) throws Exception;
@@ -196,7 +315,7 @@ public interface Dml {
 	void upsertBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Upsert (Insert or update) a data to the database table mapped to T class.
+	 * Upsert (Insert or update) a data row to the database table mapped to T class.
 	 * 
 	 * @param clazz
 	 *            The class mapped to a database table
@@ -216,13 +335,10 @@ public interface Dml {
 	void upsertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Delete a data to the database table mapped to T class.
+	 * Delete a data row from the database table mapped to the data class.
 	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
 	 * @param data
 	 *            The data to delete
-	 * @return The data deleted
 	 * @throws Exception
 	 */
 	void delete(Object data) throws Exception;
@@ -249,17 +365,6 @@ public interface Dml {
 	void deleteBatch(String tableName, List<Object> list) throws Exception;
 	void deleteByCondition(String tableName, Object condition) throws Exception;
 
-	/**
-	 * 
-	 * @param <T>
-	 *            The object class mapped to a database table
-	 * @param clazz
-	 *            The object class mapped to a database table
-	 * @param condition
-	 *            The condition wanted to delete
-	 * @return The size of data counted
-	 * @throws Exception
-	 */
 	int selectSize(Class<?> clazz, Object condition) throws Exception;
 
 	/**

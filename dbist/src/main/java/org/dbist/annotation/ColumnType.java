@@ -18,12 +18,14 @@ package org.dbist.annotation;
 import org.dbist.metadata.Column;
 
 /**
+ * Defines a type or personality of a column
+ * 
  * @author Steve M. Jung
  * @since 2012. 2. 18. (version 1.0.0)
  */
 public enum ColumnType {
 	/**
-	 * 
+	 * Indicates the type that can be inferred automatically
 	 */
 	EMPTY(""),
 	/**
@@ -39,7 +41,7 @@ public enum ColumnType {
 	 */
 	PASSWORD(Column.TYPE_PASSWORD),
 	/**
-	 * 
+	 * Indicates the Clob or Text (some multi-line and long strings) type of a DBMS
 	 */
 	TEXT(Column.TYPE_TEXT);
 

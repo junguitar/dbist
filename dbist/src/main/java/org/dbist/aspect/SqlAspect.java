@@ -26,6 +26,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Functions as an aspect(AOP) related to SQL.<br>
+ * Currently, it works as a printer of SQL logs.
+ * 
+ * <p>
+ * Examples
+ * 
+ * <pre>
+ * 1. Springframework Configuration
+ * 	&lt;aop:config&gt;
+ * 		&lt;aop:aspect order=&quot;2&quot; ref=&quot;sqlAspect&quot;&gt;
+ * 			&lt;aop:around method=&quot;print&quot; pointcut=&quot;execution(* org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.*(..))&quot; /&gt;
+ * 		&lt;/aop:aspect&gt;
+ * 	&lt;/aop:config&gt;
+ * 	&lt;bean id=&quot;sqlAspect&quot; class=&quot;org.dbist.aspect.SqlAspect&quot;&gt;
+ * 		&lt;property name=&quot;enabled&quot; value=&quot;${sqlAspect.enabled}&quot; /&gt;
+ * 		&lt;property name=&quot;prettyPrint&quot; value=&quot;${sqlAspect.prettyPrint}&quot; /&gt;
+ * 	&lt;/bean&gt;
+ * 
+ * 2. Logs
+ * SQL: 
+ *     select
+ *         owner,
+ *         name 
+ *     from
+ *         dbist.blog 
+ *     where
+ *         name <> :name1 
+ *         and lower(description) like :description2 
+ *         and created_at is not null 
+ *         and owner in (
+ *             :owner4
+ *         ) 
+ *     group by
+ *         owner,
+ *         name 
+ *     order by
+ *         name asc
+ * Parameters:
+ * 	name1: test
+ * 	description2: %the%
+ * 	owner4: [steve, myjung, junguitar]
+ * </pre>
+ * 
  * @author Steve M. Jung
  * @since 2012. 2. 23. (version 1.0.0)
  */
@@ -58,7 +101,11 @@ public class SqlAspect {
 			return;
 		StringBuffer buf = new StringBuffer("\r\nSQL: ");
 		String sql = (String) args[0];
-		buf.append(prettyPrint ? formatter.format(sql) : sql);
+		try {
+			buf.append(prettyPrint ? formatter.format(sql) : sql);
+		} catch (Exception e) {
+			buf.append(sql);
+		}
 		if (args.length > 1 && !ValueUtils.isEmpty(args[1])) {
 			if (args[1] instanceof Map) {
 				@SuppressWarnings("unchecked")

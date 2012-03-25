@@ -42,9 +42,9 @@ public class DmlJpa extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T insert(T data) throws Exception {
+	public void insert(Object data) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 	@Override

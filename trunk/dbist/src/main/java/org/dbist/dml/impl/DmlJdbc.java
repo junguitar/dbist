@@ -123,9 +123,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> T insert(T data) throws Exception {
+	public void insert(Object data) throws Exception {
 		_insert(data);
-		return data;
 	}
 
 	@Override
@@ -143,7 +142,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		_insertBatch(list, fieldNames);
 	}
 
-	private <T> void _insert(T data, String... fieldNames) throws Exception {
+	private void _insert(Object data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getInsertSql(fieldNames);

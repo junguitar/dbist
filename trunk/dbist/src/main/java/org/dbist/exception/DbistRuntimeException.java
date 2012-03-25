@@ -33,5 +33,4 @@ public class DbistRuntimeException extends RuntimeException {
 	public DbistRuntimeException(String message, Throwable cause) {
 		super(message, cause);
 	}
-
 }

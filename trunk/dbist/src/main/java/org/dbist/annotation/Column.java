@@ -21,6 +21,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Is used to specify a mapped column for a field.<br>
+ * If no Column annotation is specified, the default values are applied.
+ * 
+ * <p>
+ * Examples:
+ * 
+ * <pre>
+ * &#064;Column(name = &quot;pwd&quot;, type = ColumnType.PASSWORD)
+ * private String password;
+ * 
+ * &#064;Column(type = ColumnType.TITLE)
+ * private String title;
+ * 
+ * &#064;Column(type = ColumnType.LISTED)
+ * private String author;
+ * 
+ * &#064;Column(type = ColumnType.TEXT)
+ * private String content;
+ * </pre>
+ * 
  * @author Steve M. Jung
  * @since 2011. 7. 10. (version 0.0.1)
  */
@@ -28,11 +48,17 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
 	/**
-	 * (Optional) The name of the column.<br />
-	 * Defaults to the following cases.<br />
-	 * 1. the underscore case name of the field<br />
+	 * (Optional) The name of the column.
+	 * <p>
+	 * The default value is applied to the following rules and order.<br>
+	 * 1. the underscore case name of the field<br>
 	 * 2. the name of the field
 	 */
 	String name() default "";
+	/**
+	 * (Optional) The type or personality of the column<br>
+	 * 
+	 * @see ColumnType
+	 */
 	ColumnType type() default ColumnType.EMPTY;
 }

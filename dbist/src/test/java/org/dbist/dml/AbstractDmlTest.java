@@ -22,6 +22,7 @@ import java.util.Map;
 import junit.framework.Assert;
 
 import org.dbist.exception.DbistRuntimeException;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractDmlTest {
 	private int i = 0;
 	protected Logger logger = LoggerFactory.getLogger(getClass());
-	protected Dml dml;
+	protected static Dml dml;
 
 	@Before
 	public void beforeTest() {
@@ -51,9 +52,17 @@ public abstract class AbstractDmlTest {
 				dml.insert(blog);
 			}
 		} catch (Exception e) {
-
+			logger.warn(e.getMessage(), e);
 		}
 	}
+	@AfterClass
+	public static void afterClass() {
+		try {
+			dml.delete(Blog.class, "1");
+		} catch (Exception e) {
+		}
+	}
+
 	public abstract Dml getDml();
 
 	@Test

@@ -31,7 +31,7 @@ public interface Dml {
 	String getDbType();
 	Class<?> getClass(String tableName);
 	Table getTable(Object obj);
-	Table getTable(String obj);
+	Table getTable(String name);
 	void setPreprocessor(Preprocessor preprocessor);
 
 	/**
@@ -111,7 +111,7 @@ public interface Dml {
 	<T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception;
 
 	/**
-	 * Select a data row from the database table of the tableName by PK condition parameter.<br>
+	 * Select a data row from the database table by PK condition parameter.<br>
 	 * And return an instance of requiredType.<br>
 	 * The data type of the condition parameters can be an instance of primary key value(a value, a Data Model Object, array, List, or
 	 * HttpServletRequest), Map, Query, Filters, or Filter
@@ -137,7 +137,7 @@ public interface Dml {
 	<T> T selectWithLock(String tableName, Object pkCondition, Class<T> requiredType) throws Exception;
 
 	/**
-	 * Select a data row from the database table of the tableName by PK condition parameter.<br>
+	 * Select a data row from the database table by PK condition parameter.<br>
 	 * And return an instance of requiredType.<br>
 	 * The data type of the condition parameter can be an instance of Data Model, Map, Query, Filters, or Filter
 	 * 
@@ -228,6 +228,7 @@ public interface Dml {
 	 * Insert data list to the database table mapped to the list item class.
 	 * 
 	 * @param list
+	 *            The data list to insert
 	 * @throws Exception
 	 */
 	void insertBatch(List<?> list) throws Exception;
@@ -245,6 +246,7 @@ public interface Dml {
 	 * Insert some fields of data list to the database table mapped to the list item class.
 	 * 
 	 * @param list
+	 *            The data list to insert
 	 * @param fieldNames
 	 * @throws Exception
 	 */
@@ -262,14 +264,75 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T insert(Class<T> clazz, Object data) throws Exception;
-	void insertBatch(Class<?> clazz, List<Object> list) throws Exception;
-	void insert(Class<?> clazz, Object data, String... fieldNames) throws Exception;
-	void insertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception;
 
+	/**
+	 * Insert data list to the database table mapped to the clazz.
+	 * 
+	 * @param clazz
+	 *            The class mapped to a database table
+	 * @param list
+	 *            The data list to insert
+	 * @throws Exception
+	 */
+	void insertBatch(Class<?> clazz, List<?> list) throws Exception;
+
+	/**
+	 * Insert some fields of data list to the database table mapped to the clazz.
+	 * 
+	 * @param clazz
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
+	void insert(Class<?> clazz, Object data, String... fieldNames) throws Exception;
+
+	/**
+	 * Insert some fields of data list to the database table mapped to the clazz.
+	 * 
+	 * @param clazz
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
+	void insertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception;
+
+	/**
+	 * Insert a data row to the database table.
+	 * 
+	 * @param tableName
+	 * @param data
+	 * @throws Exception
+	 */
 	void insert(String tableName, Object data) throws Exception;
-	void insertBatch(String tableName, List<Object> list) throws Exception;
+
+	/**
+	 * Insert data list to the database table.
+	 * 
+	 * @param tableName
+	 * @param list
+	 * @throws Exception
+	 */
+	void insertBatch(String tableName, List<?> list) throws Exception;
+
+	/**
+	 * Insert some fields of a data row to the database table.
+	 * 
+	 * @param tableName
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void insert(String tableName, Object data, String... fieldNames) throws Exception;
-	void insertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
+
+	/**
+	 * Insert some fields of data list to the database table.
+	 * 
+	 * @param tableName
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
+	void insertBatch(String tableName, List<?> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Update a data row to the database table mapped to the data class.
@@ -279,12 +342,36 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	void update(Object data) throws Exception;
+
+	/**
+	 * Update data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @throws Exception
+	 */
 	void updateBatch(List<?> list) throws Exception;
+
+	/**
+	 * Update some fields of a data row to the database table mapped to the data class.
+	 * 
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void update(Object data, String... fieldNames) throws Exception;
+
+	/**
+	 * Update some fields of data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void updateBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Update a data row to the database table mapped to T class.
+	 * Update a data row to the database table mapped to T class.<br>
+	 * And return the updated data instance.
 	 * 
 	 * @param clazz
 	 *            The class mapped to a database table
@@ -294,14 +381,75 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T update(Class<T> clazz, Object data) throws Exception;
-	void updateBatch(Class<?> clazz, List<Object> list) throws Exception;
+
+	/**
+	 * Update data list to the database table mapped to the clazz.
+	 * 
+	 * @param clazz
+	 * @param list
+	 * @throws Exception
+	 */
+	void updateBatch(Class<?> clazz, List<?> list) throws Exception;
+
+	/**
+	 * Update some fields of a data row to the database table mapped to T class.<br>
+	 * And return the updated data instance.
+	 * 
+	 * @param clazz
+	 * @param data
+	 * @param fieldNames
+	 * @return
+	 * @throws Exception
+	 */
 	<T> T update(Class<T> clazz, Object data, String... fieldNames) throws Exception;
+
+	/**
+	 * Update some fields of data list to the database table mapped to the clazz.
+	 * 
+	 * @param clazz
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception;
 
+	/**
+	 * Update a data row to the database table.<br>
+	 * 
+	 * @param tableName
+	 * @param data
+	 * @throws Exception
+	 */
 	void update(String tableName, Object data) throws Exception;
-	void updateBatch(String tableName, List<Object> list) throws Exception;
+
+	/**
+	 * Update data list to the database table.
+	 * 
+	 * @param tableName
+	 * @param list
+	 * @throws Exception
+	 */
+	void updateBatch(String tableName, List<?> list) throws Exception;
+
+	/**
+	 * Update some fields of a data row to the database table.
+	 * 
+	 * @param tableName
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void update(String tableName, Object data, String... fieldNames) throws Exception;
-	void updateBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
+
+	/**
+	 * Update some fields of data list to the database table.
+	 * 
+	 * @param tableName
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
+	void updateBatch(String tableName, List<?> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Upsert (Insert or update) a data row to the database table mapped to the data class.
@@ -311,12 +459,36 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	void upsert(Object data) throws Exception;
+
+	/**
+	 * Upsert (Insert or update) data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @throws Exception
+	 */
 	void upsertBatch(List<?> list) throws Exception;
+
+	/**
+	 * Upsert (Insert or update) some fields of a data row to the database table mapped to the data class.
+	 * 
+	 * @param data
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void upsert(Object data, String... fieldNames) throws Exception;
+
+	/**
+	 * Upsert (Insert or update) some fields of data list to the database table mapped to the list item class.
+	 * 
+	 * @param list
+	 * @param fieldNames
+	 * @throws Exception
+	 */
 	void upsertBatch(List<?> list, String... fieldNames) throws Exception;
 
 	/**
-	 * Upsert (Insert or update) a data row to the database table mapped to T class.
+	 * Upsert (Insert or update) a data row to the database table mapped to T class.<br>
+	 * And return the upserted data instance.
 	 * 
 	 * @param clazz
 	 *            The class mapped to a database table
@@ -326,14 +498,15 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T upsert(Class<T> clazz, Object data) throws Exception;
-	<T> List<T> upsertBatch(Class<T> clazz, List<Object> list) throws Exception;
+
+	void upsertBatch(Class<?> clazz, List<?> list) throws Exception;
 	void upsert(Class<?> clazz, Object data, String... fieldNames) throws Exception;
-	void upsertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception;
+	void upsertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception;
 
 	void upsert(String tableName, Object data) throws Exception;
-	void upsertBatch(String tableName, List<Object> list) throws Exception;
+	void upsertBatch(String tableName, List<?> list) throws Exception;
 	void upsert(String tableName, Object data, String... fieldNames) throws Exception;
-	void upsertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception;
+	void upsertBatch(String tableName, List<?> list, String... fieldNames) throws Exception;
 
 	/**
 	 * Delete a data row from the database table mapped to the data class.
@@ -359,11 +532,11 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> T delete(Class<T> clazz, Object... pkCondition) throws Exception;
-	void deleteBatch(Class<?> clazz, List<Object> list) throws Exception;
+	void deleteBatch(Class<?> clazz, List<?> list) throws Exception;
 	<T> T deleteByCondition(Class<T> clazz, Object condition) throws Exception;
 
 	void delete(String tableName, Object... pkCondition) throws Exception;
-	void deleteBatch(String tableName, List<Object> list) throws Exception;
+	void deleteBatch(String tableName, List<?> list) throws Exception;
 	void deleteByCondition(String tableName, Object condition) throws Exception;
 
 	int selectSize(Class<?> clazz, Object condition) throws Exception;

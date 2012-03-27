@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.dbist.annotation.Column;
 import org.dbist.annotation.ColumnType;
+import org.dbist.annotation.Ignore;
 
 public class Blog {
 	private String id;
@@ -16,6 +17,8 @@ public class Blog {
 	private Date createdAt;
 	@Column(type = ColumnType.LISTED)
 	private Date updatedAt;
+	@Ignore
+	private String testIgnored;
 	public String getId() {
 		return id;
 	}
@@ -51,5 +54,11 @@ public class Blog {
 	}
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+	public String getTestIgnored() {
+		return testIgnored;
+	}
+	public void setTestIgnored(String test) {
+		this.testIgnored = test;
 	}
 }

@@ -414,7 +414,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void insertBatch(Class<?> clazz, List<Object> list) throws Exception {
+	public void insertBatch(Class<?> clazz, List<?> list) throws Exception {
 		insertBatch(toRequiredType(list, clazz));
 	}
 
@@ -424,7 +424,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void insertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception {
+	public void insertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
 		insertBatch(toRequiredType(list, clazz), fieldNames);
 	}
 
@@ -448,7 +448,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void insertBatch(String tableName, List<Object> list) throws Exception {
+	public void insertBatch(String tableName, List<?> list) throws Exception {
 		insertBatch(getClass(tableName), list);
 	}
 
@@ -458,7 +458,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void insertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+	public void insertBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		insertBatch(getClass(tableName), list, fieldNames);
 	}
 
@@ -468,7 +468,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void updateBatch(Class<?> clazz, List<Object> list) throws Exception {
+	public void updateBatch(Class<?> clazz, List<?> list) throws Exception {
 		updateBatch(toRequiredType(list, clazz));
 	}
 
@@ -520,7 +520,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void updateBatch(String tableName, List<Object> list) throws Exception {
+	public void updateBatch(String tableName, List<?> list) throws Exception {
 		updateBatch(getClass(tableName), list);
 	}
 
@@ -530,7 +530,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void updateBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+	public void updateBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		updateBatch(getClass(tableName), list, fieldNames);
 	}
 
@@ -580,10 +580,9 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public <T> List<T> upsertBatch(Class<T> clazz, List<Object> list) throws Exception {
-		List<T> newList = toRequiredType(list, clazz);
+	public void upsertBatch(Class<?> clazz, List<?> list) throws Exception {
+		List<?> newList = toRequiredType(list, clazz);
 		upsertBatch(newList);
-		return newList;
 	}
 
 	@Override
@@ -595,7 +594,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void upsertBatch(Class<?> clazz, List<Object> list, String... fieldNames) throws Exception {
+	public void upsertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
 		List<?> newList = toRequiredType(list, clazz, fieldNames);
 		upsertBatch(newList, fieldNames);
 	}
@@ -606,7 +605,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void upsertBatch(String tableName, List<Object> list) throws Exception {
+	public void upsertBatch(String tableName, List<?> list) throws Exception {
 		upsertBatch(getClass(tableName), list);
 	}
 
@@ -616,7 +615,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void upsertBatch(String tableName, List<Object> list, String... fieldNames) throws Exception {
+	public void upsertBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		upsertBatch(getClass(tableName), list, fieldNames);
 	}
 
@@ -630,7 +629,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void deleteBatch(Class<?> clazz, List<Object> list) throws Exception {
+	public void deleteBatch(Class<?> clazz, List<?> list) throws Exception {
 		deleteBatch(toRequiredType(list, clazz));
 	}
 
@@ -649,7 +648,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@Override
-	public void deleteBatch(String tableName, List<Object> list) throws Exception {
+	public void deleteBatch(String tableName, List<?> list) throws Exception {
 		deleteBatch(getClass(tableName), list);
 	}
 

@@ -3,7 +3,7 @@
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-example-webapp</artifactId>
-	<version>1.0.8-SNAPSHOT</version>
+	<version>1.0.8</version>
 	<packaging>war</packaging>
 
 	<name>dbist-example-webapp</name>
@@ -48,6 +48,19 @@
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -123,12 +136,12 @@
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>1.0.8-SNAPSHOT</version>
+			<version>1.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist-admin</artifactId>
-			<version>1.0.8-SNAPSHOT</version>
+			<version>1.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.velocity</groupId>

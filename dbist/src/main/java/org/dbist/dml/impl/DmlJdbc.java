@@ -594,12 +594,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	@SuppressWarnings("unchecked")
 	private static final List<?> CASECHECK_TYPELIST = ValueUtils.toList(String.class, Character.class, char.class);
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
-		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim() + " ";
+		String logicalOperator = " " + ValueUtils.toString(filters.getOperator(), "and").trim().toLowerCase() + " ";
 
 		int j = 0;
 		if (!ValueUtils.isEmpty(filters.getFilter())) {
 			for (Filter filter : filters.getFilter()) {
-				String operator = ValueUtils.toString(filter.getOperator(), "=").trim();
+				String operator = ValueUtils.toString(filter.getOperator(), "=").trim().toLowerCase();
 				if ("!=".equals(operator))
 					operator = "<>";
 				String lo = filter.getLeftOperand();
@@ -650,6 +650,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					String key = lo + i;
 					paramMap.put(key, value);
 					buf.append(columnName).append(" ").append(operator).append(" :").append(key);
+					if ("like".equals(operator) && !ValueUtils.isEmpty(filter.getEscape())
+							&& (!DBTYPE_MYSQL.equals(getDbType()) || !filter.getEscape().equals('\\')))
+						buf.append(" escape '").append(filter.getEscape()).append("'");
 					continue;
 				}
 

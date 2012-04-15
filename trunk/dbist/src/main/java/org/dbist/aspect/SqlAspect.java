@@ -40,8 +40,8 @@ import org.slf4j.LoggerFactory;
  * 		&lt;/aop:aspect&gt;
  * 	&lt;/aop:config&gt;
  * 	&lt;bean id=&quot;sqlAspect&quot; class=&quot;org.dbist.aspect.SqlAspect&quot;&gt;
- * 		&lt;property name=&quot;enabled&quot; value=&quot;${sqlAspect.enabled}&quot; /&gt;
- * 		&lt;property name=&quot;prettyPrint&quot; value=&quot;${sqlAspect.prettyPrint}&quot; /&gt;
+ * 		&lt;property name=&quot;enabled&quot; value=&quot;true&quot; /&gt;
+ * 		&lt;property name=&quot;prettyPrint&quot; value=&quot;true&quot; /&gt;
  * 	&lt;/bean&gt;
  * 
  * 2. Logs

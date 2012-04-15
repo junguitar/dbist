@@ -29,6 +29,7 @@ public class Filter {
 	private String operator;
 	private List<?> rightOperand;
 	private boolean caseSensitive = true;
+	private Character escape;
 	public Filter(String leftOperand, Object rightOperand) {
 		this(leftOperand, "=", rightOperand);
 	}
@@ -43,6 +44,21 @@ public class Filter {
 		this.operator = operator;
 		addRightOperand(rightOperand);
 		this.caseSensitive = caseSensitive;
+	}
+	public Filter(String leftOperand, String operator, Object rightOperand, Character escape) {
+		this.leftOperand = leftOperand;
+		this.operator = operator;
+		if (rightOperand != null)
+			addRightOperand(rightOperand);
+		this.escape = escape;
+	}
+	public Filter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive, Character escape) {
+		this.leftOperand = leftOperand;
+		this.operator = operator;
+		if (rightOperand != null)
+			addRightOperand(rightOperand);
+		this.caseSensitive = caseSensitive;
+		this.escape = escape;
 	}
 	public String getLeftOperand() {
 		return leftOperand;
@@ -92,5 +108,11 @@ public class Filter {
 	}
 	public void setCaseSensitive(boolean caseSensitive) {
 		this.caseSensitive = caseSensitive;
+	}
+	public Character getEscape() {
+		return escape;
+	}
+	public void setEscape(Character escape) {
+		this.escape = escape;
 	}
 }

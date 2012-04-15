@@ -83,6 +83,14 @@ public class Filters {
 		addFilterAll(new Filter(leftOperand, operator, rightOperand, caseSensitive));
 		return this;
 	}
+	public Filters addFilter(String leftOperand, String operator, Object rightOperand, Character escape) {
+		addFilterAll(new Filter(leftOperand, operator, rightOperand, escape));
+		return this;
+	}
+	public Filters addFilter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive, Character escape) {
+		addFilterAll(new Filter(leftOperand, operator, rightOperand, caseSensitive, escape));
+		return this;
+	}
 	public Filters addFilterAll(Object filter) {
 		return _addFilter(filter);
 	}

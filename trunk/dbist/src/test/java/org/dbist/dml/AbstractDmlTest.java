@@ -223,7 +223,7 @@ public abstract class AbstractDmlTest {
 			query.addField("id", "name");
 			query.addOrder("name", true);
 			query.addFilter("name", "!=", "test");
-			query.addFilter("description", "like", "%the%", false);
+			query.addFilter("description", "like", "%the%\\_", false, '\\');
 			query.addFilter("createdAt", "!=", null);
 			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });
 			dml.selectList(Blog.class, query);

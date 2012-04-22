@@ -27,6 +27,8 @@ import net.sf.common.util.ValueUtils;
 public class Query extends Filters {
 	private int pageIndex;
 	private int pageSize;
+	private int firstResultIndex;
+	private int maxResultSize;
 	private List<String> field;
 	private List<String> group;
 	private List<Order> order;
@@ -41,10 +43,24 @@ public class Query extends Filters {
 		this.pageIndex = pageIndex;
 		this.pageSize = pageSize;
 	}
+	public Query(int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
+		super();
+		this.pageIndex = pageIndex;
+		this.pageSize = pageSize;
+		this.firstResultIndex = firstResultIndex;
+		this.maxResultSize = maxResultSize;
+	}
 	public Query(String operator, int pageIndex, int pageSize) {
 		super(operator);
 		this.pageIndex = pageIndex;
 		this.pageSize = pageSize;
+	}
+	public Query(String operator, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
+		super(operator);
+		this.pageIndex = pageIndex;
+		this.pageSize = pageSize;
+		this.firstResultIndex = firstResultIndex;
+		this.maxResultSize = maxResultSize;
 	}
 	public int getPageIndex() {
 		return pageIndex;
@@ -57,6 +73,18 @@ public class Query extends Filters {
 	}
 	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
+	}
+	public int getFirstResultIndex() {
+		return firstResultIndex;
+	}
+	public void setFirstResultIndex(int firstResultIndex) {
+		this.firstResultIndex = firstResultIndex;
+	}
+	public int getMaxResultSize() {
+		return maxResultSize;
+	}
+	public void setMaxResultSize(int maxResultSize) {
+		this.maxResultSize = maxResultSize;
 	}
 	public List<String> getField() {
 		return field;

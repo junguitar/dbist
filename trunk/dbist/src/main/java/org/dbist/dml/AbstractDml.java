@@ -119,6 +119,10 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 				query.setPageIndex(ValueUtils.toInteger(request.getParameter("pageIndex"), 0));
 			if (paramMap.containsKey("pageSize"))
 				query.setPageSize(ValueUtils.toInteger(request.getParameter("pageSize"), 0));
+			if (paramMap.containsKey("firstResultIndex"))
+				query.setFirstResultIndex(ValueUtils.toInteger(request.getParameter("firstResultIndex"), 0));
+			if (paramMap.containsKey("maxResultSize"))
+				query.setMaxResultSize(ValueUtils.toInteger(request.getParameter("maxResultSize"), 0));
 			if (paramMap.containsKey("operator") && table.getField("operator") == null)
 				query.setOperator(request.getParameter("operator"));
 		} else if (condition instanceof Filters) {
@@ -323,6 +327,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Page<T> page = new Page<T>();
 		page.setIndex(query.getPageIndex());
 		page.setSize(query.getPageSize());
+		page.setFirstResultIndex(query.getFirstResultIndex());
+		page.setMaxResultSize(query.getMaxResultSize());
 		page.setTotalSize(selectSize(clazz, query));
 		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
 			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
@@ -374,11 +380,35 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		Page<T> page = new Page<T>();
 		page.setIndex(query.getPageIndex());
 		page.setSize(query.getPageSize());
+		page.setFirstResultIndex(query.getFirstResultIndex());
+		page.setMaxResultSize(query.getMaxResultSize());
 		page.setTotalSize(selectSize(tableName, query));
 		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
 			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
 		page.setList(selectList(tableName, query, requiredType));
 		return page;
+	}
+
+	@Override
+	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		return selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+
+	@Override
+	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+		return selectPageByQl(ql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+
+	@Override
+	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectListByQlPath(qlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+
+	@Override
+	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
+			throws Exception {
+		return selectPageByQlPath(qlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
 	@Override
@@ -388,24 +418,44 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 
 	@Override
 	public <T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
-		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize);
+		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+	@Override
+	public <T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
+			int maxResultSize) throws Exception {
+		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	@Override
 	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
-		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize);
+		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+	@Override
+	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
+			int maxResultSize) throws Exception {
+		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	@Override
 	public <T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
-		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize);
+		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+	@Override
+	public <T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception {
+		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	@Override
 	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
-		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize);
+		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
+	}
+	@Override
+	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception {
+		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	@Override

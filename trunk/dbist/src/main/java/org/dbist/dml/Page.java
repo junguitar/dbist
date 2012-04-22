@@ -25,6 +25,8 @@ public class Page<T> {
 	private int index;
 	private int lastIndex;
 	private int size;
+	private int firstResultIndex;
+	private int maxResultSize;
 	private int totalSize;
 	private List<T> list;
 	public int getIndex() {
@@ -44,6 +46,18 @@ public class Page<T> {
 	}
 	public void setSize(int pageSize) {
 		this.size = pageSize;
+	}
+	public int getFirstResultIndex() {
+		return firstResultIndex;
+	}
+	public void setFirstResultIndex(int firstResultIndex) {
+		this.firstResultIndex = firstResultIndex;
+	}
+	public int getMaxResultSize() {
+		return maxResultSize;
+	}
+	public void setMaxResultSize(int maxResultSize) {
+		this.maxResultSize = maxResultSize;
 	}
 	public int getTotalSize() {
 		return totalSize;

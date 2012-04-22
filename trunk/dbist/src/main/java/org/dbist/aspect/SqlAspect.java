@@ -15,15 +15,23 @@
  */
 package org.dbist.aspect;
 
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import net.sf.common.util.ValueUtils;
 
+import org.apache.commons.collections.ComparatorUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.hibernate.jdbc.util.BasicFormatterImpl;
 import org.hibernate.jdbc.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 /**
  * Functions as an aspect(AOP) related to SQL.<br>
@@ -77,6 +85,7 @@ public class SqlAspect {
 
 	private boolean enabled = true;
 	private boolean prettyPrint;
+	private boolean combinedPrint;
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -89,38 +98,101 @@ public class SqlAspect {
 	public void setPrettyPrint(boolean prettyPrint) {
 		this.prettyPrint = prettyPrint;
 	}
+	public boolean isCombinedPrint() {
+		return combinedPrint;
+	}
+	public void setCombinedPrint(boolean combinedPrint) {
+		this.combinedPrint = combinedPrint;
+	}
 
-	private Formatter formatter = new BasicFormatterImpl();
 	public Object print(final ProceedingJoinPoint point) throws Throwable {
 		print(point.getArgs());
 
 		return point.proceed();
 	}
+
+	private Formatter formatter = new BasicFormatterImpl();
+	@SuppressWarnings("unchecked")
+	private static final Comparator<String> COMPARATOR_REVERSED = ComparatorUtils.reversedComparator(ComparatorUtils.naturalComparator());
 	private void print(Object[] args) {
 		if (!enabled || !logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
 			return;
-		StringBuffer buf = new StringBuffer("\r\nSQL: ");
 		String sql = (String) args[0];
-		try {
-			buf.append(prettyPrint ? formatter.format(sql) : sql);
-		} catch (Exception e) {
-			buf.append(sql);
-		}
-		if (args.length > 1 && !ValueUtils.isEmpty(args[1])) {
-			if (args[1] instanceof Map) {
-				@SuppressWarnings("unchecked")
-				Map<String, ?> map = (Map<String, ?>) args[1];
-				buf.append("\r\nParameters:");
-				for (String key : map.keySet())
-					buf.append("\r\n\t").append(key).append(": ").append(ValueUtils.toString(map.get(key)));
-			} else if (args[1] instanceof Object[]) {
-				buf.append("\r\nParameters:");
-				int i = 0;
-				for (Object param : (Object[]) args[1])
-					buf.append(i++ == 0 ? "" : ",").append("\r\n\t").append(ValueUtils.toString(param));
+		Object params = args.length > 1 && !ValueUtils.isEmpty(args[1]) ? args[1] : null;
+
+		// SQL
+		StringBuffer buf = new StringBuffer("\r\nSQL: ");
+		boolean combined = false;
+		if (prettyPrint) {
+			try {
+				sql = formatter.format(sql);
+			} catch (Exception e) {
 			}
 		}
+		if (combinedPrint) {
+			try {
+				sql = combine(sql, params);
+				combined = true;
+			} catch (Exception e) {
+			}
+		}
+		buf.append(sql);
+
+		// Parameters
+		if (!combined && params != null) {
+			try {
+				if (params instanceof Map) {
+					@SuppressWarnings("unchecked")
+					Map<String, ?> map = (Map<String, ?>) params;
+					buf.append("\r\nParameters:");
+					for (String key : map.keySet())
+						buf.append("\r\n\t").append(key).append(": ").append(ValueUtils.toString(map.get(key)));
+				} else if (params instanceof Object[]) {
+					buf.append("\r\nParameters:");
+					int i = 0;
+					for (Object param : (Object[]) params)
+						buf.append(i++ == 0 ? "" : ",").append("\r\n\t").append(ValueUtils.toString(param));
+				}
+			} catch (Exception e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
+
 		buf.append("\r\n");
 		logger.info(buf.toString());
+	}
+
+	private static String combine(String sql, Object params) {
+		if (sql == null || params == null)
+			return sql;
+		if (params instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String, ?> map = (Map<String, ?>) params;
+			Set<String> keySet = new TreeSet<String>(COMPARATOR_REVERSED);
+			keySet.addAll(map.keySet());
+			for (String key : keySet)
+				sql = StringUtils.replace(sql, ":" + key, toParamValue(map.get(key)));
+		} else if (params instanceof Object[]) {
+			for (Object param : (Object[]) params)
+				sql = sql.replaceFirst("?", toParamValue(param));
+		}
+		return sql;
+	}
+
+	private static String toParamValue(Object value) {
+		if (value == null)
+			return "null";
+		if (value instanceof String)
+			return "'" + StringEscapeUtils.escapeSql((String) value) + "'";
+		if (value instanceof Date)
+			return "'" + ValueUtils.toDateString((Date) value, ValueUtils.DATEPATTERN_DATETIME) + "'";
+		if (value instanceof Collection) {
+			StringBuffer buf = new StringBuffer();
+			int i = 0;
+			for (Object item : (Collection<?>) value)
+				buf.append(i++ == 0 ? "" : ",").append(toParamValue(item));
+			return buf.toString();
+		}
+		return ValueUtils.toString(value);
 	}
 }

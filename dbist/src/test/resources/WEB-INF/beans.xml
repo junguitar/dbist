@@ -25,6 +25,7 @@
 	<bean id="sqlAspect" class="org.dbist.aspect.SqlAspect">
 		<property name="enabled" value="${sqlAspect.enabled}" />
 		<property name="prettyPrint" value="${sqlAspect.prettyPrint}" />
+		<property name="combinedPrint" value="${sqlAspect.combinedPrint}" />
 	</bean>
 
 	<!-- Transaction

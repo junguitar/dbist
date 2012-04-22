@@ -62,6 +62,15 @@ public class Filters {
 	public Filters setFilter(String leftOperand, String operator, Object rightOperand) {
 		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand);
 	}
+	public Filters setFilter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive) {
+		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand, caseSensitive);
+	}
+	public Filters setFilter(String leftOperand, String operator, Object rightOperand, Character escape) {
+		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand, escape);
+	}
+	public Filters setFilter(String leftOperand, String operator, Object rightOperand, boolean caseSensitive, Character escape) {
+		return removeFilter(leftOperand).addFilter(leftOperand, operator, rightOperand, caseSensitive, escape);
+	}
 	public Filters addFilter(Filter... filter) {
 		if (ValueUtils.isEmpty(filter))
 			return this;

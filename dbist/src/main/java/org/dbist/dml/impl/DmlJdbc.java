@@ -375,9 +375,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		else if (lock)
 			throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
 
-		String sql = applyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize());
+		String sql = applyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize(), query.getFirstResultIndex(),
+				query.getMaxResultSize());
 
-		List<T> list = query(sql, paramMap, clazz, table, query.getPageIndex(), query.getPageSize());
+		List<T> list = query(sql, paramMap, clazz, table, query.getPageIndex(), query.getPageSize(), query.getFirstResultIndex(),
+				query.getMaxResultSize());
 		return list;
 	}
 	private void appendLock(StringBuffer buf, boolean lock) {
@@ -385,9 +387,19 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			return;
 		buf.append(" for update");
 	}
-	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize) {
-		if (pageIndex < 0 || pageSize <= 0)
+	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
+		boolean pagination = pageIndex >= 0 && pageSize > 0;
+		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
+		if (!pagination && !fragment)
 			return sql;
+		if (!pagination) {
+			pageIndex = 0;
+			pageSize = 0;
+		}
+		if (firstResultIndex < 0)
+			firstResultIndex = 0;
+		if (maxResultSize < 0)
+			maxResultSize = 0;
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType())) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
@@ -399,31 +411,55 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 
 			StringBuffer buf = new StringBuffer();
+			int pageFromIndex = pagination ? pageIndex * pageSize : 0;
 			// Oracle
 			if (DBTYPE_ORACLE.equals(getDbType())) {
-				int fromIndex = pageIndex * pageSize;
-				int toIndex = fromIndex + pageSize;
-				if (pageIndex > 0) {
+				int fromIndex = pageFromIndex + firstResultIndex;
+				int toIndex = 0;
+				if (pageSize > 0) {
+					toIndex = pageFromIndex + pageSize;
+					if (maxResultSize > 0)
+						toIndex = Math.min(toIndex, fromIndex + maxResultSize);
+				} else if (maxResultSize > 0) {
+					toIndex = fromIndex + maxResultSize;
+				}
+				if (fromIndex > 0 && toIndex > 0) {
 					_paramMap.put("__fromIndex", fromIndex);
 					_paramMap.put("__toIndex", toIndex);
 					buf.append("select * from (select data.*, rownum rownum_ from (").append(sql)
 							.append(") data where rownum <= :__toIndex) where rownum_ > :__fromIndex");
-				} else {
+				} else if (fromIndex > 0) {
+					_paramMap.put("__fromIndex", fromIndex);
+					buf.append("select * from (").append(sql).append(") where rownum_ > :__fromIndex");
+				} else if (toIndex > 0) {
 					_paramMap.put("__toIndex", toIndex);
 					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex");
+				} else {
+					buf.append(sql);
 				}
 
 			}
 			// MySQL
 			else if (DBTYPE_MYSQL.equals(getDbType())) {
-				int fromIndex = pageIndex * pageSize;
-				if (pageIndex > 0) {
-					_paramMap.put("__fromIndex", fromIndex);
-					_paramMap.put("__pageSize", pageSize);
-					buf.append(sql).append(" limit :__fromIndex, :__pageSize");
-				} else {
-					_paramMap.put("__pageSize", pageSize);
-					buf.append(sql).append(" limit :__pageSize");
+				buf.append(sql);
+				int offset = pageFromIndex + firstResultIndex;
+				long limit = 0;
+				if (pageSize > 0) {
+					limit = pageSize - firstResultIndex;
+					if (maxResultSize > 0)
+						limit = Math.min(limit, maxResultSize);
+				} else if (maxResultSize > 0) {
+					limit = maxResultSize;
+				} else if (limit == 0) {
+					limit = Long.MAX_VALUE;
+				}
+				if (offset > 0 && limit > 0) {
+					_paramMap.put("__offset", offset);
+					_paramMap.put("__limit", limit);
+					buf.append(" limit :__offset, :__limit");
+				} else if (limit > 0) {
+					_paramMap.put("__limit", limit);
+					buf.append(" limit :__limit");
 				}
 			}
 			if (subsql != null)
@@ -436,15 +472,19 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			int selectIndex = lowerSql.indexOf("select");
 			int distinctIndex = lowerSql.indexOf("distinct");
 			int topIndex = distinctIndex > 0 && distinctIndex < selectIndex + 13 ? distinctIndex + 8 : selectIndex + 6;
-			return new StringBuffer(sql).insert(topIndex, " top " + ((pageIndex + 1) * pageSize)).toString();
+			int top = (pageIndex + 1) * pageSize + firstResultIndex;
+			return new StringBuffer(sql).insert(topIndex, " top " + top).toString();
 		}
 		return sql;
 	}
 
-	private <T> List<T> query(String sql, Map<String, ?> paramMap, final Class<T> requiredType, final Table table, final int pageIndex,
-			final int pageSize) throws Exception {
+	private <T> List<T> query(String sql, Map<String, ?> paramMap, final Class<T> requiredType, final Table table, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception {
+		boolean pagination = pageIndex >= 0 && pageSize > 0;
+		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
+
 		List<T> list = null;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || pageIndex < 0 || pageSize <= 0) {
+		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || (!pagination && !fragment)) {
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
 				@Override
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -452,19 +492,40 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				}
 			});
 		} else {
+			if (!pagination) {
+				pageIndex = 0;
+				pageSize = 0;
+			}
+			if (firstResultIndex < 0)
+				firstResultIndex = 0;
+			if (maxResultSize < 0)
+				maxResultSize = 0;
+			int pageFromIndex = pagination ? pageIndex * pageSize : 0;
+			int offset = pageFromIndex + firstResultIndex;
+			long limit = 0;
+			if (pageSize > 0) {
+				limit = pageSize - firstResultIndex;
+				if (maxResultSize > 0)
+					limit = Math.min(limit, maxResultSize);
+			} else if (maxResultSize > 0) {
+				limit = maxResultSize;
+			} else if (limit == 0) {
+				limit = Long.MAX_VALUE;
+			}
+			final int _offset = offset;
+			final long _limit = limit;
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new ResultSetExtractor<List<T>>() {
 				@Override
 				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<T> list = new ArrayList<T>();
-					int fromIndex = pageIndex * pageSize;
-					for (int i = 0; i < fromIndex; i++) {
+					for (int i = 0; i < _offset; i++) {
 						if (rs.next())
 							continue;
 						return list;
 					}
 					int i = 0;
 					while (rs.next()) {
-						if (i++ == pageSize)
+						if (i++ == _limit)
 							break;
 						list.add(newInstance(rs, requiredType, table));
 					}
@@ -740,16 +801,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
+			int maxResultSize) throws Exception {
 		ValueUtils.assertNotEmpty("ql", ql);
 		ValueUtils.assertNotEmpty("requiredType", requiredType);
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		ql = ql.trim();
 		if (getPreprocessor() != null)
 			ql = getPreprocessor().process(ql, paramMap);
-		ql = applyPagination(ql, paramMap, pageIndex, pageSize);
+		ql = applyPagination(ql, paramMap, pageIndex, pageSize, firstResultIndex, maxResultSize);
 		adjustParamMap(paramMap);
-		return query(ql, paramMap, requiredType, null, pageIndex, pageSize);
+		return query(ql, paramMap, requiredType, null, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 	private static void adjustParamMap(Map<String, ?> paramMap) {
 		if (paramMap == null || paramMap.isEmpty())
@@ -787,12 +849,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
+	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
+			int maxResultSize) throws Exception {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
 		Page<T> page = new Page<T>();
 		page.setIndex(pageIndex);
 		page.setSize(pageSize);
-		page.setList(selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize));
+		page.setFirstResultIndex(firstResultIndex);
+		page.setMaxResultSize(maxResultSize);
+		page.setList(selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize));
 		int forUpdateIndex = ql.toLowerCase().lastIndexOf("for update");
 		if (forUpdateIndex > -1)
 			ql = ql.substring(0, forUpdateIndex - 1);
@@ -804,15 +869,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	@Override
-	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
-			throws Exception {
-		return selectListByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize);
+	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception {
+		return selectListByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	@Override
-	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
-			throws Exception {
-		return selectPageByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize);
+	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception {
+		return selectPageByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	private Map<String, String> sqlByPathCache;

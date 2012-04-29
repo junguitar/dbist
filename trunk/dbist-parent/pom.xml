@@ -3,15 +3,12 @@
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-parent</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<packaging>pom</packaging>
 
 	<name>Dbist - Parent</name>
+	<description>Easy database management framework</description>
 	<url>http://dbist.org</url>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<licenses>
 		<license>
@@ -21,8 +18,15 @@
 		</license>
 	</licenses>
 
+	<developers>
+		<developer>
+			<id>junguitar</id>
+			<name>Steve M. Jung</name>
+		</developer>
+	</developers>
+
 	<scm>
-		<url>http://dbist.googlecode.com/svn</url>
+		<url>http://dbist.googlecode.com/svn/trunk/</url>
 		<connection>scm:svn:http://dbist.googlecode.com/svn/trunk/</connection>
 		<developerConnection>scm:svn:https://dbist.googlecode.com/svn/trunk/</developerConnection>
 	</scm>
@@ -31,6 +35,10 @@
 		<system>googlecode</system>
 		<url>http://code.google.com/p/dbist/issues</url>
 	</issueManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<build>
 		<plugins>
@@ -70,30 +78,22 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-		<extensions>
-			<extension>
-				<groupId>org.jvnet.wagon-svn</groupId>
-				<artifactId>wagon-svn</artifactId>
-				<version>1.9</version>
-			</extension>
-		</extensions>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>googlecode-repo-m2-releases</id>
-			<url>http://repo-m2.googlecode.com/svn/releases</url>
-		</repository>
-		<repository>
-			<id>googlecode-repo-m2-snapshots</id>
-			<url>http://repo-m2.googlecode.com/svn/snapshots</url>
-		</repository>
-		<repository>
-			<id>googlecode-repo-m2-thirdparty</id>
-			<url>http://repo-m2.googlecode.com/svn/thirdparty</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -142,14 +142,12 @@
 
 	<distributionManagement>
 		<repository>
-			<id>googlecode-repo-m2-releases</id>
-			<name>Googlecode Releases</name>
-			<url>svn:https://repo-m2.googlecode.com/svn/releases</url>
+			<id>sonatype-nexus-staging</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
 		</repository>
 		<snapshotRepository>
-			<id>googlecode-repo-m2-snapshots</id>
-			<name>Googlecode Snapshots</name>
-			<url>svn:https://repo-m2.googlecode.com/svn/snapshots</url>
+			<id>sonatype-nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>

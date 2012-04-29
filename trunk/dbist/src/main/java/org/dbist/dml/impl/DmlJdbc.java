@@ -53,6 +53,7 @@ import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
 import org.dbist.dml.Filter;
 import org.dbist.dml.Filters;
+import org.dbist.dml.Lock;
 import org.dbist.dml.Order;
 import org.dbist.dml.Page;
 import org.dbist.dml.Query;
@@ -90,6 +91,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private JdbcOperations jdbcOperations;
 	private NamedParameterJdbcOperations namedParameterJdbcOperations;
 	private int maxSqlByPathCacheSize = 1000;
+	private int defaultLockTimeout = -1;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -274,10 +276,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return data;
 	}
 
-	private void appendFromWhere(Table table, Query query, boolean lock, StringBuffer buf, Map<String, Object> paramMap) {
+	private void appendFromWhere(Table table, Query query, StringBuffer buf, Map<String, Object> paramMap) {
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
-		if (lock && DBTYPE_SQLSERVER.equals(getDbType()))
+		if (query.getLock() != null && DBTYPE_SQLSERVER.equals(getDbType()))
 			buf.append(" with (updlock, rowlock)");
 
 		// Where
@@ -295,7 +297,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		StringBuffer buf = new StringBuffer("select count(*)");
 		@SuppressWarnings("unchecked")
 		Map<String, Object> paramMap = new ListOrderedMap();
-		appendFromWhere(table, query, false, buf, paramMap);
+		Lock lock = query.getLock();
+		try {
+			query.setLock(null);
+			appendFromWhere(table, query, buf, paramMap);
+		} finally {
+			query.setLock(lock);
+
+		}
 
 		return this.namedParameterJdbcOperations.queryForInt(buf.toString(), paramMap);
 	}
@@ -316,64 +325,74 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		final Table table = getTable(clazz);
 		final Query query = toQuery(table, condition);
+		Lock lockObj = query.getLock();
 
 		StringBuffer buf = new StringBuffer();
-
-		// Select
-		buf.append("select");
-		// Grouping fields
-		if (!ValueUtils.isEmpty(query.getGroup())) {
-			if (!ValueUtils.isEmpty(query.getField())) {
-				List<String> group = query.getGroup();
-				for (String fieldName : query.getField()) {
-					if (group.contains(fieldName))
-						continue;
-					throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + clazz.getName() + "." + fieldName);
-				}
-			}
-			int i = 0;
-			for (String group : query.getGroup())
-				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
-		}
-		// All fields
-		else if (ValueUtils.isEmpty(query.getField())) {
-			int i = 0;
-			for (Column column : table.getColumnList())
-				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
-		}
-		// Some fields
-		else {
-			int i = 0;
-			for (String fieldName : query.getField())
-				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName));
-		}
-
 		@SuppressWarnings("unchecked")
 		Map<String, Object> paramMap = new ListOrderedMap();
-		appendFromWhere(table, query, lock, buf, paramMap);
 
-		// Group by
-		if (!ValueUtils.isEmpty(query.getGroup())) {
-			buf.append(" group by");
-			int i = 0;
-			for (String group : query.getGroup())
-				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
-		}
+		try {
+			if (lock && lockObj == null)
+				query.setLock(new Lock());
+			boolean groupBy = !ValueUtils.isEmpty(query.getGroup());
+			if (groupBy && query.getLock() != null)
+				throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
 
-		// Order by
-		if (!ValueUtils.isEmpty(query.getOrder())) {
-			buf.append(" order by");
-			int i = 0;
-			for (Order order : query.getOrder()) {
-				for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ","))
-					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+			// Select
+			buf.append("select");
+			// Grouping fields
+			if (groupBy) {
+				if (!ValueUtils.isEmpty(query.getField())) {
+					List<String> group = query.getGroup();
+					for (String fieldName : query.getField()) {
+						if (group.contains(fieldName))
+							continue;
+						throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + clazz.getName() + "."
+								+ fieldName);
+					}
+				}
+				int i = 0;
+				for (String group : query.getGroup())
+					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
 			}
-		}
+			// All fields
+			else if (ValueUtils.isEmpty(query.getField())) {
+				int i = 0;
+				for (Column column : table.getColumnList())
+					buf.append(i++ == 0 ? " " : ", ").append(column.getName());
+			}
+			// Some fields
+			else {
+				int i = 0;
+				for (String fieldName : query.getField())
+					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName));
+			}
 
-		if (ValueUtils.isEmpty(query.getGroup()))
-			appendLock(buf, lock);
-		else if (lock)
-			throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
+			appendFromWhere(table, query, buf, paramMap);
+
+			// Group by
+			if (groupBy) {
+				buf.append(" group by");
+				int i = 0;
+				for (String group : query.getGroup())
+					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
+			}
+
+			// Order by
+			if (!ValueUtils.isEmpty(query.getOrder())) {
+				buf.append(" order by");
+				int i = 0;
+				for (Order order : query.getOrder()) {
+					for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ","))
+						buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+				}
+			}
+
+			if (!groupBy)
+				appendLock(buf, query.getLock());
+		} finally {
+			query.setLock(lockObj);
+		}
 
 		String sql = applyPagination(buf.toString(), paramMap, query.getPageIndex(), query.getPageSize(), query.getFirstResultIndex(),
 				query.getMaxResultSize());
@@ -382,10 +401,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				query.getMaxResultSize());
 		return list;
 	}
-	private void appendLock(StringBuffer buf, boolean lock) {
-		if (!lock || DBTYPE_SQLSERVER.equals(getDbType()))
+	private void appendLock(StringBuffer buf, Lock lock) {
+		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))
 			return;
 		buf.append(" for update");
+		int timeout = lock.getTimeout() == null ? defaultLockTimeout : lock.getTimeout();
+		if (timeout >= 0) {
+			if (DBTYPE_ORACLE.equals(getDbType())) {
+				timeout /= 1000;
+				if (timeout == 0)
+					buf.append(" nowait");
+				else
+					buf.append(" wait " + timeout);
+			}
+		}
 	}
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
 		boolean pagination = pageIndex >= 0 && pageSize > 0;
@@ -920,7 +949,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		StringBuffer buf = new StringBuffer("delete");
 		@SuppressWarnings("unchecked")
 		Map<String, Object> paramMap = new ListOrderedMap();
-		appendFromWhere(table, query, false, buf, paramMap);
+		Lock lock = query.getLock();
+		try {
+			query.setLock(null);
+			appendFromWhere(table, query, buf, paramMap);
+		} finally {
+			query.setLock(lock);
+
+		}
 
 		return this.namedParameterJdbcOperations.update(buf.toString(), paramMap);
 	}
@@ -976,6 +1012,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 	public void setMaxSqlByPathCacheSize(int maxSqlByPathCacheSize) {
 		this.maxSqlByPathCacheSize = maxSqlByPathCacheSize;
+	}
+	public int getDefaultLockTimeout() {
+		return defaultLockTimeout;
+	}
+	public void setDefaultLockTimeout(int defaultLockTimeout) {
+		this.defaultLockTimeout = defaultLockTimeout;
 	}
 
 	private Map<String, Class<?>> classByTableNameCache = new ConcurrentHashMap<String, Class<?>>();

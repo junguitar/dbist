@@ -15,6 +15,7 @@
  */
 package org.dbist.aspect;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -27,10 +28,9 @@ import net.sf.common.util.ValueUtils;
 import org.apache.commons.collections.ComparatorUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.hibernate.jdbc.util.BasicFormatterImpl;
-import org.hibernate.jdbc.util.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  * 	&lt;bean id=&quot;sqlAspect&quot; class=&quot;org.dbist.aspect.SqlAspect&quot;&gt;
  * 		&lt;property name=&quot;enabled&quot; value=&quot;true&quot; /&gt;
  * 		&lt;property name=&quot;prettyPrint&quot; value=&quot;true&quot; /&gt;
+ * 		&lt;property name=&quot;combinedPrint&quot; value=&quot;false&quot; /&gt;
  * 	&lt;/bean&gt;
  * 
  * 2. Logs
@@ -111,11 +112,48 @@ public class SqlAspect {
 		return point.proceed();
 	}
 
-	private Formatter formatter = new BasicFormatterImpl();
+	//	private Formatter formatter = new BasicFormatterImpl();
+	private static Object formatterInstance;
+	private static Method formatMethod;
+	static {
+		Class<?> formatterClass = null;
+		try {
+			formatterClass = ClassUtils.forName("org.hibernate.engine.jdbc.internal.BasicFormatterImpl", null);
+		} catch (ClassNotFoundException e) {
+			try {
+				formatterClass = ClassUtils.forName("org.hibernate.jdbc.util.BasicFormatterImpl", null);
+			} catch (ClassNotFoundException e1) {
+				logger.warn(e.getMessage(), e);
+			} catch (LinkageError e1) {
+				logger.warn(e.getMessage(), e);
+			}
+		} catch (LinkageError e) {
+			logger.warn(e.getMessage(), e);
+		}
+
+		if (formatterClass != null) {
+			try {
+				formatterInstance = formatterClass.newInstance();
+				try {
+					formatMethod = formatterClass.getMethod("format", String.class);
+				} catch (SecurityException e) {
+					logger.warn(e.getMessage(), e);
+				} catch (NoSuchMethodException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			} catch (InstantiationException e) {
+				logger.warn(e.getMessage(), e);
+			} catch (IllegalAccessException e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
+
+	}
+
 	@SuppressWarnings("unchecked")
 	private static final Comparator<String> COMPARATOR_REVERSED = ComparatorUtils.reversedComparator(ComparatorUtils.naturalComparator());
 	private void print(Object[] args) {
-		if (!enabled || !logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
+		if (!enabled || formatMethod == null || !logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
 			return;
 		String sql = (String) args[0];
 		Object params = args.length > 1 && !ValueUtils.isEmpty(args[1]) ? args[1] : null;
@@ -125,7 +163,7 @@ public class SqlAspect {
 		boolean combined = false;
 		if (prettyPrint) {
 			try {
-				sql = formatter.format(sql);
+				sql = (String) formatMethod.invoke(formatterInstance, sql);
 			} catch (Exception e) {
 			}
 		}

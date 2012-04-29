@@ -32,6 +32,7 @@ public class Query extends Filters {
 	private List<String> field;
 	private List<String> group;
 	private List<Order> order;
+	private Lock lock;
 	public Query() {
 		super();
 	}
@@ -133,5 +134,11 @@ public class Query extends Filters {
 	}
 	public Query addOrder(String field, boolean ascending) {
 		return addOrder(new Order(field, ascending));
+	}
+	public Lock getLock() {
+		return lock;
+	}
+	public void setLock(Lock lock) {
+		this.lock = lock;
 	}
 }

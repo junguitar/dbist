@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>dbist-admin</artifactId>
-	<version>1.0.9-SNAPSHOT</version>
+	<version>1.0.9</version>
 	<packaging>jar</packaging>
 
 	<name>Dbist - Administrator</name>
@@ -13,24 +13,18 @@
 		<groupId>org.dbist</groupId>
 		<artifactId>dbist-parent</artifactId>
 		<relativePath>../dbist-parent</relativePath>
-		<version>1.0.3</version>
+		<version>1.0.4</version>
 	</parent>
 
 	<properties>
 		<maven.test.skip>true</maven.test.skip>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>googlecode-repo-m2-releases</id>
-			<url>http://repo-m2.googlecode.com/svn/releases</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>1.0.8</version>
+			<version>1.0.9</version>
 		</dependency>
 	</dependencies>
 </project>

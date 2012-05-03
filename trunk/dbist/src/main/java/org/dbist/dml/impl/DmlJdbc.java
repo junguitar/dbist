@@ -300,7 +300,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Lock lock = query.getLock();
 		try {
 			query.setLock(null);
-			appendFromWhere(table, query, buf, paramMap);
+			if (ValueUtils.isEmpty(query.getGroup())) {
+				appendFromWhere(table, query, buf, paramMap);
+			} else {
+				buf.append(" from (");
+				appendSelectSql(buf, paramMap, table, query, true);
+				buf.append(") grp_tbl");
+			}
 		} finally {
 			query.setLock(lock);
 
@@ -338,58 +344,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			if (groupBy && query.getLock() != null)
 				throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
 
-			// Select
-			buf.append("select");
-			// Grouping fields
-			if (groupBy) {
-				if (!ValueUtils.isEmpty(query.getField())) {
-					List<String> group = query.getGroup();
-					for (String fieldName : query.getField()) {
-						if (group.contains(fieldName))
-							continue;
-						throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + clazz.getName() + "."
-								+ fieldName);
-					}
-				}
-				int i = 0;
-				for (String group : query.getGroup())
-					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
-			}
-			// All fields
-			else if (ValueUtils.isEmpty(query.getField())) {
-				int i = 0;
-				for (Column column : table.getColumnList())
-					buf.append(i++ == 0 ? " " : ", ").append(column.getName());
-			}
-			// Some fields
-			else {
-				int i = 0;
-				for (String fieldName : query.getField())
-					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName));
-			}
-
-			appendFromWhere(table, query, buf, paramMap);
-
-			// Group by
-			if (groupBy) {
-				buf.append(" group by");
-				int i = 0;
-				for (String group : query.getGroup())
-					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
-			}
-
-			// Order by
-			if (!ValueUtils.isEmpty(query.getOrder())) {
-				buf.append(" order by");
-				int i = 0;
-				for (Order order : query.getOrder()) {
-					for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ","))
-						buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
-				}
-			}
-
-			if (!groupBy)
-				appendLock(buf, query.getLock());
+			appendSelectSql(buf, paramMap, table, query, groupBy);
 		} finally {
 			query.setLock(lockObj);
 		}
@@ -400,6 +355,59 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		List<T> list = query(sql, paramMap, clazz, table, query.getPageIndex(), query.getPageSize(), query.getFirstResultIndex(),
 				query.getMaxResultSize());
 		return list;
+	}
+	private void appendSelectSql(StringBuffer buf, Map<String, Object> paramMap, Table table, Query query, boolean groupBy) {
+		// Select
+		buf.append("select");
+		// Grouping fields
+		if (groupBy) {
+			if (!ValueUtils.isEmpty(query.getField())) {
+				List<String> group = query.getGroup();
+				for (String fieldName : query.getField()) {
+					if (group.contains(fieldName))
+						continue;
+					throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + table.getClazz().getName() + "."
+							+ fieldName);
+				}
+			}
+			int i = 0;
+			for (String group : query.getGroup())
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
+		}
+		// All fields
+		else if (ValueUtils.isEmpty(query.getField())) {
+			int i = 0;
+			for (Column column : table.getColumnList())
+				buf.append(i++ == 0 ? " " : ", ").append(column.getName());
+		}
+		// Some fields
+		else {
+			int i = 0;
+			for (String fieldName : query.getField())
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName));
+		}
+
+		appendFromWhere(table, query, buf, paramMap);
+
+		// Group by
+		if (groupBy) {
+			buf.append(" group by");
+			int i = 0;
+			for (String group : query.getGroup())
+				buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, group));
+		}
+
+		// Order by
+		if (!ValueUtils.isEmpty(query.getOrder())) {
+			buf.append(" order by");
+			int i = 0;
+			for (Order order : query.getOrder()) {
+				for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ","))
+					buf.append(i++ == 0 ? " " : ", ").append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+			}
+		}
+
+		appendLock(buf, query.getLock());
 	}
 	private void appendLock(StringBuffer buf, Lock lock) {
 		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))

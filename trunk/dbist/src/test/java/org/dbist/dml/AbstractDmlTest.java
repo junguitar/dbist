@@ -169,10 +169,11 @@ public abstract class AbstractDmlTest {
 		logger.info("case " + i++ + ": select group by list");
 		{
 			for (Blog data : dml.selectList(Blog.class, new Query().addGroup("owner", "name")))
-				logger.debug("selected data: " + data.getId());
+				logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
+			logger.debug("selected count: " + dml.selectSize(Blog.class, new Query().addGroup("owner", "name")));
 			try {
 				for (Blog data : dml.selectListWithLock(Blog.class, new Query().addGroup("owner", "name")))
-					logger.debug("selected data: " + data.getId());
+					logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
 				Assert.fail("Grouping query was executed but with lock?");
 			} catch (DbistRuntimeException e) {
 			}
@@ -240,6 +241,7 @@ public abstract class AbstractDmlTest {
 			query.addFilter("owner", new String[] { "junguitar@gmail.com", "junguita@hotmail.com" });
 			query.addGroup("owner", "name");
 			dml.selectList(Blog.class, query);
+			dml.selectSize(Blog.class, query);
 		}
 
 		logger.info("case " + i++ + ": select list with combined condition2");

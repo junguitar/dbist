@@ -15,35 +15,38 @@
  */
 package org.dbist.processor.impl;
 
-import java.io.StringWriter;
 import java.util.Map;
 
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.SimpleBindings;
+
+import net.sf.common.util.ValueUtils;
+
 import org.dbist.processor.Preprocessor;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
  * @author Steve M. Jung
- * @since 2012. 2. 5. (version 0.0.1)
+ * @since 2012. 5. 9. (version 1.0.10)
  */
-public class VelocityPreprocessor implements Preprocessor {
-	private VelocityEngine engine;
+public class ScriptPreprocessor implements Preprocessor, InitializingBean {
+	private ScriptEngineFactory engineFactory;
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(engineFactory, "'engineFactory' is a required property.");
+	}
 
 	@Override
 	public String process(String value, Map<String, ?> contextMap) throws Exception {
-		if (engine == null) {
-			synchronized (this) {
-				if (engine == null) {
-					engine = new VelocityEngine();
-					engine.init();
-				}
-			}
-		}
-
-		StringWriter writer = new StringWriter();
-		VelocityContext context = new VelocityContext(contextMap);
-		engine.evaluate(context, writer, value, value);
-		return writer.toString();
+		ScriptEngine engine = engineFactory.getScriptEngine();
+		@SuppressWarnings("unchecked")
+		Bindings bindings = new SimpleBindings((Map<String, Object>) contextMap);
+		Object result = engine.eval(value, bindings);
+		return ValueUtils.toString(result);
 	}
 
 }

@@ -152,6 +152,15 @@ public abstract class AbstractDmlTest {
 				logger.debug("selected data: " + data.getId());
 			for (Blog data : dml.selectListWithLock(Blog.class, new Query(0, 10)))
 				logger.debug("selected data: " + data.getId());
+			for (Blog data : dml.selectList(Blog.class, new Query(1, 10)))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, new Query(1, 10)))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
 		}
 
 		logger.info("case " + i++ + ": select list by subfilters");
@@ -164,6 +173,16 @@ public abstract class AbstractDmlTest {
 				logger.debug("selected data: " + data.getId());
 			for (Blog data : dml.selectListWithLock(Blog.class, query))
 				logger.debug("selected data: " + data.getId());
+			query.setPageIndex(1);
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
 		}
 
 		logger.info("case " + i++ + ": select group by list");
@@ -176,6 +195,7 @@ public abstract class AbstractDmlTest {
 					logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
 				Assert.fail("Grouping query was executed but with lock?");
 			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
 			}
 		}
 

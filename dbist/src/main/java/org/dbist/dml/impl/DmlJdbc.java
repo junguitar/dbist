@@ -81,8 +81,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String DBTYPE_MYSQL = "mysql";
 	private static final String DBTYPE_ORACLE = "oracle";
 	private static final String DBTYPE_SQLSERVER = "sqlserver";
+	private static final String DBTYPE_DB2 = "db2";
 	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER);
-	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE);
+	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_DB2);
+	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_DB2);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
 
 	private String domain;
@@ -304,8 +306,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				appendFromWhere(table, query, buf, paramMap);
 			} else {
 				buf.append(" from (");
-				appendSelectSql(buf, paramMap, table, query, true);
-				buf.append(") grp_tbl");
+				appendSelectSql(buf, paramMap, table, query, true, true);
+				buf.append(") grptbl_");
 			}
 		} finally {
 			query.setLock(lock);
@@ -332,6 +334,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		final Table table = getTable(clazz);
 		final Query query = toQuery(table, condition);
 		Lock lockObj = query.getLock();
+		if (query.getPageIndex() > 0 && (lock || lockObj != null))
+			throw new DbistRuntimeException("Cannot select with lock when the pageIndex is not 0 (class: " + clazz + ")");
 
 		StringBuffer buf = new StringBuffer();
 		@SuppressWarnings("unchecked")
@@ -344,7 +348,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			if (groupBy && query.getLock() != null)
 				throw new DbistRuntimeException("Grouping query cannot be executed with lock.");
 
-			appendSelectSql(buf, paramMap, table, query, groupBy);
+			appendSelectSql(buf, paramMap, table, query, groupBy, false);
 		} finally {
 			query.setLock(lockObj);
 		}
@@ -356,7 +360,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				query.getMaxResultSize());
 		return list;
 	}
-	private void appendSelectSql(StringBuffer buf, Map<String, Object> paramMap, Table table, Query query, boolean groupBy) {
+	private void appendSelectSql(StringBuffer buf, Map<String, Object> paramMap, Table table, Query query, boolean groupBy, boolean ignoreOrderBy) {
 		// Select
 		buf.append("select");
 		// Grouping fields
@@ -398,7 +402,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		// Order by
-		if (!ValueUtils.isEmpty(query.getOrder())) {
+		if (!ignoreOrderBy && !ValueUtils.isEmpty(query.getOrder())) {
 			buf.append(" order by");
 			int i = 0;
 			for (Order order : query.getOrder()) {
@@ -412,6 +416,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private void appendLock(StringBuffer buf, Lock lock) {
 		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))
 			return;
+		if (DBTYPE_DB2.equals(getDbType())) {
+			buf.append(" for read only with rs");
+			return;
+		}
 		buf.append(" for update");
 		int timeout = lock.getTimeout() == null ? defaultLockTimeout : lock.getTimeout();
 		if (timeout >= 0) {
@@ -449,35 +457,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 			StringBuffer buf = new StringBuffer();
 			int pageFromIndex = pagination ? pageIndex * pageSize : 0;
-			// Oracle
-			if (DBTYPE_ORACLE.equals(getDbType())) {
-				int fromIndex = pageFromIndex + firstResultIndex;
-				int toIndex = 0;
-				if (pageSize > 0) {
-					toIndex = pageFromIndex + pageSize;
-					if (maxResultSize > 0)
-						toIndex = Math.min(toIndex, fromIndex + maxResultSize);
-				} else if (maxResultSize > 0) {
-					toIndex = fromIndex + maxResultSize;
-				}
-				if (fromIndex > 0 && toIndex > 0) {
-					_paramMap.put("__fromIndex", fromIndex);
-					_paramMap.put("__toIndex", toIndex);
-					buf.append("select * from (select data.*, rownum rownum_ from (").append(sql)
-							.append(") data where rownum <= :__toIndex) where rownum_ > :__fromIndex");
-				} else if (fromIndex > 0) {
-					_paramMap.put("__fromIndex", fromIndex);
-					buf.append("select * from (").append(sql).append(") where rownum_ > :__fromIndex");
-				} else if (toIndex > 0) {
-					_paramMap.put("__toIndex", toIndex);
-					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex");
-				} else {
-					buf.append(sql);
-				}
-
-			}
-			// MySQL
-			else if (DBTYPE_MYSQL.equals(getDbType())) {
+			if (DBTYPE_PAGINATION_BYLIMIT_LIST.contains(getDbType())) {
 				buf.append(sql);
 				int offset = pageFromIndex + firstResultIndex;
 				long limit = 0;
@@ -490,13 +470,54 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				} else if (limit == 0) {
 					limit = Long.MAX_VALUE;
 				}
-				if (offset > 0 && limit > 0) {
-					_paramMap.put("__offset", offset);
-					_paramMap.put("__limit", limit);
-					buf.append(" limit :__offset, :__limit");
-				} else if (limit > 0) {
-					_paramMap.put("__limit", limit);
-					buf.append(" limit :__limit");
+				// MySQL
+				if (DBTYPE_MYSQL.equals(getDbType())) {
+					if (offset > 0 && limit > 0) {
+						_paramMap.put("__offset", offset);
+						_paramMap.put("__limit", limit);
+						buf.append(" limit :__offset, :__limit");
+					} else if (limit > 0) {
+						_paramMap.put("__limit", limit);
+						buf.append(" limit :__limit");
+					}
+				}
+				// DB2
+				else if (DBTYPE_DB2.equals(getDbType())) {
+					if (offset > 0 && limit > 0) {
+						_paramMap.put("__offset", offset);
+						_paramMap.put("__limit", limit);
+						buf.append("select * from (select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (").append(sql)
+								.append(" fetch first :__limit rows only) pagetbl_) pagetbl__ where rownumber_ > :__offset order by rownumber_");
+					} else if (limit > 0) {
+						_paramMap.put("__limit", limit);
+						buf.append(" fetch first :__limit rows only");
+					}
+				}
+			}
+			// Oracle
+			else if (DBTYPE_ORACLE.equals(getDbType())) {
+				int fromIndex = pageFromIndex + firstResultIndex;
+				int toIndex = 0;
+				if (pageSize > 0) {
+					toIndex = pageFromIndex + pageSize;
+					if (maxResultSize > 0)
+						toIndex = Math.min(toIndex, fromIndex + maxResultSize);
+				} else if (maxResultSize > 0) {
+					toIndex = fromIndex + maxResultSize;
+				}
+				if (fromIndex > 0 && toIndex > 0) {
+					_paramMap.put("__fromIndex", fromIndex);
+					_paramMap.put("__toIndex", toIndex);
+					buf.append("select * from (select pagetbl_.*, rownum rownum_ from (").append(sql)
+							.append(") pagetbl_ where rownum <= :__toIndex) where rownum_ > :__fromIndex");
+				} else if (fromIndex > 0) {
+					_paramMap.put("__fromIndex", fromIndex);
+					buf.append("select * from (").append(sql).append(") where rownum_ > :__fromIndex");
+				} else if (toIndex > 0) {
+					_paramMap.put("__toIndex", toIndex);
+					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex");
+				} else {
+					buf.append(sql);
 				}
 			}
 			if (subsql != null)
@@ -682,12 +703,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String DBFUNC_LOWERCASE_MYSQL = "lower";
 	private static final String DBFUNC_LOWERCASE_ORACLE = "lower";
 	private static final String DBFUNC_LOWERCASE_SQLSERVER = "lower";
+	private static final String DBFUNC_LOWERCASE_DB2 = "lcase";
 	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
 	static {
 		DBFUNC_LOWERCASE_MAP = new HashMap<String, String>();
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_MYSQL, DBFUNC_LOWERCASE_MYSQL);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_ORACLE, DBFUNC_LOWERCASE_ORACLE);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_SQLSERVER, DBFUNC_LOWERCASE_SQLSERVER);
+		DBFUNC_LOWERCASE_MAP.put(DBTYPE_DB2, DBFUNC_LOWERCASE_DB2);
 	}
 	@SuppressWarnings("unchecked")
 	private static final List<?> CASECHECK_TYPELIST = ValueUtils.toList(String.class, Character.class, char.class);

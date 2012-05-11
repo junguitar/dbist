@@ -20,7 +20,6 @@ import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import javax.script.SimpleBindings;
 
 import net.sf.common.util.ValueUtils;
 
@@ -43,8 +42,9 @@ public class ScriptPreprocessor implements Preprocessor, InitializingBean {
 	@Override
 	public String process(String value, Map<String, ?> contextMap) throws Exception {
 		ScriptEngine engine = engineFactory.getScriptEngine();
-		@SuppressWarnings("unchecked")
-		Bindings bindings = new SimpleBindings((Map<String, Object>) contextMap);
+		Bindings bindings = engine.createBindings();
+		if (contextMap != null)
+			bindings.putAll(contextMap);
 		Object result = engine.eval(value, bindings);
 		return ValueUtils.toString(result);
 	}

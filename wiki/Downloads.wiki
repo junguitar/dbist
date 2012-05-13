@@ -6,27 +6,32 @@
 
 Using Maven Configurations
 
-Version 1.0.9
-  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.9/dbist-1.0.9.jar dbist-1.0.9.jar]
-  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.9/dbist-admin-1.0.9.jar dbist-admin-1.0.9.jar]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.9/dbist-example-webapp-1.0.9.war dbist-example-1.0.9.war]
+Version 1.0.10
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.10/dbist-1.0.10.jar dbist-1.0.10.jar]
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.10/dbist-admin-1.0.10.jar dbist-admin-1.0.10.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.10/dbist-example-webapp-1.0.10.war dbist-example-1.0.10.war]
 
 {{{
 	<dependencies>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>1.0.9</version>
+			<version>1.0.10</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist-admin</artifactId>
-			<version>1.0.9</version>
+			<version>1.0.10</version>
 		</dependency>
 	</dependencies>
 }}}
 
 == Old Releases ==
+
+Version 1.0.9
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.9/dbist-1.0.9.jar dbist-1.0.9.jar]
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.9/dbist-admin-1.0.9.jar dbist-admin-1.0.9.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.9/dbist-example-webapp-1.0.9.war dbist-example-1.0.9.war]
 
 Version 1.0.8
   * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist/1.0.8/dbist-1.0.8.jar dbist-1.0.8.jar]

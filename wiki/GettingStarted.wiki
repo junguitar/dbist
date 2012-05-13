@@ -5,18 +5,18 @@
 == Introduction ==
 
 Welcome to be a Dbist! This framework is easy to use. It'll takes only a few minutes before you start DB programming, if you're already prepared to program a java application.<br><br>
-Dbist currently supports Oracle, SQLServer and MySQL, but it'll be extended to other DB types soon. (HSQL, DB2, ...)<br>
-If you're an oracle(sqlserver or mysql) user, you can start right now.<br>
+Dbist currently supports MySQL, Oracle, SQLServer and DB2.<br>
+If you're a user of one of these DBMS, you can start right now.<br>
 Let's begin...
 
 == Installation ==
 
 _Required_
-  # DBMS - Oracle 10g(or later), SQLServer2000(or later) or MySQL 5(or later)
+  # DBMS - MySQL 5(or later), Oracle 10g(or later), SQLServer2000(or later) or DB2 9(or later)
   # Tomcat 7 (or another WAS which supports Servlet 3.0)
 
 _Optional_
-  # Java SE JDK 6
+  # Java SE JDK 6 or later
   # Maven2 or later
   # Eclipse Indigo or later (IDE for Java EE Developers)
   # Eclipse Plugin - Maven Integration for Eclipse (from Eclipse Marketplace)
@@ -25,7 +25,7 @@ _Optional_
 
   # Create an Database to your DBMS (ex. dbist)
   # Run [ExampleSchema this script] to the Database 
-  # Download this [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.4/dbist-example-webapp-1.0.4.war dbist-example-webapp-1.0.4.war] file and modify the file name as "dbist-example.war"<br>(or check-out the example project from [http://dbist.googlecode.com/svn/tags/dbist-example-webapp-1.0.4/ the dbist SVN])
+  # Download this [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.10/dbist-example-webapp-1.0.10.war dbist-example-webapp-1.0.10.war] file and modify the file name as "dbist-example.war"<br>(or check-out the example project from [http://dbist.googlecode.com/svn/tags/dbist-example-webapp-1.0.10/ the dbist SVN])
   # Publish this example to your tomcat server
   # Check and modify [Manual#Configurations the config.properties](dbist-example/WEB-INF/config.properties) file
   # Run the tomcat server and browse [http://localhost:8080/dbist-example/dbistadmin this url] on a browser

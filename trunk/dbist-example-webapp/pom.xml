@@ -3,7 +3,7 @@
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-example-webapp</artifactId>
-	<version>1.0.10-SNAPSHOT</version>
+	<version>1.0.10</version>
 	<packaging>war</packaging>
 
 	<name>dbist-example-webapp</name>
@@ -134,12 +134,12 @@
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>1.0.10-SNAPSHOT</version>
+			<version>1.0.10</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist-admin</artifactId>
-			<version>1.0.10-SNAPSHOT</version>
+			<version>1.0.10</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
@@ -161,6 +161,12 @@
 			<artifactId>jtds</artifactId>
 			<version>1.2.4</version>
 		</dependency>
+		<!-- 
+		<dependency>
+			<groupId>com.ibm.db2</groupId>
+			<artifactId>db2jcc4</artifactId>
+			<version>9.7</version>
+		</dependency> -->
 	</dependencies>
 
 	<distributionManagement>

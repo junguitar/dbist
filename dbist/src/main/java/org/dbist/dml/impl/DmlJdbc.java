@@ -82,7 +82,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String DBTYPE_ORACLE = "oracle";
 	private static final String DBTYPE_SQLSERVER = "sqlserver";
 	private static final String DBTYPE_DB2 = "db2";
-	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER);
+	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER, DBTYPE_DB2);
 	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_DB2);
 	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_DB2);
 	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
@@ -109,6 +109,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			setDbType(metadata.getDatabaseProductName().toLowerCase());
 		if (getDbType().startsWith("microsoft sql server"))
 			setDbType(DBTYPE_SQLSERVER);
+		else if (getDbType().startsWith("db2/"))
+			setDbType(DBTYPE_DB2);
 		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()))
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
 		if (DBTYPE_SQLSERVER.equals(getDbType())) {
@@ -413,17 +415,19 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		appendLock(buf, query.getLock());
 	}
+
+	private static final List<String> DBTYPE_LOCKTIMEOUTSUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE, DBTYPE_DB2);
 	private void appendLock(StringBuffer buf, Lock lock) {
 		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))
 			return;
-		if (DBTYPE_DB2.equals(getDbType())) {
-			buf.append(" for read only with rs");
-			return;
-		}
+		//		if (DBTYPE_DB2.equals(getDbType())) {
+		//			buf.append(" for read only with rs");
+		//			return;
+		//		}
 		buf.append(" for update");
 		int timeout = lock.getTimeout() == null ? defaultLockTimeout : lock.getTimeout();
 		if (timeout >= 0) {
-			if (DBTYPE_ORACLE.equals(getDbType())) {
+			if (DBTYPE_LOCKTIMEOUTSUPPORTED_LIST.contains(getDbType())) {
 				timeout /= 1000;
 				if (timeout == 0)
 					buf.append(" nowait");
@@ -458,7 +462,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			StringBuffer buf = new StringBuffer();
 			int pageFromIndex = pagination ? pageIndex * pageSize : 0;
 			if (DBTYPE_PAGINATION_BYLIMIT_LIST.contains(getDbType())) {
-				buf.append(sql);
 				int offset = pageFromIndex + firstResultIndex;
 				long limit = 0;
 				if (pageSize > 0) {
@@ -472,6 +475,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				}
 				// MySQL
 				if (DBTYPE_MYSQL.equals(getDbType())) {
+					buf.append(sql);
 					if (offset > 0 && limit > 0) {
 						_paramMap.put("__offset", offset);
 						_paramMap.put("__limit", limit);
@@ -484,13 +488,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				// DB2
 				else if (DBTYPE_DB2.equals(getDbType())) {
 					if (offset > 0 && limit > 0) {
-						_paramMap.put("__offset", offset);
-						_paramMap.put("__limit", limit);
-						buf.append("select * from (select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (").append(sql)
-								.append(" fetch first :__limit rows only) pagetbl_) pagetbl__ where rownumber_ > :__offset order by rownumber_");
+						buf.append("select * from (select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (")
+								.append(sql)
+								.append(" fetch first " + (offset + limit) + " rows only) pagetbl_) pagetbl__ where rownumber_ > " + offset
+										+ " order by rownumber_");
 					} else if (limit > 0) {
+						buf.append(sql);
 						_paramMap.put("__limit", limit);
-						buf.append(" fetch first :__limit rows only");
+						buf.append(" fetch first " + limit + " rows only");
 					}
 				}
 			}
@@ -520,6 +525,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					buf.append(sql);
 				}
 			}
+
 			if (subsql != null)
 				buf.append(subsql);
 			return buf.toString();
@@ -1166,12 +1172,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
 	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_NUMBEROFTABLE_SQLSERVER = "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
+	private static final String QUERY_NUMBEROFTABLE_DB2 = "select count(*) from sysibm.systables where lcase(creator) = '${domain}' and type = 'T' and lcase(name) = ?";
 	private static final Map<String, String> QUERY_NUMBEROFTABLE_MAP;
 	static {
 		QUERY_NUMBEROFTABLE_MAP = new HashMap<String, String>();
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_MYSQL, QUERY_NUMBEROFTABLE_MYSQL);
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_ORACLE, QUERY_NUMBEROFTABLE_ORACLE);
 		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_NUMBEROFTABLE_SQLSERVER);
+		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_DB2, QUERY_NUMBEROFTABLE_DB2);
 	}
 
 	private static final String QUERY_PKCOLUMNS_MYSQL = "select lower(column_name) name from information_schema.key_column_usage"
@@ -1180,12 +1188,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			+ " where cons.constraint_name = conscol.constraint_name and cons.owner = conscol.owner and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
 	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
+	private static final String QUERY_PKCOLUMNS_DB2 = "select lcase(name) name from sysibm.syscolumns"
+			+ " where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
 	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;
 	static {
 		QUERY_PKCOLUMNS_MAP = new HashMap<String, String>();
 		QUERY_PKCOLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_PKCOLUMNS_MYSQL);
 		QUERY_PKCOLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_PKCOLUMNS_ORACLE);
 		QUERY_PKCOLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_PKCOLUMNS_SQLSERVER);
+		QUERY_PKCOLUMNS_MAP.put(DBTYPE_DB2, QUERY_PKCOLUMNS_DB2);
 	}
 
 	private static final String MSG_QUERYNOTFOUND = "Couldn't find ${queryName} query of dbType: ${dbType}. this type maybe unsupported yet.";
@@ -1237,12 +1248,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
+	private static final String QUERY_COLUMNS_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
 	private static final Map<String, String> QUERY_COLUMNS_MAP;
 	static {
 		QUERY_COLUMNS_MAP = new HashMap<String, String>();
 		QUERY_COLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_COLUMNS_MYSQL);
 		QUERY_COLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNS_ORACLE);
 		QUERY_COLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNS_SQLSERVER);
+		QUERY_COLUMNS_MAP.put(DBTYPE_DB2, QUERY_COLUMNS_DB2);
 	}
 	private List<TableColumn> getTableColumnList(Table table) {
 		String sql = QUERY_COLUMNS_MAP.get(getDbType());
@@ -1260,12 +1273,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
+	private static final String QUERY_COLUMN_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
 	private static final Map<String, String> QUERY_COLUMN_MAP;
 	static {
 		QUERY_COLUMN_MAP = new HashMap<String, String>();
 		QUERY_COLUMN_MAP.put(DBTYPE_MYSQL, QUERY_COLUMN_MYSQL);
 		QUERY_COLUMN_MAP.put(DBTYPE_ORACLE, QUERY_COLUMN_ORACLE);
 		QUERY_COLUMN_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMN_SQLSERVER);
+		QUERY_COLUMN_MAP.put(DBTYPE_DB2, QUERY_COLUMN_DB2);
 	}
 	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
 	private void addColumn(Table table, Field field) {

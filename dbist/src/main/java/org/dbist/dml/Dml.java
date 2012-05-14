@@ -52,7 +52,7 @@ public interface Dml {
 	 * But the selected data row will be locked during the current transaction scope.
 	 * 
 	 * @param data
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectWithLock(T data) throws Exception;
@@ -79,7 +79,7 @@ public interface Dml {
 	 * 
 	 * @param clazz
 	 * @param pkCondition
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception;
@@ -105,7 +105,7 @@ public interface Dml {
 	 * 
 	 * @param clazz
 	 * @param condition
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception;
@@ -119,7 +119,7 @@ public interface Dml {
 	 * @param tableName
 	 * @param pkCondition
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T select(String tableName, Object pkCondition, Class<T> requiredType) throws Exception;
@@ -131,7 +131,7 @@ public interface Dml {
 	 * @param tableName
 	 * @param pkCondition
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectWithLock(String tableName, Object pkCondition, Class<T> requiredType) throws Exception;
@@ -144,7 +144,7 @@ public interface Dml {
 	 * @param tableName
 	 * @param condition
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectByCondition(String tableName, Object condition, Class<T> requiredType) throws Exception;
@@ -156,7 +156,7 @@ public interface Dml {
 	 * @param tableName
 	 * @param condition
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectByConditionWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception;
@@ -169,7 +169,7 @@ public interface Dml {
 	 * @param ql
 	 * @param paramMap
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
@@ -184,7 +184,7 @@ public interface Dml {
 	 * @param qlPath
 	 * @param paramMap
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
@@ -196,7 +196,7 @@ public interface Dml {
 	 * @param sql
 	 * @param paramMap
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
@@ -210,7 +210,7 @@ public interface Dml {
 	 * @param sqlPath
 	 * @param paramMap
 	 * @param requiredType
-	 * @return
+	 * @return The data selected
 	 * @throws Exception
 	 */
 	<T> T selectBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception;
@@ -398,7 +398,7 @@ public interface Dml {
 	 * @param clazz
 	 * @param data
 	 * @param fieldNames
-	 * @return
+	 * @return The data updated
 	 * @throws Exception
 	 */
 	<T> T update(Class<T> clazz, Object data, String... fieldNames) throws Exception;
@@ -574,7 +574,7 @@ public interface Dml {
 	 * @param requiredType
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
+	 * @return The data list selected
 	 * @throws Exception
 	 */
 	<T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
@@ -594,7 +594,7 @@ public interface Dml {
 	 * @param requiredType
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
+	 * @return The data list selected
 	 * @throws Exception
 	 */
 	<T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
@@ -612,7 +612,7 @@ public interface Dml {
 	 * @param requiredType
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
+	 * @return The data list selected
 	 * @throws Exception
 	 */
 	<T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
@@ -630,7 +630,7 @@ public interface Dml {
 	 * @param requiredType
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
+	 * @return The data list selected
 	 * @throws Exception
 	 */
 	<T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
@@ -659,7 +659,7 @@ public interface Dml {
 	 * 
 	 * @param ql
 	 * @param paramMap
-	 * @return
+	 * @return The number of rows affected
 	 * @throws Exception
 	 */
 	int executeByQl(String ql, Map<String, ?> paramMap) throws Exception;
@@ -669,7 +669,7 @@ public interface Dml {
 	 * 
 	 * @param qlPath
 	 * @param paramMap
-	 * @return
+	 * @return The number of rows affected
 	 * @throws Exception
 	 */
 	int executeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception;
@@ -681,7 +681,7 @@ public interface Dml {
 	 * 
 	 * @param sql
 	 * @param paramMap
-	 * @return
+	 * @return The number of rows affected
 	 * @throws Exception
 	 */
 	int executeBySql(String sql, Map<String, ?> paramMap) throws Exception;

@@ -8,6 +8,14 @@
 
 == Easy SQL Query ==
 
+You can use user defined SQL queries by string or SQL files.<br>
+Dbist also supports some template engines, so you can make SQL queries with some control logics.<br>
+And you can define SQL queries differently by DB types.
+
+== Low DB Dependencies ==
+
+Dbist currently supports MySQL, Oracle, SQLServer, DB2.
+
 = Configurations =
 
   * config.properties
@@ -21,6 +29,7 @@
 || dataSource.password  || Database password ||
 || sqlAspect.enabled || Print SQL query at log ||
 || sqlAspect.prettyPrint || Print prettily formatted SQL query at log ||
+|| sqlAspect.combinedPrint || Print SQL query combined with parameters at log ||
 
   * beans.xml (springframework)
 
@@ -40,6 +49,7 @@
 	<bean id="sqlAspect" class="org.dbist.aspect.SqlAspect">
 		<property name="enabled" value="${sqlAspect.enabled}" />
 		<property name="prettyPrint" value="${sqlAspect.prettyPrint}" />
+		<property name="combinedPrint" value="${sqlAspect.combinedPrint}" />
 	</bean>
 
 	<!-- JDBC -->
@@ -162,25 +172,49 @@ Data data = dml.select(Data.class, query);
 
 === Select Data List ===
 
+{{{
+}}}
+
 === Select Data Size(Count) ==
+
+{{{
+}}}
 
 == How to Insert Data ==
 
 === Insert a Data ===
 
+{{{
+}}}
+
 === Insert Data List ===
+
+{{{
+}}}
 
 == How to Update Data ==
 
 === Update a Data ===
 
+{{{
+}}}
+
 === Insert Data List ===
+
+{{{
+}}}
 
 == How to Delete Data ==
 
 === Delete a Data ===
 
+{{{
+}}}
+
 === Delete Data List ===
+
+{{{
+}}}
 
 == How to use Query Class ==
 
@@ -237,6 +271,8 @@ query.addGroup("a", "b");
 List<Data> list = dml.selectList(Data.class, query);
 }}}
 
+=== Lock ===
+
 === Pagination ===
 
   * Page 1
@@ -250,6 +286,9 @@ select top 10 * from DATA
 
 // mysql
 select * from DATA limit 10
+
+// db2
+select * from DATA fetch first 10 rows only
 
 }}}
 
@@ -269,10 +308,10 @@ List<Data> list = dml.selectList(Data.class, query);
 {{{
 // oracle
 select * from (
-    select data.*, rownum rownum_ from (
+    select pagetbl_.*, rownum rownum_ from (
         select * from DATA
     ) 
-    data where rownum <= 10
+    pagetbl_ where rownum <= 10
 ) where rownum_ > 0
 
 // sqlserver
@@ -280,6 +319,14 @@ select top 20 * from DATA
 
 // mysql
 select * from DATA limit 10 : 10
+
+// db2
+select * from (
+	select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (
+		select * from DATA fetch first 20 rows only
+	) pagetbl_
+) pagetbl__ 
+where rownumber_ > 10 order by rownumber_
 }}}
 
 {{{
@@ -339,13 +386,49 @@ List<Data> list = selectListBySqlPath("org/dbist/sample/sql/select_data", null, 
 
 ==== Velocity Preprocessor ====
 
+==== Script Preprocessor ====
+
 = Annotations =
 
 == Table ==
 
+Table annotation is used to specify a mapped table for a class.<br>
+If no Table annotation is specified, the default values are applied.
+
+{{{
+	@Table(name = "comments")
+	public class Comment {
+		...
+	}
+
+	@Table(name = "users")
+	public class User {
+		...
+	}
+}}}
+
 == Column ==
 
+Column annotation is used to specify a mapped column for a field.<br>
+If no Column annotation is specified, the default values are applied.
+
+{{{
+@Column(name = "pwd", type = ColumnType.PASSWORD)
+private String password;
+
+@Column(type = ColumnType.TITLE)
+private String title;
+
+@Column(type = ColumnType.LISTED)
+private String author;
+
+@Column(type = ColumnType.TEXT)
+private String content;
+}}}
+
 == Ignore ==
+
+Ignore annotation ignores a field from DB column mapping.
 
 = Aspects =
 

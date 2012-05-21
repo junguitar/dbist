@@ -51,6 +51,10 @@ public abstract class AbstractDmlTest {
 				blog.setDescription("the 1");
 				dml.insert(blog);
 			}
+
+			Log log = new Log();
+			log.setText("sequence test.");
+			dml.insert(log);
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}

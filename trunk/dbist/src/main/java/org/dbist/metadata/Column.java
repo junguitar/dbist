@@ -30,6 +30,7 @@ public class Column {
 
 	private String name;
 	private boolean primaryKey;
+	private Sequence sequence;
 	private String dataType;
 	private String type;
 	private Field field;
@@ -46,6 +47,12 @@ public class Column {
 	}
 	public void setPrimaryKey(boolean primaryKey) {
 		this.primaryKey = primaryKey;
+	}
+	public Sequence getSequence() {
+		return sequence;
+	}
+	public void setSequence(Sequence sequence) {
+		this.sequence = sequence;
 	}
 	public String getDataType() {
 		return dataType;

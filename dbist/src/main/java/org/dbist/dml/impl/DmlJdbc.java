@@ -60,6 +60,7 @@ import org.dbist.dml.Query;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
+import org.dbist.metadata.Sequence;
 import org.dbist.metadata.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,10 +79,11 @@ import org.springframework.util.StringUtils;
 public class DmlJdbc extends AbstractDml implements Dml {
 	private static final Logger logger = LoggerFactory.getLogger(DmlJdbc.class);
 
-	private static final String DBTYPE_MYSQL = "mysql";
-	private static final String DBTYPE_ORACLE = "oracle";
-	private static final String DBTYPE_SQLSERVER = "sqlserver";
-	private static final String DBTYPE_DB2 = "db2";
+	private static final String DBTYPE_MYSQL = Table.DBTYPE_MYSQL;
+	private static final String DBTYPE_ORACLE = Table.DBTYPE_ORACLE;
+	private static final String DBTYPE_SQLSERVER = Table.DBTYPE_SQLSERVER;
+	private static final String DBTYPE_DB2 = Table.DBTYPE_DB2;
+
 	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER, DBTYPE_DB2);
 	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_DB2);
 	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_DB2);
@@ -1145,6 +1147,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					logger.debug("make table metadata by class: " + clazz.getName());
 				Table table = new Table();
 				table.setClazz(clazz);
+				table.setDbType(getDbType());
 
 				// Domain and Name
 				org.dbist.annotation.Table tableAnn = clazz.getAnnotation(org.dbist.annotation.Table.class);
@@ -1275,12 +1278,23 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
 	private static final String QUERY_COLUMN_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
 	private static final Map<String, String> QUERY_COLUMN_MAP;
+
+	// TODO Sequence
+	private static final String QUERY_SEQUENCE_MYSQL = "";
+	private static final String QUERY_SEQUENCE_ORACLE = "";
+	private static final String QUERY_SEQUENCE_SQLSERVER = "";
+	private static final String QUERY_SEQUENCE_DB2 = "";
+	private static final Map<String, String> QUERY_SEQUENCE_MAP;
+
 	static {
 		QUERY_COLUMN_MAP = new HashMap<String, String>();
 		QUERY_COLUMN_MAP.put(DBTYPE_MYSQL, QUERY_COLUMN_MYSQL);
 		QUERY_COLUMN_MAP.put(DBTYPE_ORACLE, QUERY_COLUMN_ORACLE);
 		QUERY_COLUMN_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMN_SQLSERVER);
 		QUERY_COLUMN_MAP.put(DBTYPE_DB2, QUERY_COLUMN_DB2);
+
+		// TODO Sequence
+		QUERY_SEQUENCE_MAP = new HashMap<String, String>();
 	}
 	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
 	private void addColumn(Table table, Field field) {
@@ -1337,6 +1351,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		column.setName(tabColumn.getName());
 		column.setPrimaryKey(table.getPkColumnNameList().contains(tabColumn.getName()));
 		column.setDataType(tabColumn.getDataType().toLowerCase());
+
+		// TODO Sequence
+		org.dbist.annotation.Sequence seqAnn = field.getAnnotation(org.dbist.annotation.Sequence.class);
+		if (seqAnn != null) {
+			Sequence seq = new Sequence();
+			column.setSequence(seq);
+			if (!ValueUtils.isEmpty(seqAnn.name()))
+				seq.setName(seqAnn.name().toLowerCase());
+			if (DBTYPE_SQLSERVER.equals(getDbType()) || DBTYPE_MYSQL.equals(getDbType())) {
+				seq.setAutoIncrement(true);
+			} else if (DBTYPE_DB2.equals(getDbType())) {
+				seq.setAutoIncrement(true);
+			}
+		}
 	}
 
 	static class TableColumnRowMapper implements RowMapper<TableColumn> {

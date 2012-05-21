@@ -30,6 +30,12 @@ import org.dbist.exception.DbistRuntimeException;
  * @since 2011. 7. 10 (version 0.0.1)
  */
 public class Table {
+	public static final String DBTYPE_MYSQL = "mysql";
+	public static final String DBTYPE_ORACLE = "oracle";
+	public static final String DBTYPE_SQLSERVER = "sqlserver";
+	public static final String DBTYPE_DB2 = "db2";
+
+	private String dbType;
 	private String domain;
 	private String name;
 	private Class<?> clazz;
@@ -38,10 +44,17 @@ public class Table {
 	private List<String> titleColumnNameList;
 	private List<String> listedColumnNameList;
 	private List<Column> columnList = new ArrayList<Column>();
+	private List<String> autoIncrementFieldNameList = new ArrayList<String>(0);
 	private String insertSql;
 	private String updateSql;
 	private String deleteSql;
 
+	public String getDbType() {
+		return dbType;
+	}
+	public void setDbType(String dbType) {
+		this.dbType = dbType;
+	}
 	public String getDomain() {
 		return domain;
 	}
@@ -91,25 +104,27 @@ public class Table {
 		synchronized (this) {
 			if (this.titleColumnNameList != null)
 				return;
-			List<String> titleColumnName = new ArrayList<String>(1);
-			listedColumnNameList = new ArrayList<String>(1);
+			List<String> titleColumnNameList = new ArrayList<String>(0);
+			listedColumnNameList = new ArrayList<String>(0);
 			String titleCandidate = null;
 			for (Column column : this.columnList) {
+				if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+					autoIncrementFieldNameList.add(column.getField().getName());
 				if (column.isTitle()) {
-					titleColumnName.add(column.getName());
+					titleColumnNameList.add(column.getName());
 				} else if (column.isListed()) {
 					listedColumnNameList.add(column.getName());
 				} else if (!column.isPrimaryKey() && titleCandidate == null) {
 					titleCandidate = column.getName();
 				}
 			}
-			if (titleColumnName.isEmpty() && titleCandidate != null)
-				titleColumnName.add(titleCandidate);
+			if (titleColumnNameList.isEmpty() && titleCandidate != null)
+				titleColumnNameList.add(titleCandidate);
 			List<String> pkFieldNameList = new ArrayList<String>();
 			for (String columnName : pkColumnNameList)
 				pkFieldNameList.add(toFieldName(columnName));
 			pkFieldNames = pkFieldNameList.toArray(new String[pkFieldNameList.size()]);
-			this.titleColumnNameList = titleColumnName;
+			this.titleColumnNameList = titleColumnNameList;
 		}
 	}
 	public List<Column> getColumnList() {
@@ -175,12 +190,25 @@ public class Table {
 					return insertSql;
 				StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
 				int i = 0;
-				for (Column column : getColumnList())
+				for (Column column : getColumnList()) {
+					if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+						continue;
 					buf.append(i++ == 0 ? "" : ", ").append(column.getName());
+				}
 				buf.append(") values(");
 				i = 0;
-				for (Column column : getColumnList())
+				for (Column column : getColumnList()) {
+					if (column.getSequence() != null) {
+						if (column.getSequence().isAutoIncrement())
+							continue;
+						if (!ValueUtils.isEmpty(column.getSequence().getName())) {
+							buf.append(i++ == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName())
+									.append(".nextval");
+							continue;
+						}
+					}
 					buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
+				}
 				buf.append(")");
 				insertSql = buf.toString();
 			}
@@ -197,16 +225,27 @@ public class Table {
 			Column column = getColumnByFieldName(fieldName);
 			if (column == null)
 				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
+			if (autoIncrementFieldNameList.contains(fieldName))
+				continue;
 			buf.append(i++ == 0 ? "" : ", ").append(column.getName());
 		}
-		for (String fieldName : pkFieldNameList)
+		for (String fieldName : pkFieldNameList) {
+			if (autoIncrementFieldNameList.contains(fieldName))
+				continue;
 			buf.append(i++ == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
+		}
 		buf.append(") values(");
 		i = 0;
-		for (String fieldName : fieldNames)
+		for (String fieldName : fieldNames) {
+			if (autoIncrementFieldNameList.contains(fieldName))
+				continue;
 			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
-		for (String fieldName : pkFieldNameList)
+		}
+		for (String fieldName : pkFieldNameList) {
+			if (autoIncrementFieldNameList.contains(fieldName))
+				continue;
 			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
+		}
 		buf.append(")");
 		return buf.toString();
 	}

@@ -10,7 +10,7 @@ CREATE TABLE `users` (
 	`last_name`  varchar(100),
 	`email`      varchar(100),
 	PRIMARY KEY (`username`)
-)
+);
 
 CREATE TABLE `blog` (
 	`id`          varchar(100) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE `blog` (
 	`created_at`  date,
 	`updated_at`  date,
 	PRIMARY KEY (`id`)
-)
+);
 
 CREATE TABLE `comments` (
 	`id`         varchar(100) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE `comments` (
 	`created_at` date,
 	`content`    varchar(1000),
 	PRIMARY KEY (`id`)
-)
+);
 
 CREATE TABLE `post` (
 	`id`         varchar(100) NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE `post` (
 	`updated_at` date,
 	`content`    text,
 	PRIMARY KEY (`id`)
-)
+);
 }}}
 
 === Oracle ===
@@ -53,7 +53,7 @@ CREATE TABLE "USERS" (
 	"LAST_NAME"  VARCHAR2(100 CHAR),
 	"EMAIL"      VARCHAR2(100 CHAR),
 	PRIMARY KEY ("USERNAME")
-)
+);
 
 CREATE TABLE "BLOG" (
 	"ID"          VARCHAR2(100 CHAR) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE "BLOG" (
 	"CREATED_AT"  DATE,
 	"UPDATED_AT"  DATE,
 	PRIMARY KEY ("ID")
-)
+);
 
 CREATE TABLE "POST" (
 	"ID"         VARCHAR2(100 CHAR) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE "POST" (
 	"UPDATED_AT" DATE,
 	"CONTENT"    CLOB,
 	PRIMARY KEY ("ID")
-)
+);
 
 CREATE TABLE "COMMENTS" (
 	"ID"         VARCHAR2(100 CHAR) NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE "COMMENTS" (
 	"CREATED_AT" DATE,
 	"CONTENT"    VARCHAR2(1000 CHAR),
 	PRIMARY KEY ("ID")
-)
+);
 }}}
 
 === SQL Server ===
@@ -96,7 +96,7 @@ CREATE TABLE [USERS] (
 	[last_name]  [varchar](100),
 	[email]      [varchar](100),
 	PRIMARY KEY ([username])
-)
+);
 
 CREATE TABLE [BLOG] (
 	[id]          [varchar](100) NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE [BLOG] (
 	[created_at]  [datetime],
 	[updated_at]  [datetime],
 	PRIMARY KEY ([id])
-)
+);
 
 CREATE TABLE [POST] (
 	[id]         [varchar](100) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE [POST] (
 	[updated_at] [datetime],
 	[content]    [text],
 	PRIMARY KEY ([id])
-)
+);
 
 CREATE TABLE [COMMENTS] (
 	[id]         [varchar](100) NOT NULL,
@@ -126,5 +126,48 @@ CREATE TABLE [COMMENTS] (
 	[created_at] [datetime],
 	[content]    [varchar](1000),
 	PRIMARY KEY ([id])
-)
+);
+}}}
+
+=== DB2 ===
+
+{{{
+CREATE TABLE "USERS" (
+	"USERNAME"   VARCHAR(100) NOT NULL,
+	"PWD"        VARCHAR(100),
+	"FIRST_NAME" VARCHAR(100),
+	"LAST_NAME"  VARCHAR(100),
+	"EMAIL"      VARCHAR(100),
+	PRIMARY KEY ("USERNAME")
+);
+
+CREATE TABLE "BLOG" (
+	"ID"          VARCHAR(100) NOT NULL,
+	"NAME"        VARCHAR(100),
+	"DESCRIPTION" VARCHAR(200),
+	"OWNER"       VARCHAR(100),
+	"CREATED_AT"  DATE,
+	"UPDATED_AT"  DATE,
+	PRIMARY KEY ("ID")
+);
+
+CREATE TABLE "POST" (
+	"ID"         VARCHAR(100) NOT NULL,
+	"BLOG_ID"    VARCHAR(100),
+	"TITLE"      VARCHAR(200),
+	"AUTHOR"     VARCHAR(100),
+	"CREATED_AT" DATE,
+	"UPDATED_AT" DATE,
+	"CONTENT"    CLOB,
+	PRIMARY KEY ("ID")
+);
+
+CREATE TABLE "COMMENTS" (
+	"ID"         VARCHAR(100) NOT NULL,
+	"POST_ID"    VARCHAR(100),
+	"AUTHOR"     VARCHAR(100),
+	"CREATED_AT" DATE,
+	"CONTENT"    VARCHAR(1000),
+	PRIMARY KEY ("ID")
+);
 }}}

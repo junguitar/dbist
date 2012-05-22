@@ -44,7 +44,6 @@ public class Table {
 	private List<String> titleColumnNameList;
 	private List<String> listedColumnNameList;
 	private List<Column> columnList = new ArrayList<Column>();
-	private List<String> autoIncrementFieldNameList = new ArrayList<String>(0);
 	private String insertSql;
 	private String updateSql;
 	private String deleteSql;
@@ -108,8 +107,6 @@ public class Table {
 			listedColumnNameList = new ArrayList<String>(0);
 			String titleCandidate = null;
 			for (Column column : this.columnList) {
-				if (column.getSequence() != null && column.getSequence().isAutoIncrement())
-					autoIncrementFieldNameList.add(column.getField().getName());
 				if (column.isTitle()) {
 					titleColumnNameList.add(column.getName());
 				} else if (column.isListed()) {
@@ -189,27 +186,23 @@ public class Table {
 				if (insertSql != null)
 					return insertSql;
 				StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+				StringBuffer valuesBuf = new StringBuffer(" values(");
 				int i = 0;
 				for (Column column : getColumnList()) {
 					if (column.getSequence() != null && column.getSequence().isAutoIncrement())
 						continue;
-					buf.append(i++ == 0 ? "" : ", ").append(column.getName());
-				}
-				buf.append(") values(");
-				i = 0;
-				for (Column column : getColumnList()) {
-					if (column.getSequence() != null) {
-						if (column.getSequence().isAutoIncrement())
-							continue;
-						if (!ValueUtils.isEmpty(column.getSequence().getName())) {
-							buf.append(i++ == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName())
-									.append(".nextval");
-							continue;
-						}
-					}
-					buf.append(i++ == 0 ? ":" : ", :").append(column.getField().getName());
+					buf.append(i == 0 ? "" : ", ").append(column.getName());
+					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+						valuesBuf.append(i == 0 ? ":" : ", :").append(column.getField().getName());
+					else
+						valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName())
+								.append(".nextval");
+					i++;
 				}
 				buf.append(")");
+				valuesBuf.append(")");
+				buf.append(valuesBuf);
+
 				insertSql = buf.toString();
 			}
 			return insertSql;
@@ -217,36 +210,39 @@ public class Table {
 
 		// Insert some fields
 		StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+		StringBuffer valuesBuf = new StringBuffer(" values(");
 		int i = 0;
 		List<String> pkFieldNameList = ValueUtils.toList(getPkFieldNames());
+		for (String fieldName : pkFieldNameList) {
+			Column column = getColumnByFieldName(fieldName);
+			if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+				continue;
+			buf.append(i == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
+			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
+			else
+				valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName()).append(".nextval");
+			i++;
+		}
 		for (String fieldName : fieldNames) {
 			if (pkFieldNameList.contains(fieldName))
-				pkFieldNameList.remove(fieldName);
+				continue;
 			Column column = getColumnByFieldName(fieldName);
 			if (column == null)
 				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
-			if (autoIncrementFieldNameList.contains(fieldName))
+			if (column.getSequence() != null && column.getSequence().isAutoIncrement())
 				continue;
-			buf.append(i++ == 0 ? "" : ", ").append(column.getName());
-		}
-		for (String fieldName : pkFieldNameList) {
-			if (autoIncrementFieldNameList.contains(fieldName))
-				continue;
-			buf.append(i++ == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
-		}
-		buf.append(") values(");
-		i = 0;
-		for (String fieldName : fieldNames) {
-			if (autoIncrementFieldNameList.contains(fieldName))
-				continue;
-			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
-		}
-		for (String fieldName : pkFieldNameList) {
-			if (autoIncrementFieldNameList.contains(fieldName))
-				continue;
-			buf.append(i++ == 0 ? ":" : ", :").append(fieldName);
+			buf.append(i == 0 ? "" : ", ").append(column.getName());
+			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
+			else
+				valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName()).append(".nextval");
+			i++;
 		}
 		buf.append(")");
+		valuesBuf.append(")");
+		buf.append(valuesBuf);
+
 		return buf.toString();
 	}
 

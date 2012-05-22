@@ -51,10 +51,15 @@ public abstract class AbstractDmlTest {
 				blog.setDescription("the 1");
 				dml.insert(blog);
 			}
+			if (dml.select(Blog.class, "2") == null) {
+				blog.setId("2");
+				dml.insert(blog, "id", "name");
+			}
 
 			Log log = new Log();
 			log.setText("sequence test.");
 			dml.insert(log);
+			dml.insert(log, "text");
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -63,7 +68,10 @@ public abstract class AbstractDmlTest {
 	public static void afterClass() {
 		try {
 			dml.delete(Blog.class, "1");
+			dml.delete(Blog.class, "2");
+			dml.deleteList(Log.class, new Query());
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

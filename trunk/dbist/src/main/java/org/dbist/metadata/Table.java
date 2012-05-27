@@ -195,8 +195,8 @@ public class Table {
 					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 						valuesBuf.append(i == 0 ? ":" : ", :").append(column.getField().getName());
 					else
-						valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName())
-								.append(".nextval");
+						valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
+								.append(column.getSequence().getName()).append(".nextval");
 					i++;
 				}
 				buf.append(")");
@@ -221,7 +221,8 @@ public class Table {
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName()).append(".nextval");
+				valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
+						.append(column.getSequence().getName()).append(".nextval");
 			i++;
 		}
 		for (String fieldName : fieldNames) {
@@ -236,7 +237,8 @@ public class Table {
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(getDomain()).append(".").append(column.getSequence().getName()).append(".nextval");
+				valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
+						.append(column.getSequence().getName()).append(".nextval");
 			i++;
 		}
 		buf.append(")");

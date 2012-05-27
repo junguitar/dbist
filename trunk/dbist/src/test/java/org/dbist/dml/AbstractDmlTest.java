@@ -38,7 +38,7 @@ public abstract class AbstractDmlTest {
 	protected static Dml dml;
 
 	@Before
-	public void beforeTest() {
+	public void beforeTest() throws Exception {
 		if (dml == null)
 			dml = getDml();
 		try {
@@ -55,14 +55,14 @@ public abstract class AbstractDmlTest {
 				blog.setId("2");
 				dml.insert(blog, "id", "name");
 			}
-
-			Log log = new Log();
-			log.setText("sequence test.");
-			dml.insert(log);
-			dml.insert(log, "text");
 		} catch (Exception e) {
 			logger.warn(e.getMessage(), e);
 		}
+
+		Log log = new Log();
+		log.setText("sequence test.");
+		dml.insert(log);
+		dml.insert(log, "text");
 	}
 	@AfterClass
 	public static void afterClass() {

@@ -58,8 +58,21 @@ public class DbistTest {
 	}
 
 	@Test
-	public final void testQuery() throws Exception {
+	public final void testVelocity() throws Exception {
 		String query = FileUtils.readFileToString(ResourceUtils.getFile("classpath:org/dbist/query.vm"));
+
+		StringWriter writer = new StringWriter();
+		VelocityContext vc = new VelocityContext();
+		vc.put("name", "junguitar");
+		vc.put("name1", "junguitar");
+		Velocity.evaluate(vc, writer, query, query);
+
+		System.out.println(writer);
+	}
+
+	@Test
+	public final void testGroovy() throws Exception {
+		String query = FileUtils.readFileToString(ResourceUtils.getFile("classpath:org/dbist/query.groovy"));
 
 		StringWriter writer = new StringWriter();
 		VelocityContext vc = new VelocityContext();

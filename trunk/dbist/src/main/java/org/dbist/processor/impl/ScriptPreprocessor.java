@@ -33,6 +33,9 @@ import org.springframework.util.Assert;
  */
 public class ScriptPreprocessor implements Preprocessor, InitializingBean {
 	private ScriptEngineFactory engineFactory;
+	public void setEngineFactory(ScriptEngineFactory engineFactory) {
+		this.engineFactory = engineFactory;
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {

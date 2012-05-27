@@ -20,8 +20,15 @@ package org.dbist.metadata;
  * @since 2012. 5. 22. (version 1.0.11)
  */
 public class Sequence {
+	private String domain;
 	private String name;
 	private boolean autoIncrement;
+	public String getDomain() {
+		return domain;
+	}
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
 	public String getName() {
 		return name;
 	}

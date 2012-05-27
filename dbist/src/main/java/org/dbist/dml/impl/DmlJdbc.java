@@ -1272,6 +1272,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return jdbcOperations.query(sql, new Object[] { tableName }, TABLECOLUMN_ROWMAPPER);
 	}
 
+	// Column
 	private static final String QUERY_COLUMN_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
@@ -1279,11 +1280,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final String QUERY_COLUMN_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
 	private static final Map<String, String> QUERY_COLUMN_MAP;
 
-	// TODO Sequence
+	// Identity
+	private static final String QUERY_IDENTITY_MYSQL = "";
+	private static final String QUERY_IDENTITY_ORACLE = "";
+	private static final String QUERY_IDENTITY_SQLSERVER = "";
+	private static final String QUERY_IDENTITY_DB2 = "select count(*) from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ? and identity = 'Y'";
+	private static final Map<String, String> QUERY_IDENTITY_MAP;
+
+	// Sequence
 	private static final String QUERY_SEQUENCE_MYSQL = "";
-	private static final String QUERY_SEQUENCE_ORACLE = "";
+	private static final String QUERY_SEQUENCE_ORACLE = "select count(*) from all_sequences where lower(sequence_owner) = '${domain}' and lower(sequence_name) = ?";
 	private static final String QUERY_SEQUENCE_SQLSERVER = "";
-	private static final String QUERY_SEQUENCE_DB2 = "";
+	private static final String QUERY_SEQUENCE_DB2 = "select count(*) from sysibm.syssequences where lcase(seqschema) = '${domain}' and lcase(seqname) = ?";
 	private static final Map<String, String> QUERY_SEQUENCE_MAP;
 
 	static {
@@ -1293,8 +1301,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		QUERY_COLUMN_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMN_SQLSERVER);
 		QUERY_COLUMN_MAP.put(DBTYPE_DB2, QUERY_COLUMN_DB2);
 
-		// TODO Sequence
+		QUERY_IDENTITY_MAP = new HashMap<String, String>();
+		QUERY_IDENTITY_MAP.put(DBTYPE_MYSQL, QUERY_IDENTITY_MYSQL);
+		QUERY_IDENTITY_MAP.put(DBTYPE_ORACLE, QUERY_IDENTITY_ORACLE);
+		QUERY_IDENTITY_MAP.put(DBTYPE_SQLSERVER, QUERY_IDENTITY_SQLSERVER);
+		QUERY_IDENTITY_MAP.put(DBTYPE_DB2, QUERY_IDENTITY_DB2);
+
 		QUERY_SEQUENCE_MAP = new HashMap<String, String>();
+		QUERY_SEQUENCE_MAP.put(DBTYPE_MYSQL, QUERY_SEQUENCE_MYSQL);
+		QUERY_SEQUENCE_MAP.put(DBTYPE_ORACLE, QUERY_SEQUENCE_ORACLE);
+		QUERY_SEQUENCE_MAP.put(DBTYPE_SQLSERVER, QUERY_SEQUENCE_SQLSERVER);
+		QUERY_SEQUENCE_MAP.put(DBTYPE_DB2, QUERY_SEQUENCE_DB2);
 	}
 	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
 	private void addColumn(Table table, Field field) {
@@ -1302,67 +1319,100 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ignoreAnn != null)
 			return;
 
-		String sql = QUERY_COLUMN_MAP.get(getDbType());
-		if (sql == null)
-			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
-					ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
-		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
-
 		String tableName = table.getName();
 
 		Column column = table.addColumn(new Column());
 		column.setField(field);
 		column.setGetter(ReflectionUtils.getGetter(table.getClazz(), field.getName(), field.getType()));
 		column.setSetter(ReflectionUtils.getSetter(table.getClazz(), field.getName(), field.getType()));
-		org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
-		TableColumn tabColumn = null;
 
-		if (columnAnn != null) {
-			if (!ValueUtils.isEmpty(columnAnn.name())) {
-				try {
-					tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnAnn.name());
-				} catch (EmptyResultDataAccessException e) {
+		// Column
+		{
+			String sql = QUERY_COLUMN_MAP.get(getDbType());
+			if (sql == null)
+				throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
+						ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
+			sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+			org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
+			TableColumn tabColumn = null;
+
+			if (columnAnn != null) {
+				if (!ValueUtils.isEmpty(columnAnn.name())) {
+					try {
+						tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnAnn.name());
+					} catch (EmptyResultDataAccessException e) {
+						throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
+								ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableName)));
+					}
+				}
+				column.setType(ValueUtils.toNull(columnAnn.type().value()));
+			}
+			if (tabColumn == null) {
+				String[] columnNameCandidates = new String[] { ValueUtils.toDelimited(field.getName(), '_').toLowerCase(),
+						ValueUtils.toDelimited(field.getName(), '_', true).toLowerCase(), field.getName().toLowerCase() };
+				Set<String> checkedSet = new HashSet<String>();
+				for (String columnName : columnNameCandidates) {
+					if (checkedSet.contains(columnName))
+						continue;
+					try {
+						tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnName);
+					} catch (EmptyResultDataAccessException e) {
+						checkedSet.add(columnName);
+						continue;
+					}
+					break;
+				}
+				if (tabColumn == null)
 					throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
-							ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableName)));
-				}
+							ValueUtils.toMap("column:" + mapOr(columnNameCandidates), "table:" + table.getDomain() + "." + tableName)));
 			}
-			column.setType(ValueUtils.toNull(columnAnn.type().value()));
-		}
-		if (tabColumn == null) {
-			String[] columnNameCandidates = new String[] { ValueUtils.toDelimited(field.getName(), '_').toLowerCase(),
-					ValueUtils.toDelimited(field.getName(), '_', true).toLowerCase(), field.getName().toLowerCase() };
-			Set<String> checkedSet = new HashSet<String>();
-			for (String columnName : columnNameCandidates) {
-				if (checkedSet.contains(columnName))
-					continue;
-				try {
-					tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnName);
-				} catch (EmptyResultDataAccessException e) {
-					checkedSet.add(columnName);
-					continue;
-				}
-				break;
-			}
-			if (tabColumn == null)
-				throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
-						ValueUtils.toMap("column:" + mapOr(columnNameCandidates), "table:" + table.getDomain() + "." + tableName)));
+
+			column.setName(tabColumn.getName());
+			column.setPrimaryKey(table.getPkColumnNameList().contains(tabColumn.getName()));
+			column.setDataType(tabColumn.getDataType().toLowerCase());
 		}
 
-		column.setName(tabColumn.getName());
-		column.setPrimaryKey(table.getPkColumnNameList().contains(tabColumn.getName()));
-		column.setDataType(tabColumn.getDataType().toLowerCase());
-
-		// TODO Sequence
+		// Identity / Sequence
 		org.dbist.annotation.Sequence seqAnn = field.getAnnotation(org.dbist.annotation.Sequence.class);
 		if (seqAnn != null) {
 			Sequence seq = new Sequence();
 			column.setSequence(seq);
-			if (!ValueUtils.isEmpty(seqAnn.name()))
-				seq.setName(seqAnn.name().toLowerCase());
-			if (DBTYPE_SQLSERVER.equals(getDbType()) || DBTYPE_MYSQL.equals(getDbType())) {
-				seq.setAutoIncrement(true);
-			} else if (DBTYPE_DB2.equals(getDbType())) {
-				seq.setAutoIncrement(true);
+
+			{
+				String sql = QUERY_IDENTITY_MAP.get(getDbType());
+				if (!ValueUtils.isEmpty(sql)) {
+					sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+					if (jdbcOperations.queryForInt(sql, table.getName(), column.getName()) > 0)
+						seq.setAutoIncrement(true);
+				}
+			}
+
+			if (!seq.isAutoIncrement() && !ValueUtils.isEmpty(seqAnn.name())) {
+				String sql = QUERY_SEQUENCE_MAP.get(getDbType());
+				if (ValueUtils.isEmpty(sql)) {
+					seq.setAutoIncrement(true);
+				} else {
+					List<String> domainNameList = ValueUtils.isEmpty(seqAnn.domain()) ? this.domainList : ValueUtils.toList(seqAnn.domain());
+					String name = seqAnn.name().toLowerCase();
+
+					boolean populated = false;
+					for (String domainName : domainNameList) {
+						domainName = domainName.toLowerCase();
+						String _sql = StringUtils.replace(sql, "${domain}", domainName);
+						if (jdbcOperations.queryForInt(_sql, name) > 0) {
+							seq.setDomain(domainName);
+							seq.setName(name);
+							populated = true;
+							break;
+						}
+					}
+
+					if (!populated) {
+						String errMsg = "Couldn't find sequence[${sequence}] from this(these) domain(s)[${domain}]";
+						throw new IllegalArgumentException(ValueUtils.populate(errMsg,
+								ValueUtils.toMap("domain:" + mapOr(domainNameList), "sequence:" + name)));
+					}
+				}
 			}
 		}
 	}

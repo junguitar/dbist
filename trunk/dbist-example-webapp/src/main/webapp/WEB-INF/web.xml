@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
-	id="dbist-example-webapp" version="3.0">
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="dbist-example-webapp" version="3.0">
 	<display-name>dbist-example-webapp</display-name>
 	<context-param>
 		<param-name>webAppRootKey</param-name>
@@ -13,6 +12,8 @@
 		<welcome-file>index.htm</welcome-file>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
+
+	<distributable />
 
 	<context-param>
 		<param-name>log4jConfigLocation</param-name>

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.Assert;
+import net.sf.common.util.ValueUtils;
 
 import org.dbist.exception.DbistRuntimeException;
 import org.junit.AfterClass;
@@ -83,6 +84,14 @@ public abstract class AbstractDmlTest {
 		{
 			dml.select(Blog.class, "1");
 			dml.selectWithLock(Blog.class, "1");
+		}
+		logger.info("case " + i++ + ": select by sql to Map");
+		{
+			@SuppressWarnings("unchecked")
+			Map<String, Object> data = (Map<String, Object>) dml.selectBySql("select id iD2 from blog where id = '1'", ValueUtils.toMap("id:1"),
+					Map.class);
+			for (String column : data.keySet())
+				Assert.assertEquals("ID2", column);
 		}
 
 		logger.info("case " + i++ + ": select by data object");

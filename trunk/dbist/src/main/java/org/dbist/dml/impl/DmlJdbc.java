@@ -79,6 +79,13 @@ import org.springframework.util.StringUtils;
 public class DmlJdbc extends AbstractDml implements Dml {
 	private static final Logger logger = LoggerFactory.getLogger(DmlJdbc.class);
 
+	public static final String COLUMNALIASRULE_DEFAULT = "default";
+	public static final String COLUMNALIASRULE_UPPERCASE = "uppercase";
+	public static final String COLUMNALIASRULE_LOWERCASE = "lowercase";
+	public static final String COLUMNALIASRULE_CAMELCASE = "camelcase";
+	private static final List<String> COLUMNALIASRULE_LIST = ValueUtils.toList(COLUMNALIASRULE_DEFAULT, COLUMNALIASRULE_UPPERCASE,
+			COLUMNALIASRULE_LOWERCASE, COLUMNALIASRULE_CAMELCASE);
+
 	private static final String DBTYPE_MYSQL = Table.DBTYPE_MYSQL;
 	private static final String DBTYPE_ORACLE = Table.DBTYPE_ORACLE;
 	private static final String DBTYPE_SQLSERVER = Table.DBTYPE_SQLSERVER;
@@ -91,6 +98,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
+	private String columnAliasRuleForMapKey;
+	private int columnAliasRule;
 	private DataSource dataSource;
 	private JdbcOperations jdbcOperations;
 	private NamedParameterJdbcOperations namedParameterJdbcOperations;
@@ -106,6 +115,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotEmpty("dataSource", getDataSource());
 		ValueUtils.assertNotEmpty("jdbcOperations", getJdbcOperations());
 		ValueUtils.assertNotEmpty("namedParameterJdbcOperations", getNamedParameterJdbcOperations());
+
 		DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
 		if (ValueUtils.isEmpty(getDbType()))
 			setDbType(metadata.getDatabaseProductName().toLowerCase());
@@ -115,6 +125,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			setDbType(DBTYPE_DB2);
 		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()))
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
+
 		if (DBTYPE_SQLSERVER.equals(getDbType())) {
 			List<String> domainList = new ArrayList<String>(this.domainList.size());
 			for (String domain : this.domainList) {
@@ -124,6 +135,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 			this.domainList = domainList;
 		}
+
+		if (ValueUtils.isEmpty(columnAliasRuleForMapKey))
+			columnAliasRuleForMapKey = COLUMNALIASRULE_DEFAULT;
+		else if (!COLUMNALIASRULE_LIST.contains(columnAliasRuleForMapKey))
+			throw new IllegalArgumentException("Unsupported columnAliasRule: ");
+		columnAliasRule = COLUMNALIASRULE_LIST.indexOf(columnAliasRuleForMapKey);
+
 		if (maxSqlByPathCacheSize > 0)
 			sqlByPathCache = Collections.synchronizedMap(new LRUMap(maxSqlByPathCacheSize));
 		if (debug)
@@ -496,7 +514,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 										+ " order by rownumber_");
 					} else if (limit > 0) {
 						buf.append(sql);
-						_paramMap.put("__limit", limit);
 						buf.append(" fetch first " + limit + " rows only");
 					}
 				}
@@ -629,13 +646,30 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			Map<String, Object> map = (Map<String, Object>) data;
 			for (int i = 0; i < metadata.getColumnCount();) {
 				i++;
-				String name = metadata.getColumnName(i);
+				String name = metadata.getColumnLabel(i);
+				switch (columnAliasRule) {
+				case 0: {
+					break;
+				}
+				case 1: {
+					name = name.toUpperCase();
+					break;
+				}
+				case 2: {
+					name = name.toLowerCase();
+					break;
+				}
+				case 3: {
+					name = ValueUtils.toCamelCase(name, '_');
+					break;
+				}
+				}
 				map.put(name, toRequiredType(rs, i, null));
 			}
 		} else {
 			for (int i = 0; i < metadata.getColumnCount();) {
 				i++;
-				String name = metadata.getColumnName(i);
+				String name = metadata.getColumnLabel(i);
 				Field field = null;
 				if (fieldCache.containsKey(name)) {
 					field = fieldCache.get(name);
@@ -1027,6 +1061,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 		for (String d : StringUtils.tokenizeToStringArray(domain, ","))
 			domainList.add(d);
+	}
+	public String getColumnAliasRuleForMapKey() {
+		return columnAliasRuleForMapKey;
+	}
+	public void setColumnAliasRuleForMapKey(String columnAliasRuleForMapKey) {
+		this.columnAliasRuleForMapKey = columnAliasRuleForMapKey;
 	}
 	public DataSource getDataSource() {
 		return dataSource;

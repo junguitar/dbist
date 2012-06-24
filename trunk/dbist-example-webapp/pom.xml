@@ -3,7 +3,7 @@
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-example-webapp</artifactId>
-	<version>1.0.11</version>
+	<version>1.0.12-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<name>dbist-example-webapp</name>

@@ -171,8 +171,14 @@ public abstract class AbstractDmlTest {
 		{
 			for (Blog data : dml.selectList(Blog.class, new Query(0, 10)))
 				logger.debug("selected data: " + data.getId());
-			for (Blog data : dml.selectListWithLock(Blog.class, new Query(0, 10)))
+			for (Blog data : dml.selectListWithLock(Blog.class, new Query()))
 				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, new Query(0, 10)))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
 			for (Blog data : dml.selectList(Blog.class, new Query(1, 10)))
 				logger.debug("selected data: " + data.getId());
 			try {
@@ -192,8 +198,45 @@ public abstract class AbstractDmlTest {
 			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
 			for (Blog data : dml.selectList(Blog.class, query))
 				logger.debug("selected data: " + data.getId());
+			query.setPageSize(0);
 			for (Blog data : dml.selectListWithLock(Blog.class, query))
 				logger.debug("selected data: " + data.getId());
+			try {
+				query.setPageSize(10);
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+			query.setPageIndex(1);
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+		}
+
+		logger.info("case " + i++ + ": select list by subfilters only");
+		{
+			Query query = new Query("or", 0, 10);
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			query.setPageSize(0);
+			for (Blog data : dml.selectListWithLock(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			query.setPageSize(10);
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
 			query.setPageIndex(1);
 			for (Blog data : dml.selectList(Blog.class, query))
 				logger.debug("selected data: " + data.getId());

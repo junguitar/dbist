@@ -356,8 +356,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		final Table table = getTable(clazz);
 		final Query query = toQuery(table, condition);
 		Lock lockObj = query.getLock();
-		if (query.getPageIndex() > 0 && (lock || lockObj != null))
-			throw new DbistRuntimeException("Cannot select with lock when the pageIndex is not 0 (class: " + clazz + ")");
+		if ((lock || lockObj != null) && query.getPageIndex() >= 0 && query.getPageSize() > 0)
+			throw new DbistRuntimeException("Cannot select with lock and pagination at the same time. (class: " + clazz + ")");
 
 		StringBuffer buf = new StringBuffer();
 		@SuppressWarnings("unchecked")
@@ -854,7 +854,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		if (!ValueUtils.isEmpty(filters.getFilters())) {
-			buf.append(i++ == 0 ? " where " : logicalOperator);
+			buf.append(i++ == 0 ? " where " : j++ == 0 ? " " : logicalOperator);
 			int k = 0;
 			for (Filters subFilters : filters.getFilters()) {
 				buf.append(k++ == 0 ? "" : logicalOperator).append("(");

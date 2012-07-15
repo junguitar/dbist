@@ -148,22 +148,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			logger.debug("dml loaded (dbType: " + getDbType() + ")");
 	}
 
-	@Override
 	public void insert(Object data) throws Exception {
 		_insert(data);
 	}
 
-	@Override
 	public void insertBatch(List<?> list) throws Exception {
 		_insertBatch(list);
 	}
 
-	@Override
 	public void insert(Object data, String... fieldNames) throws Exception {
 		_insert(data, fieldNames);
 	}
 
-	@Override
 	public void insertBatch(List<?> list, String... fieldNames) throws Exception {
 		_insertBatch(list, fieldNames);
 	}
@@ -185,22 +181,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		updateBatchBySql(sql, paramMapList);
 	}
 
-	@Override
 	public void update(Object data) throws Exception {
 		_update(data);
 	}
 
-	@Override
 	public void updateBatch(List<?> list) throws Exception {
 		_updateBatch(list);
 	}
 
-	@Override
 	public void update(Object data, String... fieldNames) throws Exception {
 		_update(data, fieldNames);
 	}
 
-	@Override
 	public void updateBatch(List<?> list, String... fieldNames) throws Exception {
 		_updateBatch(list, fieldNames);
 	}
@@ -236,7 +228,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		updateBatchBySql(sql, paramMapList);
 	}
 
-	@Override
 	public void delete(Object data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
@@ -246,7 +237,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			throw new DataNotFoundException(toNotFoundErrorMessage(table, data, paramMap));
 	}
 
-	@Override
 	public void deleteBatch(List<?> list) throws Exception {
 		if (ValueUtils.isEmpty(list))
 			return;
@@ -310,7 +300,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		appendWhere(buf, table, query, 0, paramMap);
 	}
 
-	@Override
 	public int selectSize(Class<?> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
@@ -339,12 +328,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.queryForInt(buf.toString(), paramMap);
 	}
 
-	@Override
 	public <T> List<T> selectList(final Class<T> clazz, Object condition) throws Exception {
 		return _selectList(clazz, condition, false);
 	}
 
-	@Override
 	public <T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception {
 		return _selectList(clazz, condition, true);
 	}
@@ -569,7 +556,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		List<T> list = null;
 		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || (!pagination && !fragment)) {
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
-				@Override
+
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
 					return newInstance(rs, requiredType, table);
 				}
@@ -598,7 +585,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			final int _offset = offset;
 			final long _limit = limit;
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new ResultSetExtractor<List<T>>() {
-				@Override
+
 				public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<T> list = new ArrayList<T>();
 					for (int i = 0; i < _offset; i++) {
@@ -716,7 +703,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				return rs.getString(index);
 			if (requiredType.equals(Character.class) || requiredType.equals(char.class)) {
 				String str = rs.getString(index);
-				if (str == null || str.isEmpty())
+				if (str == null || str.length() == 0)
 					return null;
 				return str.charAt(0);
 			}
@@ -902,7 +889,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		buf.append(" ").append(operator).append(" null");
 	}
 
-	@Override
 	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		ValueUtils.assertNotEmpty("ql", ql);
@@ -950,7 +936,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			map.put(key, paramMap.get(key).toString());
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
@@ -970,13 +955,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return page;
 	}
 
-	@Override
 	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectListByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectPageByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
@@ -990,7 +973,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (sqlByPathCache.containsKey(path))
 			return sqlByPathCache.get(path);
 		return SyncCtrlUtils.wrap("DmlJdbc.sqlByPathCache." + path, sqlByPathCache, path, new Closure<String, IOException>() {
-			@Override
 			public String execute() throws IOException {
 				if (sqlByPathCache.containsKey(path))
 					return sqlByPathCache.get(path);
@@ -1011,7 +993,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return ResourceUtils.readText(path);
 	}
 
-	@Override
 	public int deleteList(Class<?> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
@@ -1034,7 +1015,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.update(buf.toString(), paramMap);
 	}
 
-	@Override
 	public int executeByQl(String ql, Map<String, ?> paramMap) throws Exception {
 		ValueUtils.assertNotEmpty("ql", ql);
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
@@ -1045,7 +1025,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.update(ql, paramMap);
 	}
 
-	@Override
 	public int executeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
 		return executeByQl(getSqlByPath(qlPath), paramMap);
 	}
@@ -1100,7 +1079,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private Map<String, Class<?>> classByTableNameCache = new ConcurrentHashMap<String, Class<?>>();
-	@Override
+
 	public Class<?> getClass(String tableName) {
 		final String _name = tableName.toLowerCase();
 
@@ -1109,7 +1088,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		return SyncCtrlUtils.wrap("DmlJdbc.classByTableName." + tableName, classByTableNameCache, tableName,
 				new Closure<Class<?>, RuntimeException>() {
-					@Override
 					public Class<?> execute() {
 						Table table = new Table();
 
@@ -1168,7 +1146,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private Map<Class<?>, Table> tableByClassCache = new ConcurrentHashMap<Class<?>, Table>();
-	@Override
+
 	public Table getTable(Object obj) {
 		final Class<?> clazz = obj instanceof Class ? (Class<?>) obj : obj.getClass();
 
@@ -1181,7 +1159,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		return SyncCtrlUtils.wrap("DmlJdbc.tableByClass." + clazz.getName(), tableByClassCache, clazz, new Closure<Table, RuntimeException>() {
-			@Override
 			public Table execute() {
 				if (debug)
 					logger.debug("make table metadata by class: " + clazz.getName());
@@ -1458,7 +1435,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	static class TableColumnRowMapper implements RowMapper<TableColumn> {
-		@Override
+
 		public TableColumn mapRow(ResultSet rs, int rowNum) throws SQLException {
 			TableColumn tabColumn = new TableColumn();
 			tabColumn.setName(rs.getString("name"));

@@ -46,7 +46,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	private String beanName;
 	private ApplicationContext applicationContext;
 
-	@Override
 	public String getDbType() {
 		return dbType;
 	}
@@ -54,7 +53,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		this.dbType = dbType == null ? null : dbType.toLowerCase();
 	}
 
-	@Override
 	public Table getTable(String name) {
 		Class<?> clazz = getClass(name);
 		return clazz == null ? null : getTable(clazz);
@@ -63,20 +61,19 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	public Preprocessor getPreprocessor() {
 		return preprocessor;
 	}
-	@Override
+
 	public void setPreprocessor(Preprocessor preprocessor) {
 		this.preprocessor = preprocessor;
 	}
 
-	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
-	@Override
+
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
-	@Override
+
 	public void afterPropertiesSet() throws Exception {
 	}
 	protected Dml getBean() {
@@ -200,7 +197,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public <T> T select(T data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Class<T> clazz = (Class<T>) data.getClass();
@@ -209,7 +205,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public <T> T selectWithLock(T data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Class<T> clazz = (Class<T>) data.getClass();
@@ -217,7 +212,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return select(selectListWithLock(clazz, query));
 	}
 
-	@Override
 	public <T> T select(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotEmpty("pkCondition", pkCondition);
@@ -225,7 +219,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return select(selectList(clazz, query));
 	}
 
-	@Override
 	public <T> T selectWithLock(Class<T> clazz, Object... pkCondition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotEmpty("pkCondition", pkCondition);
@@ -233,14 +226,12 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return select(selectListWithLock(clazz, query));
 	}
 
-	@Override
 	public <T> T selectByCondition(Class<T> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
 		return select(selectList(clazz, condition));
 	}
 
-	@Override
 	public <T> T select(String tableName, Object pkCondition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("pkCondition", pkCondition);
@@ -254,7 +245,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
-	@Override
 	public <T> T selectWithLock(String tableName, Object pkCondition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("pkCondition", pkCondition);
@@ -268,7 +258,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
-	@Override
 	public <T> T selectByCondition(String tableName, Object condition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("condition", condition);
@@ -282,7 +271,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
-	@Override
 	public <T> T selectByConditionWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("condition", condition);
@@ -296,30 +284,25 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return ValueUtils.populate(obj, newInstance(requiredType), fieldNames);
 	}
 
-	@Override
 	public <T> T selectByConditionWithLock(Class<T> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
 		return select(selectListWithLock(clazz, condition));
 	}
 
-	@Override
 	public <T> T selectByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		//		return select(selectListByQl(ql, paramMap, requiredType, 0, 2));
 		return select(selectListByQl(ql, paramMap, requiredType, 0, 0));
 	}
 
-	@Override
 	public <T> T selectByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		return select(selectListByQlPath(qlPath, paramMap, requiredType, 0, 0));
 	}
 
-	@Override
 	public <T> T selectBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		return select(selectListBySqlPath(sqlPath, paramMap, requiredType, 0, 0));
 	}
 
-	@Override
 	public <T> Page<T> selectPage(Class<T> clazz, Query query) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		if (query == null)
@@ -336,13 +319,11 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return page;
 	}
 
-	@Override
 	public <T> int selectSize(String tableName, Object condition) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		return selectSize(getClass(tableName), condition);
 	}
 
-	@Override
 	public <T> List<T> selectList(String tableName, Object condition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("requiredType", requiredType);
@@ -354,7 +335,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return list;
 	}
 
-	@Override
 	public <T> List<T> selectListWithLock(String tableName, Object condition, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("requiredType", requiredType);
@@ -373,7 +353,6 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return ValueUtils.isEmpty(query.getField()) ? new String[0] : query.getField().toArray(new String[query.getField().size()]);
 	}
 
-	@Override
 	public <T> Page<T> selectPage(String tableName, Query query, Class<T> requiredType) throws Exception {
 		ValueUtils.assertNotNull("tableName", tableName);
 		ValueUtils.assertNotNull("requiredType", requiredType);
@@ -389,91 +368,78 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return page;
 	}
 
-	@Override
 	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		return selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		return selectPageByQl(ql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
-	@Override
 	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
 		return selectListByQlPath(qlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
 		return selectPageByQlPath(qlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
-	@Override
 	public <T> T selectBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws Exception {
 		return selectByQl(sql, paramMap, requiredType);
 	}
 
-	@Override
 	public <T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
-	@Override
+
 	public <T> List<T> selectListBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		return selectListByQl(sql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
-	@Override
 	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception {
 		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
-	@Override
+
 	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
-	@Override
 	public <T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
 		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
-	@Override
+
 	public <T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectListByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
-	@Override
 	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize)
 			throws Exception {
 		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
-	@Override
+
 	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
-	@Override
 	public <T> T insert(Class<T> clazz, Object data) throws Exception {
 		return _insert(clazz, data);
 	}
 
-	@Override
 	public void insertBatch(Class<?> clazz, List<?> list) throws Exception {
 		insertBatch(toRequiredType(list, clazz));
 	}
 
-	@Override
 	public void insert(Class<?> clazz, Object data, String... fieldNames) throws Exception {
 		_insert(clazz, data, fieldNames);
 	}
 
-	@Override
 	public void insertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
 		insertBatch(toRequiredType(list, clazz), fieldNames);
 	}
@@ -492,42 +458,34 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return obj;
 	}
 
-	@Override
 	public void insert(String tableName, Object data) throws Exception {
 		insert(getClass(tableName), data);
 	}
 
-	@Override
 	public void insertBatch(String tableName, List<?> list) throws Exception {
 		insertBatch(getClass(tableName), list);
 	}
 
-	@Override
 	public void insert(String tableName, Object data, String... fieldNames) throws Exception {
 		insert(getClass(tableName), data, fieldNames);
 	}
 
-	@Override
 	public void insertBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		insertBatch(getClass(tableName), list, fieldNames);
 	}
 
-	@Override
 	public <T> T update(Class<T> clazz, Object data) throws Exception {
 		return _update(clazz, data);
 	}
 
-	@Override
 	public void updateBatch(Class<?> clazz, List<?> list) throws Exception {
 		updateBatch(toRequiredType(list, clazz));
 	}
 
-	@Override
 	public <T> T update(Class<T> clazz, Object data, String... fieldNames) throws Exception {
 		return _update(clazz, data, fieldNames);
 	}
 
-	@Override
 	public void updateBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
 		updateBatch(toRequiredType(list, clazz, fieldNames), fieldNames);
 	}
@@ -564,42 +522,34 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return dataList;
 	}
 
-	@Override
 	public void update(String tableName, Object data) throws Exception {
 		update(getClass(tableName), data);
 	}
 
-	@Override
 	public void updateBatch(String tableName, List<?> list) throws Exception {
 		updateBatch(getClass(tableName), list);
 	}
 
-	@Override
 	public void update(String tableName, Object data, String... fieldNames) throws Exception {
 		update(getClass(tableName), data, fieldNames);
 	}
 
-	@Override
 	public void updateBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		updateBatch(getClass(tableName), list, fieldNames);
 	}
 
-	@Override
 	public void upsert(Object data) throws Exception {
 		_upsert(data);
 	}
 
-	@Override
 	public void upsertBatch(List<?> list) throws Exception {
 		_upsertBatch(list);
 	}
 
-	@Override
 	public void upsert(Object data, String... fieldNames) throws Exception {
 		_upsert(data, fieldNames);
 	}
 
-	@Override
 	public void upsertBatch(List<?> list, String... fieldNames) throws Exception {
 		_upsertBatch(list, fieldNames);
 	}
@@ -624,18 +574,15 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		updateBatch(updateList, fieldNames);
 	}
 
-	@Override
 	public <T> T upsert(Class<T> clazz, Object data) throws Exception {
 		return select(clazz, data) == null ? insert(clazz, data) : update(clazz, data);
 	}
 
-	@Override
 	public void upsertBatch(Class<?> clazz, List<?> list) throws Exception {
 		List<?> newList = toRequiredType(list, clazz);
 		upsertBatch(newList);
 	}
 
-	@Override
 	public void upsert(Class<?> clazz, Object data, String... fieldNames) throws Exception {
 		if (select(clazz, data) == null)
 			insert(clazz, data, fieldNames);
@@ -643,33 +590,27 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 			update(clazz, data, fieldNames);
 	}
 
-	@Override
 	public void upsertBatch(Class<?> clazz, List<?> list, String... fieldNames) throws Exception {
 		List<?> newList = toRequiredType(list, clazz, fieldNames);
 		upsertBatch(newList, fieldNames);
 	}
 
-	@Override
 	public void upsert(String tableName, Object data) throws Exception {
 		upsert(getClass(tableName), data);
 	}
 
-	@Override
 	public void upsertBatch(String tableName, List<?> list) throws Exception {
 		upsertBatch(getClass(tableName), list);
 	}
 
-	@Override
 	public void upsert(String tableName, Object data, String... fieldNames) throws Exception {
 		upsert(getClass(tableName), data, fieldNames);
 	}
 
-	@Override
 	public void upsertBatch(String tableName, List<?> list, String... fieldNames) throws Exception {
 		upsertBatch(getClass(tableName), list, fieldNames);
 	}
 
-	@Override
 	public <T> T delete(Class<T> clazz, Object... pkCondition) throws Exception {
 		T data = select(clazz, pkCondition);
 		if (data == null)
@@ -678,12 +619,10 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return data;
 	}
 
-	@Override
 	public void deleteBatch(Class<?> clazz, List<?> list) throws Exception {
 		deleteBatch(toRequiredType(list, clazz));
 	}
 
-	@Override
 	public <T> T deleteByCondition(Class<T> clazz, Object condition) throws Exception {
 		T data = selectByCondition(clazz, condition);
 		if (data == null)
@@ -692,17 +631,14 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return data;
 	}
 
-	@Override
 	public void delete(String tableName, Object... pkCondition) throws Exception {
 		delete(getClass(tableName), pkCondition);
 	}
 
-	@Override
 	public void deleteBatch(String tableName, List<?> list) throws Exception {
 		deleteBatch(getClass(tableName), list);
 	}
 
-	@Override
 	public void deleteByCondition(String tableName, Object condition) throws Exception {
 		Object data = selectByCondition(tableName, condition, getClass(tableName));
 		if (data == null)
@@ -710,12 +646,10 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		delete(data);
 	}
 
-	@Override
 	public int executeBySql(String sql, Map<String, ?> paramMap) throws Exception {
 		return executeByQl(sql, paramMap);
 	}
 
-	@Override
 	public int executeBySqlPath(String sqlPath, Map<String, ?> paramMap) throws Exception {
 		return executeByQlPath(sqlPath, paramMap);
 	}

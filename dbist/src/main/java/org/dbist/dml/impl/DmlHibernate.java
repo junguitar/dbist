@@ -29,137 +29,115 @@ import org.dbist.metadata.Table;
  */
 public class DmlHibernate extends AbstractDml implements Dml {
 
-	@Override
 	public Class<?> getClass(String tableName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public Table getTable(Object obj) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public void insert(Object data) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void insertBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void insert(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void insertBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void update(Object data) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void updateBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void update(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void updateBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void delete(Object data) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public void deleteBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public int selectSize(Class<?> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	@Override
 	public <T> List<T> selectList(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public <T> List<T> selectListWithLock(Class<T> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public <T> List<T> selectListByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public int deleteList(Class<?> clazz, Object condition) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	@Override
 	public int executeByQl(String ql, Map<String, ?> paramMap) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	@Override
 	public int executeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
 		// TODO Auto-generated method stub
 		return 0;

@@ -70,6 +70,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -1086,32 +1087,42 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (classByTableNameCache.containsKey(_name))
 			return classByTableNameCache.get(_name);
 
-		return SyncCtrlUtils.wrap("DmlJdbc.classByTableName." + tableName, classByTableNameCache, tableName,
-				new Closure<Class<?>, RuntimeException>() {
-					public Class<?> execute() {
-						Table table = new Table();
-
-						checkAndPopulateDomainAndName(table, _name);
-
-						ClassPool pool = ClassPool.getDefault();
-						CtClass cc = pool.makeClass("org.dbist.virtual." + ValueUtils.toCamelCase(_name, '_', true));
-						for (TableColumn tableColumn : getTableColumnList(table)) {
-							try {
-								cc.addField(new CtField(toCtClass(tableColumn.getDataType()), ValueUtils.toCamelCase(tableColumn.getName(), '_'), cc));
-							} catch (CannotCompileException e) {
-								throw new DbistRuntimeException(e);
-							} catch (NotFoundException e) {
-								throw new DbistRuntimeException(e);
-							}
-						}
-
-						try {
-							return cc.toClass();
-						} catch (CannotCompileException e) {
-							throw new DbistRuntimeException(e);
-						}
+		return SyncCtrlUtils.wrap("DmlJdbc.classByTableName." + _name, classByTableNameCache, _name, new Closure<Class<?>, RuntimeException>() {
+			public Class<?> execute() {
+				String className = "org.dbist.virtual." + ValueUtils.toCamelCase(_name, '_', true);
+				try {
+					return ClassUtils.forName(className, null);
+				} catch (ClassNotFoundException e) {
+					try {
+						return ClassPool.getDefault().getCtClass(className).toClass();
+					} catch (CannotCompileException e1) {
+					} catch (NotFoundException e1) {
 					}
-				});
+				} catch (LinkageError e) {
+				}
+
+				Table table = new Table();
+
+				checkAndPopulateDomainAndName(table, _name);
+
+				CtClass cc = ClassPool.getDefault().makeClass(className);
+				for (TableColumn tableColumn : getTableColumnList(table)) {
+					try {
+						cc.addField(new CtField(toCtClass(tableColumn.getDataType()), ValueUtils.toCamelCase(tableColumn.getName(), '_'), cc));
+					} catch (CannotCompileException e) {
+						throw new DbistRuntimeException(e);
+					} catch (NotFoundException e) {
+						throw new DbistRuntimeException(e);
+					}
+				}
+
+				try {
+					return cc.toClass();
+				} catch (CannotCompileException e) {
+					throw new DbistRuntimeException(e);
+				}
+			}
+		});
 	}
 	private static final Map<String, CtClass> CTCLASS_BY_DBDATATYPE_MAP;
 	static {

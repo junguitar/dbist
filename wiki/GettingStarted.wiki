@@ -12,7 +12,7 @@ Let's begin...
 == Installation ==
 
 _Required_
-  # DBMS - MySQL 5(or later), Oracle 10g(or later), SQLServer2000(or later) or DB2 9(or later)
+  # DBMS - MySQL 5(or later), Oracle 10g(or later), SQLServer2000(or later) or DB2 9.7(or later)
   # Tomcat 7 (or another WAS which supports Servlet 3.0)
 
 _Optional_

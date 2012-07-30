@@ -13,10 +13,10 @@ Let's begin...
 
 _Required_
   # DBMS - MySQL 5(or later), Oracle 10g(or later), SQLServer2000(or later) or DB2 9.7(or later)
+  # Java SE JDK(or JRE) 6 or later
   # Tomcat 7 (or another WAS which supports Servlet 3.0)
 
 _Optional_
-  # Java SE JDK 6 or later
   # Maven2 or later
   # Eclipse Indigo or later (IDE for Java EE Developers)
   # Eclipse Plugin - Maven Integration for Eclipse (from Eclipse Marketplace)

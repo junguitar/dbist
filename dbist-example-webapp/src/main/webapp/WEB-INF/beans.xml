@@ -9,7 +9,7 @@
 	<context:property-placeholder location="/WEB-INF/*.properties" />
 	<context:annotation-config />
 
-	<bean class="net.sf.common.util.BeanUtils">
+	<bean class="net.sf.common.util.BeanUtils" destroy-method="clear">
 		<property name="applicationContextName" value="${applicationContext.name}" />
 	</bean>
 

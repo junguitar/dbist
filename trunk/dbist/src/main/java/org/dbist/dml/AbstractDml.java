@@ -70,6 +70,9 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		this.applicationContext = applicationContext;
 	}
 
+	protected String getBeanName() {
+		return beanName;
+	}
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -96,6 +99,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 			boolean byFieldName = fieldNames != null && fieldNames.length != 0;
 			Set<String> fieldNameSet = byFieldName ? ValueUtils.toSet(fieldNames) : null;
 			HttpServletRequest request = (HttpServletRequest) condition;
+			@SuppressWarnings("unchecked")
 			Map<String, String[]> paramMap = request.getParameterMap();
 			for (String key : paramMap.keySet()) {
 				if (byFieldName) {

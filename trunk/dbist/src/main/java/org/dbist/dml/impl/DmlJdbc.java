@@ -148,6 +148,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (debug)
 			logger.debug("dml loaded (dbType: " + getDbType() + ")");
 	}
+	public void clear() {
+		logger.info("Clearing DmlJdbc bean: " + getBeanName() + "...");
+		classFieldCache.clear();
+		classByTableNameCache.clear();
+		tableByClassCache.clear();
+	}
 
 	public void insert(Object data) throws Exception {
 		_insert(data);

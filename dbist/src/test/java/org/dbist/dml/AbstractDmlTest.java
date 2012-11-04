@@ -360,4 +360,13 @@ public abstract class AbstractDmlTest {
 		blog.setName("1 Name");
 		dml.update(blog, "name");
 	}
+
+	@Test
+	public void updateBatch() throws Exception {
+		Blog blog = dml.select(Blog.class, "1");
+		Blog blog2 = dml.select(Blog.class, "2");
+		blog.setName("1 Name");
+		blog2.setName("2 Name");
+		dml.updateBatch(ValueUtils.toList(blog, blog2), "name");
+	}
 }

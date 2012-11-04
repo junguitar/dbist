@@ -184,6 +184,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			return;
 		Table table = getTable(list.get(0));
 		String sql = table.getInsertSql(fieldNames);
+		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
 		updateBatchBySql(sql, paramMapList);
 	}
@@ -208,12 +209,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
 		String sql = table.getUpdateSql(fieldNames);
-		if (!ValueUtils.isEmpty(fieldNames)) {
-			List<String> fieldNameList = ValueUtils.toList(fieldNames);
-			for (String fieldName : table.getPkFieldNames())
-				fieldNameList.add(fieldName);
-			fieldNames = fieldNameList.toArray(new String[fieldNameList.size()]);
-		}
+		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		Map<String, Object> paramMap = toParamMap(table, data, fieldNames);
 		if (updateBySql(sql, paramMap) != 1)
 			throw new DataNotFoundException(toNotFoundErrorMessage(table, data, toParamMap(table, data, table.getPkFieldNames())));
@@ -231,8 +227,21 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			return;
 		Table table = getTable(list.get(0));
 		String sql = table.getUpdateSql(fieldNames);
+		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
 		updateBatchBySql(sql, paramMapList);
+	}
+	private static String[] toFieldNamesForUpdate(Table table, String... fieldNames) {
+		if (ValueUtils.isEmpty(fieldNames))
+			return fieldNames;
+		List<String> fieldNameList = ValueUtils.toList(fieldNames);
+		for (String fieldName : table.getPkFieldNames()) {
+			if (fieldNameList.contains(fieldName))
+				continue;
+			fieldNameList.add(fieldName);
+		}
+		fieldNames = fieldNameList.toArray(new String[fieldNameList.size()]);
+		return fieldNames;
 	}
 
 	public void delete(Object data) throws Exception {

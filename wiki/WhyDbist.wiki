@@ -18,7 +18,6 @@ Now, you can see why we must use Dbist instead of them.
 A "POST" is a DB table.<br>
 The DB table has four columns "title", "author", "content", "created_at" and a primary key "id".<br>
 
-table name: BLOG
 ||column    ||data type||
 ||id (PK)   ||VARCHAR  ||
 ||title     ||VARCHAR  ||
@@ -28,7 +27,7 @@ table name: BLOG
 
 And we try to map a class to this table. (access modifier, getter and setter methods,... has been omitted to make it easier to understand.)<br>
 {{{
-class Data {
+class Post {
     String id;
     String title;
     String author;

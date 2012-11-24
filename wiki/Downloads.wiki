@@ -6,27 +6,32 @@
 
 Using Maven Configurations
 
-Version 1.0.15
-  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.15/dbist-1.0.15.jar dbist-1.0.15.jar]
-  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.15/dbist-admin-1.0.15.jar dbist-admin-1.0.15.jar]
-  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.15/dbist-example-webapp-1.0.15.war dbist-example-1.0.15.war]
+Version 1.0.16
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.16/dbist-1.0.16.jar dbist-1.0.16.jar]
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.16/dbist-admin-1.0.16.jar dbist-admin-1.0.16.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.16/dbist-example-webapp-1.0.16.war dbist-example-1.0.16.war]
 
 {{{
 	<dependencies>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>1.0.15</version>
+			<version>1.0.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist-admin</artifactId>
-			<version>1.0.15</version>
+			<version>1.0.16</version>
 		</dependency>
 	</dependencies>
 }}}
 
 == Old Releases ==
+
+Version 1.0.15
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.15/dbist-1.0.15.jar dbist-1.0.15.jar]
+  * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist-admin/1.0.15/dbist-admin-1.0.15.jar dbist-admin-1.0.15.jar]
+  * [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/1.0.15/dbist-example-webapp-1.0.15.war dbist-example-1.0.15.war]
 
 Version 1.0.14
   * [http://search.maven.org/remotecontent?filepath=org/dbist/dbist/1.0.14/dbist-1.0.14.jar dbist-1.0.14.jar]

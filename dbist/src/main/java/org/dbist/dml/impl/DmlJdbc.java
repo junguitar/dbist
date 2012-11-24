@@ -1269,6 +1269,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					break;
 				}
 			}
+			if (populated)
+				break;
 		}
 
 		if (!populated) {

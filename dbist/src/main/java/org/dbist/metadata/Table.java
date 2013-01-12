@@ -39,6 +39,7 @@ public class Table {
 	private String domain;
 	private String name;
 	private Class<?> clazz;
+	private boolean containsLinkedTable;
 	private List<String> pkColumnNameList;
 	private String[] pkFieldNames;
 	private List<String> titleColumnNameList;
@@ -71,6 +72,12 @@ public class Table {
 	}
 	public void setClazz(Class<?> clazz) {
 		this.clazz = clazz;
+	}
+	public boolean containsLinkedTable() {
+		return containsLinkedTable;
+	}
+	public void setContainsLinkedTable(boolean containsLinkedTable) {
+		this.containsLinkedTable = containsLinkedTable;
 	}
 	public List<String> getPkColumnNameList() {
 		return pkColumnNameList;
@@ -189,7 +196,7 @@ public class Table {
 				StringBuffer valuesBuf = new StringBuffer(" values(");
 				int i = 0;
 				for (Column column : getColumnList()) {
-					if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+					if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 						continue;
 					buf.append(i == 0 ? "" : ", ").append(column.getName());
 					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
@@ -215,7 +222,7 @@ public class Table {
 		List<String> pkFieldNameList = ValueUtils.toList(getPkFieldNames());
 		for (String fieldName : pkFieldNameList) {
 			Column column = getColumnByFieldName(fieldName);
-			if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
 			buf.append(i == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
@@ -231,7 +238,7 @@ public class Table {
 			Column column = getColumnByFieldName(fieldName);
 			if (column == null)
 				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
-			if (column.getSequence() != null && column.getSequence().isAutoIncrement())
+			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
 			buf.append(i == 0 ? "" : ", ").append(column.getName());
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
@@ -261,6 +268,8 @@ public class Table {
 				int i = 0;
 				int j = 0;
 				for (Column column : getColumnList()) {
+					if (column.getRelation() != null)
+						continue;
 					if (column.isPrimaryKey()) {
 						whereBuf.append(j++ == 0 ? " where " : " and ").append(column.getName()).append(" = ").append(":")
 								.append(column.getField().getName());

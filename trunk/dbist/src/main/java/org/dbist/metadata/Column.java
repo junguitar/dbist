@@ -17,6 +17,10 @@ package org.dbist.metadata;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.dbist.annotation.Relation;
 
 /**
  * @author Steve M. Jung
@@ -29,6 +33,9 @@ public class Column {
 	public static final String TYPE_TEXT = "text";
 
 	private String name;
+	private Table table;
+	private Relation relation;
+	private List<Column> columnList;
 	private boolean primaryKey;
 	private Sequence sequence;
 	private String dataType;
@@ -41,6 +48,30 @@ public class Column {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public Table getTable() {
+		return table;
+	}
+	public void setTable(Table table) {
+		this.table = table;
+	}
+	public Relation getRelation() {
+		return relation;
+	}
+	public void setRelation(Relation relation) {
+		this.relation = relation;
+	}
+	public List<Column> getColumnList() {
+		return columnList;
+	}
+	public void setColumnList(List<Column> column) {
+		this.columnList = column;
+	}
+	public Column addColumn(Column column) {
+		if (this.columnList == null)
+			this.columnList = new ArrayList<Column>();
+		this.columnList.add(column);
+		return column;
 	}
 	public boolean isPrimaryKey() {
 		return primaryKey;

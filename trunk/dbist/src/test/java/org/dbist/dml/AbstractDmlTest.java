@@ -42,6 +42,7 @@ public abstract class AbstractDmlTest {
 	public void beforeTest() throws Exception {
 		if (dml == null)
 			dml = getDml();
+
 		try {
 			Blog blog = dml.select(Blog.class, "1");
 			if (blog == null) {
@@ -64,6 +65,21 @@ public abstract class AbstractDmlTest {
 		log.setText("sequence test.");
 		dml.insert(log);
 		dml.insert(log, "text");
+
+		try {
+			Post post = dml.select(Post.class, "1");
+			if (post == null) {
+				post = new Post();
+				post.setId("1");
+				post.setBlogId("1");
+				post.setTitle("The title of test post.");
+				post.setAuthor("junguitar@gmail.com");
+				post.setContent("The content of test post");
+				dml.insert(post);
+			}
+		} catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		}
 	}
 	@AfterClass
 	public static void afterClass() {
@@ -71,6 +87,7 @@ public abstract class AbstractDmlTest {
 			dml.delete(Blog.class, "1");
 			dml.delete(Blog.class, "2");
 			dml.deleteList(Log.class, new Query());
+			dml.delete(Post.class, "1");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -149,6 +166,11 @@ public abstract class AbstractDmlTest {
 		}
 
 		logger.info("case " + i++ + ": select size by sql");
+		{
+			logger.info("size: " + dml.selectBySql("select count(*) from blog", null, Integer.class));
+		}
+
+		logger.info("case " + i++ + ": select data that has relation.");
 		{
 			logger.info("size: " + dml.selectBySql("select count(*) from blog", null, Integer.class));
 		}

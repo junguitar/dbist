@@ -87,6 +87,7 @@ public class SqlAspect {
 	private boolean enabled = true;
 	private boolean prettyPrint;
 	private boolean combinedPrint;
+	private boolean includeElapsedTime;
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -104,6 +105,12 @@ public class SqlAspect {
 	}
 	public void setCombinedPrint(boolean combinedPrint) {
 		this.combinedPrint = combinedPrint;
+	}
+	public boolean isIncludeElapsedTime() {
+		return includeElapsedTime;
+	}
+	public void setIncludeElapsedTime(boolean includesElapsedTime) {
+		this.includeElapsedTime = includesElapsedTime;
 	}
 
 	public Object print(final ProceedingJoinPoint point) throws Throwable {
@@ -155,6 +162,7 @@ public class SqlAspect {
 	private void print(Object[] args) {
 		if (!enabled || formatMethod == null || !logger.isInfoEnabled() || ValueUtils.isEmpty(args) || !(args[0] instanceof String))
 			return;
+		long startTime = includeElapsedTime ? new Date().getTime() : 0;
 		String sql = (String) args[0];
 		Object params = args.length > 1 && !ValueUtils.isEmpty(args[1]) ? args[1] : null;
 
@@ -195,6 +203,10 @@ public class SqlAspect {
 				logger.warn(e.getMessage(), e);
 			}
 		}
+
+		// ElapsedTime
+		if (includeElapsedTime)
+			buf.append("\r\nElapsedTime: ").append(new Date().getTime() - startTime);
 
 		buf.append("\r\n");
 		logger.info(buf.toString());

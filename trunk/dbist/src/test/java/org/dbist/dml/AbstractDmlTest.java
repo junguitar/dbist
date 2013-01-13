@@ -161,8 +161,8 @@ public abstract class AbstractDmlTest {
 
 		logger.info("case " + i++ + ": select partial fields");
 		{
-			dml.select(Blog.class, new Query().addField("id", "name").addFilter("id", "1"));
-			dml.selectWithLock(Blog.class, new Query().addField("id", "name").addFilter("id", "1"));
+			dml.select(Blog.class, new Query().addSelect("id", "name").addFilter("id", "1"));
+			dml.selectWithLock(Blog.class, new Query().addSelect("id", "name").addFilter("id", "1"));
 		}
 
 		logger.info("case " + i++ + ": select size by sql");
@@ -316,6 +316,18 @@ public abstract class AbstractDmlTest {
 					logger.debug("\t" + map.get(key));
 			}
 		}
+
+		logger.info("case " + i++ + ": select data that has relation and relational conditions.");
+		{
+			List<Post> list = dml.selectList(Post.class, new Query(0, 10).addSelect("id", "title").addFilter("blog.blogName", "1 Name"));
+			logger.info("post: " + list);
+		}
+
+		logger.info("case " + i++ + ": select data that has relation and relational conditions and unselect some fields.");
+		{
+			List<Post> list = dml.selectList(Post.class, new Query(0, 10).addUnselect("blog", "authorName").addFilter("blog.blogName", "1 Name"));
+			logger.info("post: " + list);
+		}
 	}
 
 	@Test
@@ -328,7 +340,7 @@ public abstract class AbstractDmlTest {
 		logger.info("case " + i++ + ": select list with combined condition");
 		{
 			Query query = new Query();
-			query.addField("id", "name");
+			query.addSelect("id", "name");
 			query.addOrder("name", true);
 			query.addFilter("name", "!=", "test");
 			query.addFilter("description", "like", "%the%\\_", false, '\\');
@@ -354,7 +366,7 @@ public abstract class AbstractDmlTest {
 		logger.info("case " + i++ + ": select list with combined condition2");
 		{
 			Query query = new Query();
-			query.addField("id", "name");
+			query.addSelect("id", "name");
 			query.addOrder("name", true);
 			query.setOperator("or");
 			query.addFilter("description", "like", "%the%", false);

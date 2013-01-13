@@ -307,13 +307,16 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return data;
 	}
 
-	private void appendFromWhere(Table table, Query query, StringBuffer buf, Map<String, Object> paramMap, List<Column> relColList) {
+	private void appendFromWhere(Table table, Query query, StringBuffer buf, Map<String, Object> paramMap, Map<String, Column> relColMap) {
+		if (table.containsLinkedTable() && (!ValueUtils.isEmpty(query.getSelect()) || !ValueUtils.isEmpty(query.getUnselect())))
+			populateRelColMap(table, query, relColMap);
+
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
 		if (query.getLock() != null && DBTYPE_SQLSERVER.equals(getDbType()))
 			buf.append(" with (updlock, rowlock)");
-		if (!ValueUtils.isEmpty(relColList)) {
-			for (Column col : relColList) {
+		if (!ValueUtils.isEmpty(relColMap)) {
+			for (Column col : relColMap.values()) {
 				Table subTab = col.getTable();
 				buf.append(" left outer join ").append(subTab.getDomain()).append(".").append(subTab.getName());
 				if (!subTab.getName().equals(col.getName()))
@@ -330,7 +333,27 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		// Where
 		appendWhere(buf, table, query, 0, paramMap);
 	}
+	private void populateRelColMap(Table table, Filters filters, Map<String, Column> relColMap) {
+		if (!ValueUtils.isEmpty(filters.getFilter())) {
+			for (Filter filter : filters.getFilter()) {
+				if (!filter.getLeftOperand().contains("."))
+					continue;
+				String lo = filter.getLeftOperand();
+				String fieldName = lo.substring(0, lo.indexOf('.'));
+				Column column = toColumn(table, fieldName);
+				if (column.getRelation() == null)
+					throw new DbistRuntimeException("filter: " + lo + " is not a joined condition.");
+				if (relColMap.containsKey(column.getName()))
+					continue;
+				relColMap.put(column.getName(), column);
+			}
+		}
 
+		if (!ValueUtils.isEmpty(filters.getFilters())) {
+			for (Filters fs : filters.getFilters())
+				populateRelColMap(table, fs, relColMap);
+		}
+	}
 	public int selectSize(Class<?> clazz, Object condition) throws Exception {
 		ValueUtils.assertNotNull("clazz", clazz);
 		ValueUtils.assertNotNull("condition", condition);
@@ -353,7 +376,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 		} finally {
 			query.setLock(lock);
-
 		}
 
 		return this.namedParameterJdbcOperations.queryForInt(buf.toString(), paramMap);
@@ -401,16 +423,17 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return list;
 	}
 	private void appendSelectSql(StringBuffer buf, Map<String, Object> paramMap, Table table, Query query, boolean groupBy, boolean ignoreOrderBy) {
-		List<Column> relColList = new ArrayList<Column>();
+		@SuppressWarnings("unchecked")
+		Map<String, Column> relColMap = new ListOrderedMap();
 		boolean joined = table.containsLinkedTable();
 
 		// Select
 		buf.append("select");
 		// Grouping fields
 		if (groupBy) {
-			if (!ValueUtils.isEmpty(query.getField())) {
+			if (!ValueUtils.isEmpty(query.getSelect())) {
 				List<String> group = query.getGroup();
-				for (String fieldName : query.getField()) {
+				for (String fieldName : query.getSelect()) {
 					if (group.contains(fieldName))
 						continue;
 					throw new DbistRuntimeException("Grouping query cannot be executed with some other fields: " + table.getClazz().getName() + "."
@@ -426,21 +449,34 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 		}
 		// All fields
-		else if (ValueUtils.isEmpty(query.getField())) {
+		else if (ValueUtils.isEmpty(query.getSelect())) {
 			int i = 0;
-			for (Column column : table.getColumnList())
-				i = appendColumn(buf, table, column, relColList, i);
+			if (ValueUtils.isEmpty(query.getUnselect())) {
+				for (Column column : table.getColumnList())
+					i = appendColumn(buf, table, column, relColMap, i);
+			}
+			// Except some fields
+			else {
+				List<String> unselects = new ArrayList<String>(query.getUnselect().size());
+				for (String unselect : query.getUnselect())
+					unselects.add(toColumnName(table, unselect));
+				for (Column column : table.getColumnList()) {
+					if (unselects.contains(column.getName()))
+						continue;
+					i = appendColumn(buf, table, column, relColMap, i);
+				}
+			}
 		}
 		// Some fields
 		else {
 			int i = 0;
-			for (String fieldName : query.getField()) {
+			for (String fieldName : query.getSelect()) {
 				Column column = toColumn(table, fieldName);
-				i = appendColumn(buf, table, column, relColList, i);
+				i = appendColumn(buf, table, column, relColMap, i);
 			}
 		}
 
-		appendFromWhere(table, query, buf, paramMap, relColList);
+		appendFromWhere(table, query, buf, paramMap, relColMap);
 
 		// Group by
 		if (groupBy) {
@@ -470,7 +506,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		appendLock(buf, query.getLock());
 	}
-	private int appendColumn(StringBuffer buf, Table table, Column column, List<Column> relMap, int i) {
+	private int appendColumn(StringBuffer buf, Table table, Column column, Map<String, Column> relColMap, int i) {
 		if (column.getRelation() == null) {
 			buf.append(i++ == 0 ? " " : ", ");
 			if (table.containsLinkedTable())
@@ -480,7 +516,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		} else if (ValueUtils.isEmpty(column.getColumnList())) {
 			return i;
 		}
-		relMap.add(column);
+		if (!relColMap.containsKey(column.getName()))
+			relColMap.put(column.getName(), column);
 		for (Column subCol : column.getColumnList())
 			buf.append(i++ == 0 ? " " : ", ").append(column.getName()).append(".").append(subCol.getName()).append(" ").append(column.getName())
 					.append("__").append(subCol.getName());
@@ -887,26 +924,40 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		int j = 0;
 		if (!ValueUtils.isEmpty(filters.getFilter())) {
+			String defaultAlias = table.containsLinkedTable() ? table.getName() : null;
 			for (Filter filter : filters.getFilter()) {
 				String operator = ValueUtils.toString(filter.getOperator(), "=").trim().toLowerCase();
 				if ("!=".equals(operator))
 					operator = "<>";
 				String lo = filter.getLeftOperand();
-				if (lo.contains("."))
-					continue;
-				String columnName = toColumnName(table, lo);
+				String alias;
+				Column column;
+				if (lo.contains(".")) {
+					int index = lo.indexOf('.');
+					String fieldName = lo.substring(0, index);
+					column = toColumn(table, fieldName);
+					if (column.getRelation() == null)
+						throw new DbistRuntimeException("filter: " + lo + " is not a joined condition.");
+					alias = column.getName();
+					String subFieldName = lo.substring(index + 1);
+					column = toColumn(column.getTable(), subFieldName);
+				} else {
+					alias = defaultAlias;
+					column = toColumn(table, lo);
+				}
 				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
 				j++;
 
+				String columnName = alias == null ? column.getName() : alias + "." + column.getName();
 				List<?> rightOperand = filter.getRightOperand();
 
 				// case: 'is null' or 'is not null'
 				if (ValueUtils.isEmpty(rightOperand)) {
-					appendNullCondition(buf, table, columnName, operator);
+					appendNullCondition(buf, columnName, operator);
 					continue;
 				}
 
-				Class<?> type = table.getFieldByColumnName(columnName).getType();
+				Class<?> type = column.getField().getType();
 
 				// check and process case sensitive
 				List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
@@ -933,15 +984,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 					// case: is null or is not null
 					if (value == null) {
-						appendNullCondition(buf, table, columnName, operator);
+						appendNullCondition(buf, columnName, operator);
 						continue;
 					}
 
 					// case x = 'l' or x != 'l'
 					String key = lo + i;
 					paramMap.put(key, value);
-					if (table.containsLinkedTable())
-						buf.append(table.getName()).append(".");
 					buf.append(columnName).append(" ").append(operator).append(" :").append(key);
 					if ("like".equals(operator) && !ValueUtils.isEmpty(filter.getEscape())
 							&& (!DBTYPE_MYSQL.equals(getDbType()) || !filter.getEscape().equals('\\')))
@@ -961,7 +1010,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					for (Object value : rightOperand) {
 						buf.append(k++ == 0 ? "" : subLogicalOperator);
 						if (value == null) {
-							appendNullCondition(buf, table, columnName, operator);
+							appendNullCondition(buf, columnName, operator);
 							continue;
 						}
 						String key = lo + i++;
@@ -1026,9 +1075,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return value instanceof Character ? value.toString() : value;
 	}
 
-	private void appendNullCondition(StringBuffer buf, Table table, String columnName, String operator) {
-		if (table.containsLinkedTable())
-			buf.append(table.getName()).append(".");
+	private void appendNullCondition(StringBuffer buf, String columnName, String operator) {
 		buf.append(columnName);
 		if ("=".equals(operator) || "in".equals(operator))
 			operator = "is";

@@ -29,7 +29,8 @@ public class Query extends Filters {
 	private int pageSize;
 	private int firstResultIndex;
 	private int maxResultSize;
-	private List<String> field;
+	private List<String> select;
+	private List<String> unselect;
 	private List<String> group;
 	private List<Order> order;
 	private Lock lock;
@@ -87,20 +88,56 @@ public class Query extends Filters {
 	public void setMaxResultSize(int maxResultSize) {
 		this.maxResultSize = maxResultSize;
 	}
-	public List<String> getField() {
-		return field;
+	public List<String> getSelect() {
+		return select;
 	}
-	public void setField(List<String> field) {
-		this.field = field;
+	public void setSelect(List<String> select) {
+		this.select = select;
 	}
-	public Query addField(String... field) {
-		if (ValueUtils.isEmpty(field))
+	public Query addSelect(String... select) {
+		if (ValueUtils.isEmpty(select))
 			return this;
-		if (this.field == null)
-			this.field = new ArrayList<String>();
-		for (String f : field)
-			this.field.add(f);
+		if (this.select == null)
+			this.select = new ArrayList<String>(select.length);
+		for (String f : select)
+			this.select.add(f);
 		return this;
+	}
+	public List<String> getUnselect() {
+		return unselect;
+	}
+	public void setUnselect(List<String> unselect) {
+		this.unselect = unselect;
+	}
+	public Query addUnselect(String... unselect) {
+		if (ValueUtils.isEmpty(unselect))
+			return this;
+		if (this.unselect == null)
+			this.unselect = new ArrayList<String>(unselect.length);
+		for (String f : unselect)
+			this.unselect.add(f);
+		return this;
+	}
+	@Deprecated
+	/**
+	 * @deprecated Use getSelect() method instead.
+	 */
+	public List<String> getField() {
+		return getSelect();
+	}
+	@Deprecated
+	/**
+	 * @deprecated Use setSelect(List<String> select) method instead.
+	 */
+	public void setField(List<String> field) {
+		setSelect(field);
+	}
+	@Deprecated
+	/**
+	 * @deprecated Use addUnselect(String... unselect) method instead.
+	 */
+	public Query addField(String... field) {
+		return addSelect(field);
 	}
 	public List<String> getGroup() {
 		return group;

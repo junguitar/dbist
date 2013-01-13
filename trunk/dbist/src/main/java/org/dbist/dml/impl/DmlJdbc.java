@@ -667,7 +667,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 		return list;
 	}
+
 	private static Map<Class<?>, Map<String, Field>> classFieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
+	private static Map<Class<?>, Map<String, Field>> classSubFieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
 
 	@SuppressWarnings("unchecked")
 	private <T> T newInstance(ResultSet rs, Class<T> clazz, Table table) throws SQLException {
@@ -676,11 +678,14 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		ResultSetMetaData metadata = rs.getMetaData();
 		Map<String, Field> fieldCache;
+		Map<String, Field> subFieldCache;
 		if (classFieldCache.containsKey(clazz)) {
 			fieldCache = classFieldCache.get(clazz);
+			subFieldCache = classSubFieldCache.get(clazz);
 		} else {
 			fieldCache = new ConcurrentHashMap<String, Field>();
 			classFieldCache.put(clazz, fieldCache);
+			subFieldCache = null;
 		}
 
 		T data;
@@ -720,37 +725,109 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				i++;
 				String name = metadata.getColumnLabel(i);
 				Field field = null;
+				Field subField = null;
 				if (fieldCache.containsKey(name)) {
 					field = fieldCache.get(name);
+					subField = subFieldCache == null ? null : subFieldCache.get(name);
 				} else {
-					if (table != null) {
-						field = table.getFieldByColumnName(name);
-						if (field == null)
-							field = table.getField(name);
-					}
-					if (field == null) {
-						field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
-						if (field == null) {
-							for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
-								if (!f.getName().equalsIgnoreCase(name))
-									continue;
-								field = f;
-								break;
+					field = getField(clazz, table, name);
+
+					if (field == null && name.contains("__")) {
+						int index = name.indexOf("__");
+						String fieldName = name.substring(0, index);
+						field = getField(clazz, table, fieldName);
+						if (field != null) {
+							String subFieldName = name.substring(index + 2);
+							Class<?> subClass = field.getType();
+							Table subTable = getTable(subClass);
+							subField = getField(subClass, subTable, subFieldName);
+							if (subField == null) {
+								field = null;
+							} else {
+								if (subFieldCache == null) {
+									subFieldCache = new ConcurrentHashMap<String, Field>();
+									classSubFieldCache.put(clazz, subFieldCache);
+								}
+								subFieldCache.put(name, subField);
 							}
 						}
 					}
+
 					fieldCache.put(name, field == null ? ReflectionUtils.NULL_FIELD : field);
 				}
 				if (field == null || ReflectionUtils.NULL_FIELD.equals(field))
 					continue;
-				setFieldValue(rs, i, data, field);
+				setFieldValue(rs, i, data, field, subField);
 			}
 		}
 		return data;
 	}
-	private static void setFieldValue(ResultSet rs, int index, Object data, Field field) throws SQLException {
+	private static Field getField(Class<?> clazz, Table table, String name) {
+		Field field = null;
+
+		if (table != null) {
+			field = table.getFieldByColumnName(name);
+			if (field != null)
+				return field;
+			field = table.getField(name);
+			if (field != null)
+				return field;
+		}
+
+		field = ReflectionUtils.getField(clazz, ValueUtils.toCamelCase(name, '_'));
+		if (field != null)
+			return field;
+
+		for (Field f : ReflectionUtils.getFieldList(clazz, false)) {
+			if (!f.getName().equalsIgnoreCase(name))
+				continue;
+			field = f;
+			break;
+		}
+
+		return field;
+	}
+	private static void setFieldValue(ResultSet rs, int index, Object data, Field field, Field subField) throws SQLException {
+		if (subField == null) {
+			try {
+				field.set(data, toRequiredType(rs, index, field.getType()));
+			} catch (IllegalArgumentException e) {
+				throw new DbistRuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new DbistRuntimeException(e);
+			}
+			return;
+		}
+
+		Object subData;
 		try {
-			field.set(data, toRequiredType(rs, index, field.getType()));
+			subData = field.get(data);
+		} catch (IllegalArgumentException e) {
+			throw new DbistRuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new DbistRuntimeException(e);
+		}
+
+		if (subData == null) {
+			try {
+				subData = field.getType().newInstance();
+			} catch (InstantiationException e) {
+				throw new DbistRuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new DbistRuntimeException(e);
+			}
+
+			try {
+				field.set(data, subData);
+			} catch (IllegalArgumentException e) {
+				throw new DbistRuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new DbistRuntimeException(e);
+			}
+		}
+
+		try {
+			subField.set(subData, toRequiredType(rs, index, subField.getType()));
 		} catch (IllegalArgumentException e) {
 			throw new DbistRuntimeException(e);
 		} catch (IllegalAccessException e) {

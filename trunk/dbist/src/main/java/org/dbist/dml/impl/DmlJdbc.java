@@ -1542,7 +1542,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			if (columnAnn != null) {
 				if (!ValueUtils.isEmpty(columnAnn.name())) {
 					try {
-						tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnAnn.name());
+						tabColumn = jdbcOperations.queryForObject(sql, TABLECOLUMN_ROWMAPPER, tableName, columnAnn.name().toLowerCase());
 					} catch (EmptyResultDataAccessException e) {
 						throw new DbistRuntimeException(ValueUtils.populate(MSG_COLUMNNOTFOUND,
 								ValueUtils.toMap("column:" + columnAnn.name(), "table:" + table.getDomain() + "." + tableName)));

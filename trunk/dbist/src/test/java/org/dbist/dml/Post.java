@@ -81,18 +81,19 @@ public class Post {
 
 	public static class Blog {
 		private String id;
-		private String name;
+		@Column(name = "name")
+		private String blogName;
 		public String getId() {
 			return id;
 		}
 		public void setId(String id) {
 			this.id = id;
 		}
-		public String getName() {
-			return name;
+		public String getBlogName() {
+			return blogName;
 		}
-		public void setName(String name) {
-			this.name = name;
+		public void setBlogName(String name) {
+			this.blogName = name;
 		}
 	}
 

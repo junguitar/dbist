@@ -172,7 +172,8 @@ public abstract class AbstractDmlTest {
 
 		logger.info("case " + i++ + ": select data that has relation.");
 		{
-			logger.info("size: " + dml.selectBySql("select count(*) from blog", null, Integer.class));
+			Post post = dml.select(Post.class, "1");
+			logger.info("post: " + post);
 		}
 	}
 

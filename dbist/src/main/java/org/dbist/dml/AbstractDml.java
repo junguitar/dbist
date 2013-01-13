@@ -354,7 +354,7 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		if (!(condition instanceof Query))
 			return new String[0];
 		Query query = (Query) condition;
-		return ValueUtils.isEmpty(query.getField()) ? new String[0] : query.getField().toArray(new String[query.getField().size()]);
+		return ValueUtils.isEmpty(query.getSelect()) ? new String[0] : query.getSelect().toArray(new String[query.getSelect().size()]);
 	}
 
 	public <T> Page<T> selectPage(String tableName, Query query, Class<T> requiredType) throws Exception {

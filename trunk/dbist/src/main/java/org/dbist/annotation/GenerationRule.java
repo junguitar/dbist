@@ -15,41 +15,13 @@
  */
 package org.dbist.annotation;
 
-import org.dbist.metadata.Column;
-
 /**
  * Defines a type or personality of a column
  * 
  * @author Steve M. Jung
  * @since 2012. 2. 18. (version 1.0.0)
  */
-public enum ColumnType {
-	/**
-	 * Indicates the type that can be inferred automatically
-	 */
-	EMPTY(""),
-	/**
-	 * 
-	 */
-	TITLE(Column.TYPE_TITLE),
-	/**
-	 * 
-	 */
-	LISTED(Column.TYPE_LISTED),
-	/**
-	 * 
-	 */
-	PASSWORD(Column.TYPE_PASSWORD),
-	/**
-	 * Indicates the Clob or Text (a long string) type of a DBMS
-	 */
-	TEXT(Column.TYPE_TEXT);
-
-	private final String value;
-	ColumnType(String value) {
-		this.value = value;
-	}
-	public String value() {
-		return this.value;
-	}
+public class GenerationRule {
+	public static final String NONE = "";
+	public static final String UUID = "uuid";
 }

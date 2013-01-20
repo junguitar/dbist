@@ -28,7 +28,8 @@ import java.lang.annotation.Target;
  * Examples:
  * 
  * <pre>
- * &#064;Column(name = &quot;pwd&quot;, type = ColumnType.PASSWORD)
+ * &#064;Column(name = &quot;pwd&quot;,
+ * 		type = ColumnType.PASSWORD)
  * private String password;
  * 
  * &#064;Column(type = ColumnType.TITLE)
@@ -61,4 +62,10 @@ public @interface Column {
 	 * @see ColumnType
 	 */
 	ColumnType type() default ColumnType.EMPTY;
+	/**
+	 * (Optional) A generation rule name or a generation class name
+	 * 
+	 * @return
+	 */
+	String generator() default GenerationRule.NONE;
 }

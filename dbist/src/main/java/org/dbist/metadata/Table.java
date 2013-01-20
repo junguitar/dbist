@@ -24,6 +24,7 @@ import java.util.Map;
 import net.sf.common.util.ValueUtils;
 
 import org.dbist.exception.DbistRuntimeException;
+import org.dbist.util.ValueGenerator;
 
 /**
  * @author Steve M. Jung
@@ -48,6 +49,7 @@ public class Table {
 	private String insertSql;
 	private String updateSql;
 	private String deleteSql;
+	private Map<Field, ValueGenerator> valueGeneratorByFieldMap = new HashMap<Field, ValueGenerator>();
 
 	public String getDbType() {
 		return dbType;
@@ -313,5 +315,11 @@ public class Table {
 			deleteSql = buf.toString();
 		}
 		return deleteSql;
+	}
+	public Map<Field, ValueGenerator> getValueGeneratorByFieldMap() {
+		return valueGeneratorByFieldMap;
+	}
+	public void setValueGeneratorByFieldMap(Map<Field, ValueGenerator> valueGeneratorByFieldMap) {
+		this.valueGeneratorByFieldMap = valueGeneratorByFieldMap;
 	}
 }

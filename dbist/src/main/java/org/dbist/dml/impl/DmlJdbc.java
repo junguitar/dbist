@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,6 +175,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private void _insert(Object data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
+		doBeforeInsert(data, table);
 		String sql = table.getInsertSql(fieldNames);
 		Map<String, Object> paramMap = toParamMap(table, data, fieldNames);
 		updateBySql(sql, paramMap);
@@ -184,6 +185,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
+		doBeforeInsertBatch(list, table);
 		String sql = table.getInsertSql(fieldNames);
 		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
@@ -1596,6 +1598,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					}
 				}
 				column.setType(ValueUtils.toNull(columnAnn.type().value()));
+				if (!ValueUtils.isEmpty(columnAnn.generator()))
+					table.getValueGeneratorByFieldMap().put(field, getValueGenerator(columnAnn.generator()));
 			}
 			if (tabColumn == null) {
 				String[] columnNameCandidates = new String[] { ValueUtils.toDelimited(field.getName(), '_').toLowerCase(),

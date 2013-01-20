@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 import net.sf.common.util.ValueUtils;
 
 import org.apache.commons.collections.map.ListOrderedMap;
+import org.apache.commons.lang.ClassUtils;
+import org.dbist.annotation.GenerationRule;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Table;
 import org.dbist.processor.Preprocessor;
+import org.dbist.util.UuidGenerator;
+import org.dbist.util.ValueGenerator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -478,6 +482,44 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		insertBatch(getClass(tableName), list, fieldNames);
 	}
 
+	protected ValueGenerator getValueGenerator(String generator) {
+		if (ValueUtils.isEmpty(generator))
+			return null;
+		if (GenerationRule.UUID.equals(generator)) {
+			try {
+				return UuidGenerator.class.newInstance();
+			} catch (InstantiationException e) {
+				throw new DbistRuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new DbistRuntimeException(e);
+			}
+		}
+		try {
+			return (ValueGenerator) ClassUtils.getClass(generator).newInstance();
+		} catch (InstantiationException e) {
+			throw new DbistRuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new DbistRuntimeException(e);
+		} catch (ClassNotFoundException e) {
+			throw new DbistRuntimeException(e);
+		}
+	}
+
+	protected <T> void doBeforeInsert(T data, Table table) throws Exception {
+		for (Field field : table.getValueGeneratorByFieldMap().keySet()) {
+			if (!ValueUtils.isEmpty(field.get(data)))
+				continue;
+			ValueGenerator gen = table.getValueGeneratorByFieldMap().get(field);
+			gen.generate(data, table.getColumnByFieldName(field.getName()));
+		}
+	}
+	protected <T> void doBeforeInsertBatch(List<T> list, Table table) throws Exception {
+		if (ValueUtils.isEmpty(list) || table.getValueGeneratorByFieldMap().isEmpty())
+			return;
+		for (T data : list)
+			doBeforeInsert(data, table);
+	}
+
 	public <T> T update(Class<T> clazz, Object data) throws Exception {
 		return _update(clazz, data);
 	}
@@ -559,7 +601,10 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	}
 
 	public void _upsert(Object data, String... fieldNames) throws Exception {
-		if (select(data) == null)
+		if (data == null)
+			return;
+		Query query = toPkQuery(data.getClass(), data);
+		if (selectSize(data.getClass(), query) == 0)
 			insert(data, fieldNames);
 		else
 			update(data, fieldNames);

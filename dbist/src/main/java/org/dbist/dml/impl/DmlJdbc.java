@@ -623,13 +623,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					_paramMap.put("__fromIndex", fromIndex);
 					_paramMap.put("__toIndex", toIndex);
 					buf.append("select * from (select pagetbl_.*, rownum rownum_ from (").append(sql)
-							.append(") pagetbl_ where rownum <= :__toIndex) where rownum_ > :__fromIndex");
-				} else if (fromIndex > 0) {
-					_paramMap.put("__fromIndex", fromIndex);
-					buf.append("select * from (").append(sql).append(") where rownum_ > :__fromIndex");
+							.append(") pagetbl_ where rownum <= :__toIndex order by rownum) where rownum_ > :__fromIndex");
 				} else if (toIndex > 0) {
 					_paramMap.put("__toIndex", toIndex);
-					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex");
+					buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex order by rownum");
+				} else if (fromIndex > 0) {
+					_paramMap.put("__fromIndex", fromIndex);
+					buf.append("select * from (").append(sql).append(") where rownum > :__fromIndex order by rownum");
 				} else {
 					buf.append(sql);
 				}

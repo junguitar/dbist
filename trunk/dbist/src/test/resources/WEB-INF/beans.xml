@@ -26,6 +26,7 @@
 		<property name="enabled" value="${sqlAspect.enabled}" />
 		<property name="prettyPrint" value="${sqlAspect.prettyPrint}" />
 		<property name="combinedPrint" value="${sqlAspect.combinedPrint}" />
+		<property name="includeElapsedTime" value="${sqlAspect.includeElapsedTime}" />
 	</bean>
 
 	<!-- Transaction

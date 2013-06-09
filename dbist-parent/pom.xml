@@ -159,6 +159,14 @@
 		</dependency> -->
 	</dependencies>
 
+	<!-- 
+	<repositories>
+		<repository>
+			<id>googlecode-repo-m2-thirdparty</id>
+			<url>http://repo-m2.googlecode.com/svn/thirdparty</url>
+		</repository>
+	</repositories> -->
+
 	<distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>

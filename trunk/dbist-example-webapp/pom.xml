@@ -3,7 +3,7 @@
 
 	<groupId>org.dbist</groupId>
 	<artifactId>dbist-example-webapp</artifactId>
-	<version>2.0.1</version>
+	<version>2.0.2-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<name>dbist-example-webapp</name>
@@ -153,12 +153,12 @@
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist</artifactId>
-			<version>2.0.1</version>
+			<version>2.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbist</groupId>
 			<artifactId>dbist-admin</artifactId>
-			<version>2.0.1</version>
+			<version>2.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.velocity</groupId>

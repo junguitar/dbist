@@ -332,7 +332,61 @@ public abstract class AbstractDmlTest {
 
 	@Test
 	public void selectSize() throws Exception {
+		logger.info("case " + i++ + ": select size");
+		{
+			logger.debug("selected size: " + dml.selectSize(Blog.class, new Query()));
+			logger.debug("selected size: " + dml.selectSize(Blog.class, new Query(1, 10)));
+		}
 
+		logger.info("case " + i++ + ": select size by subfilters");
+		{
+			Query query = new Query("or", 0, 10);
+			query.addFilter("owner", "!=", "junguita@hotmail.com");
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+			query.setPageIndex(1);
+			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+		}
+
+		logger.info("case " + i++ + ": select size by subfilters only");
+		{
+			Query query = new Query("or", 0, 10);
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+			query.setPageIndex(1);
+			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+		}
+
+		logger.info("case " + i++ + ": select size group by list");
+		{
+			logger.debug("selected count: " + dml.selectSize(Blog.class, new Query().addGroup("owner", "name")));
+		}
+
+		logger.info("case " + i++ + ": select size by sql");
+		{
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("name", "test");
+			logger.debug("selected size: " + dml.selectSizeBySql("select * from blog where name <> :name", paramMap));
+		}
+
+		logger.info("case " + i++ + ": select size group by sql");
+		{
+			logger.debug("selected size: " + dml.selectSizeBySqlPath("org/dbist/dml/test.sql", null));
+		}
+
+		logger.info("case " + i++ + ": select size that has relation and relational conditions.");
+		{
+			logger.debug("selected size: "
+					+ dml.selectSize(Post.class, new Query(0, 10).addSelect("id", "title").addFilter("blog.blogName", "1 Name")));
+		}
+
+		logger.info("case " + i++ + ": select size that has relation and relational conditions and unselect some fields.");
+		{
+			logger.debug("selected size: "
+					+ dml.selectSize(Post.class, new Query(0, 10).addUnselect("blog", "authorName").addFilter("blog.blogName", "1 Name")));
+		}
 	}
 
 	@Test

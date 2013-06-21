@@ -583,6 +583,7 @@ public interface Dml {
 	<T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 	<T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception;
+	int selectSizeByQl(String ql, Map<String, ?> paramMap) throws Exception;
 	/**
 	 * Select some data as the requiredType by the query statement (which is in the path) and the paramMap<br>
 	 * The path means classpath or filepath<br>
@@ -603,6 +604,7 @@ public interface Dml {
 	<T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 	<T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception;
+	int selectSizeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception;
 
 	/**
 	 * Select some data as the requiredType by the query statement (SQL query) and the paramMap
@@ -621,6 +623,8 @@ public interface Dml {
 	<T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
 	<T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception;
+	int selectSizeBySql(String sql, Map<String, ?> paramMap) throws Exception;
+
 	/**
 	 * Select some data as the requiredType by the query statement (SQL query) and the paramMap<br>
 	 * The path means classpath or filepath
@@ -634,11 +638,12 @@ public interface Dml {
 	 * @throws Exception
 	 */
 	<T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
-	<T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
-			int maxResultSize) throws Exception;
+	<T> List<T> selectListBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception;
 	<T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize) throws Exception;
-	<T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
-			int maxResultSize) throws Exception;
+	<T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
+			int firstResultIndex, int maxResultSize) throws Exception;
+	int selectSizeBySqlPath(String sqlPath, Map<String, ?> paramMap) throws Exception;
 
 	/**
 	 * Delete some data from the database table mappedt to T class<br>

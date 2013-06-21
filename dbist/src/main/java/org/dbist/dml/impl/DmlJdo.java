@@ -41,52 +41,52 @@ public class DmlJdo extends AbstractDml implements Dml {
 
 	public void insert(Object data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void insertBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void insert(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void insertBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void update(Object data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void updateBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void update(Object data, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void updateBatch(List<?> list, String... fieldNames) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void delete(Object data) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public void deleteBatch(List<?> list) throws Exception {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	public int selectSize(Class<?> clazz, Object condition) throws Exception {
@@ -110,10 +110,9 @@ public class DmlJdo extends AbstractDml implements Dml {
 		return null;
 	}
 
-	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
-			int maxResultSize) throws Exception {
+	public int selectSizeByQl(String ql, Map<String, ?> paramMap) throws Exception {
 		// TODO Auto-generated method stub
-		return null;
+		return 0;
 	}
 
 	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
@@ -126,6 +125,11 @@ public class DmlJdo extends AbstractDml implements Dml {
 			int firstResultIndex, int maxResultSize) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public int selectSizeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	public int deleteList(Class<?> clazz, Object condition) throws Exception {
@@ -142,5 +146,4 @@ public class DmlJdo extends AbstractDml implements Dml {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }

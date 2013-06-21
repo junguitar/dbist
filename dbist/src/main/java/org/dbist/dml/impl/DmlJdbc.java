@@ -310,7 +310,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private void appendFromWhere(Table table, Query query, StringBuffer buf, Map<String, Object> paramMap, Map<String, Column> relColMap) {
-		if (table.containsLinkedTable() && (!ValueUtils.isEmpty(query.getSelect()) || !ValueUtils.isEmpty(query.getUnselect())))
+		if (relColMap != null && table.containsLinkedTable() && (!ValueUtils.isEmpty(query.getSelect()) || !ValueUtils.isEmpty(query.getUnselect())))
 			populateRelColMap(table, query, relColMap);
 
 		// From
@@ -336,6 +336,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		appendWhere(buf, table, query, 0, paramMap);
 	}
 	private void populateRelColMap(Table table, Filters filters, Map<String, Column> relColMap) {
+		if (relColMap == null)
+			return;
 		if (!ValueUtils.isEmpty(filters.getFilter())) {
 			for (Filter filter : filters.getFilter()) {
 				if (!filter.getLeftOperand().contains("."))
@@ -370,7 +372,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		try {
 			query.setLock(null);
 			if (ValueUtils.isEmpty(query.getGroup())) {
-				appendFromWhere(table, query, buf, paramMap, null);
+				appendFromWhere(table, query, buf, paramMap, table.containsLinkedTable() ? new HashMap<String, Column>() : null);
 			} else {
 				buf.append(" from (");
 				appendSelectSql(buf, paramMap, table, query, true, true);
@@ -425,9 +427,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return list;
 	}
 	private void appendSelectSql(StringBuffer buf, Map<String, Object> paramMap, Table table, Query query, boolean groupBy, boolean ignoreOrderBy) {
-		@SuppressWarnings("unchecked")
-		Map<String, Column> relColMap = new ListOrderedMap();
 		boolean joined = table.containsLinkedTable();
+		@SuppressWarnings("unchecked")
+		Map<String, Column> relColMap = joined ? new ListOrderedMap() : null;
 
 		// Select
 		buf.append("select");
@@ -518,7 +520,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		} else if (ValueUtils.isEmpty(column.getColumnList())) {
 			return i;
 		}
-		if (!relColMap.containsKey(column.getName()))
+		if (relColMap != null && !relColMap.containsKey(column.getName()))
 			relColMap.put(column.getName(), column);
 		for (Column subCol : column.getColumnList())
 			buf.append(i++ == 0 ? " " : ", ").append(column.getName()).append(".").append(subCol.getName()).append(" ").append(column.getName())
@@ -1133,23 +1135,13 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			map.put(key, paramMap.get(key).toString());
 	}
 
-	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
-			int maxResultSize) throws Exception {
+	public int selectSizeByQl(String ql, Map<String, ?> paramMap) throws Exception {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
-		Page<T> page = new Page<T>();
-		page.setIndex(pageIndex);
-		page.setSize(pageSize);
-		page.setFirstResultIndex(firstResultIndex);
-		page.setMaxResultSize(maxResultSize);
-		page.setList(selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize));
 		int forUpdateIndex = ql.toLowerCase().lastIndexOf("for update");
 		if (forUpdateIndex > -1)
 			ql = ql.substring(0, forUpdateIndex - 1);
-		ql = "select count(*) from (" + ql + ")";
-		page.setTotalSize(selectByQl(ql, paramMap, Integer.class));
-		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
-			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
-		return page;
+		ql = "select count(*) from (" + ql + ") cnttbl_";
+		return selectByQl(ql, paramMap, Integer.class);
 	}
 
 	public <T> List<T> selectListByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
@@ -1160,6 +1152,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	public <T> Page<T> selectPageByQlPath(String qlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectPageByQl(getSqlByPath(qlPath), paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
+	}
+
+	public int selectSizeByQlPath(String qlPath, Map<String, ?> paramMap) throws Exception {
+		return selectSizeByQl(getSqlByPath(qlPath), paramMap);
 	}
 
 	private Map<String, String> sqlByPathCache;
@@ -1203,7 +1199,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		Lock lock = query.getLock();
 		try {
 			query.setLock(null);
-			appendFromWhere(table, query, buf, paramMap, null);
+			appendFromWhere(table, query, buf, paramMap, table.containsLinkedTable() ? new HashMap<String, Column>() : null);
 		} finally {
 			query.setLock(lock);
 

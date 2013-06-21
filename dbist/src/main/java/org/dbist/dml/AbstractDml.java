@@ -17,6 +17,7 @@ package org.dbist.dml;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -411,6 +412,25 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, 0, 0);
 	}
 
+	public <T> Page<T> selectPageByQl(String ql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
+			int maxResultSize) throws Exception {
+		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
+		Page<T> page = new Page<T>();
+		page.setIndex(pageIndex);
+		page.setSize(pageSize);
+		page.setFirstResultIndex(firstResultIndex);
+		page.setMaxResultSize(maxResultSize);
+		page.setList(selectListByQl(ql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize));
+		page.setTotalSize(selectSizeByQl(ql, paramMap));
+		if (page.getIndex() >= 0 && page.getSize() > 0 && page.getTotalSize() > 0)
+			page.setLastIndex((page.getTotalSize() / page.getSize()) - (page.getTotalSize() % page.getSize() == 0 ? 1 : 0));
+		return page;
+	}
+
+	public int selectSizeBySql(String sql, Map<String, ?> paramMap) throws Exception {
+		return selectSizeByQl(sql, paramMap);
+	}
+
 	public <T> Page<T> selectPageBySql(String sql, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize, int firstResultIndex,
 			int maxResultSize) throws Exception {
 		return selectPageByQl(sql, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
@@ -434,6 +454,10 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 	public <T> Page<T> selectPageBySqlPath(String sqlPath, Map<String, ?> paramMap, Class<T> requiredType, int pageIndex, int pageSize,
 			int firstResultIndex, int maxResultSize) throws Exception {
 		return selectPageByQlPath(sqlPath, paramMap, requiredType, pageIndex, pageSize, firstResultIndex, maxResultSize);
+	}
+
+	public int selectSizeBySqlPath(String sqlPath, Map<String, ?> paramMap) throws Exception {
+		return selectSizeByQlPath(sqlPath, paramMap);
 	}
 
 	public <T> T insert(Class<T> clazz, Object data) throws Exception {

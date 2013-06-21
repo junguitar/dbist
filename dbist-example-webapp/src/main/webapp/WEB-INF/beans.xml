@@ -52,12 +52,13 @@
 
 	<!-- JDBC -->
 	<bean id="dmlJdbc" class="org.dbist.dml.impl.DmlJdbc">
+		<property name="dataSource" ref="dataSourceJdbc" />
 		<property name="domain" value="${dmlJdbc.domain}" />
+		<property name="defaultLockTimeout" value="${dmlJdbc.defaultLockTimeout}" />
 		<property name="columnAliasRuleForMapKey" value="${dmlJdbc.columnAliasRuleForMapKey}" />
 		<property name="preprocessor">
 			<bean class="org.dbist.processor.impl.VelocityPreprocessor" />
 		</property>
-		<property name="dataSource" ref="dataSourceJdbc" />
 		<property name="jdbcOperations">
 			<bean class="org.springframework.jdbc.core.JdbcTemplate">
 				<property name="dataSource" ref="dataSourceJdbc" />

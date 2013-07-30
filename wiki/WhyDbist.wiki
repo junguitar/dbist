@@ -12,7 +12,7 @@ Now, you can see why we must use Dbist instead of them.
   * [GettingStarted Getting Started]
   * [Downloads]
   * [Manual]
-  * [http://java-doc.appspot.com/dbist/1.0/ Javadoc]
+  * [http://java-doc.appspot.com/dbist/2.0/ Javadoc]
 
 == Example ==
 

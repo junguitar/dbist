@@ -211,6 +211,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private <T> void _update(T data, String... fieldNames) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
+		if (ValueUtils.isEmpty(table.getPkFieldNames()))
+			throw new DbistRuntimeException("More than 1 primary key field is required in the class " + table.getClazz().getName() + " to update");
 		String sql = table.getUpdateSql(fieldNames);
 		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		Map<String, Object> paramMap = toParamMap(table, data, fieldNames);
@@ -229,6 +231,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
+		if (ValueUtils.isEmpty(table.getPkFieldNames()))
+			throw new DbistRuntimeException("More than 1 primary key field is required in the class " + table.getClazz().getName()
+					+ " to update batch");
 		String sql = table.getUpdateSql(fieldNames);
 		fieldNames = toFieldNamesForUpdate(table, fieldNames);
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, fieldNames);
@@ -250,6 +255,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	public void delete(Object data) throws Exception {
 		ValueUtils.assertNotNull("data", data);
 		Table table = getTable(data);
+		if (ValueUtils.isEmpty(table.getPkFieldNames()))
+			throw new DbistRuntimeException("More than 1 primary key field is required in the class " + table.getClazz().getName() + " to delete");
 		String sql = table.getDeleteSql();
 		Map<String, Object> paramMap = toParamMap(table, data, table.getPkFieldNames());
 		if (updateBySql(sql, paramMap) != 1)
@@ -260,6 +267,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (ValueUtils.isEmpty(list))
 			return;
 		Table table = getTable(list.get(0));
+		if (ValueUtils.isEmpty(table.getPkFieldNames()))
+			throw new DbistRuntimeException("More than 1 primary key field is required in the class " + table.getClazz().getName()
+					+ " to delete batch");
 		String sql = table.getDeleteSql();
 		List<Map<String, ?>> paramMapList = toParamMapList(table, list, table.getPkFieldNames());
 		updateBatchBySql(sql, paramMapList);

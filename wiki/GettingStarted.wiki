@@ -25,7 +25,7 @@ _Optional_
 
   # Create an Database to your DBMS (ex. dbist)
   # Run [ExampleSchema this script] to the Database 
-  # Download this [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/2.0.1/dbist-example-webapp-2.0.1.war dbist-example-webapp-2.0.1.war] file and modify the file name as "dbist-example.war"<br>(or check-out the example project from [http://dbist.googlecode.com/svn/tags/dbist-2.0.1/dbist-example-webapp/ the dbist SVN])
+  # Download this [https://repo-m2.googlecode.com/svn/releases/org/dbist/dbist-example-webapp/2.0.2/dbist-example-webapp-2.0.2.war dbist-example-webapp-2.0.2.war] file and modify the file name as "dbist-example.war"<br>(or check-out the example project from [http://dbist.googlecode.com/svn/tags/dbist-2.0.2/dbist-example-webapp/ the dbist SVN])
   # Publish this example to your tomcat server
   # Check and modify [Manual#Configurations the config.properties](dbist-example/WEB-INF/config.properties) file
   # Run the tomcat server and browse [http://localhost:8080/dbist-example/dbistadmin this url] on a browser

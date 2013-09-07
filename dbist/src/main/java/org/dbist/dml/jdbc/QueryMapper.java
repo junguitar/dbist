@@ -17,6 +17,8 @@ package org.dbist.dml.jdbc;
 
 import java.util.Map;
 
+import org.dbist.dml.Lock;
+
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
@@ -26,7 +28,9 @@ public interface QueryMapper {
 	boolean isSupportedPaginationQuery();
 	boolean isSupportedLockTimeout();
 	String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize);
-	String applyEscapement(char escape);
+	String toEscapementForFilter(char escape);
+	String toLockForFrom(Lock lock);
+	String toLockForQuery(Lock lock);
 	String getFunctionLowerCase();
 	String getQueryCountTable();
 	String getQueryPkColumnNames();

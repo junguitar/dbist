@@ -63,6 +63,7 @@ import org.dbist.dml.jdbc.QueryMapperDb2;
 import org.dbist.dml.jdbc.QueryMapperMysql;
 import org.dbist.dml.jdbc.QueryMapperOracle;
 import org.dbist.dml.jdbc.QueryMapperPostgresql;
+import org.dbist.dml.jdbc.QueryMapperSqlserver;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
@@ -93,19 +94,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final List<String> COLUMNALIASRULE_LIST = ValueUtils.toList(COLUMNALIASRULE_DEFAULT, COLUMNALIASRULE_UPPERCASE,
 			COLUMNALIASRULE_LOWERCASE, COLUMNALIASRULE_CAMELCASE);
 
-	private static final String DBTYPE_SQLSERVER = Table.DBTYPE_SQLSERVER;
-
-	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_SQLSERVER);
 	private boolean isSupported() {
-		return queryMapper != null || DBTYPE_SUPPORTED_LIST.contains(getDbType());
+		return queryMapper != null;
 	}
-	private static final List<String> DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST = ValueUtils.toList();
 	private boolean isSupportedPaginationQuery() {
-		return queryMapper == null ? DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST.contains(getDbType()) : queryMapper.isSupportedPaginationQuery();
-	}
-	private static final List<String> DBTYPE_SUPPORTED_LOCKTIMEOUT_LIST = ValueUtils.toList();
-	private boolean isSupportedLockTimeout() {
-		return queryMapper == null ? DBTYPE_SUPPORTED_LOCKTIMEOUT_LIST.contains(getDbType()) : queryMapper.isSupportedLockTimeout();
+		return queryMapper.isSupportedPaginationQuery();
 	}
 
 	private String domain;
@@ -129,29 +122,31 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotEmpty("jdbcOperations", getJdbcOperations());
 		ValueUtils.assertNotEmpty("namedParameterJdbcOperations", getNamedParameterJdbcOperations());
 
-		DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
 		if (ValueUtils.isEmpty(getDbType())) {
+			DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
 			setDbType(metadata.getDatabaseProductName().toLowerCase());
 			if (getDbType().startsWith("microsoft sql server")) {
-				setDbType(DBTYPE_SQLSERVER);
+				setDbType("sqlserver");
 			} else if (getDbType().startsWith("db2/")) {
 				setDbType("db2");
 			}
-			if (getQueryMapper() == null) {
-				if (getDbType().equals("mysql"))
-					setQueryMapper(new QueryMapperMysql());
-				else if (getDbType().equals("postgresql"))
-					setQueryMapper(new QueryMapperPostgresql());
-				else if (getDbType().equals("oracle"))
-					setQueryMapper(new QueryMapperOracle());
-				else if (getDbType().equals("db2"))
-					setQueryMapper(new QueryMapperDb2());
-			}
+		}
+		if (getQueryMapper() == null) {
+			if (getDbType().equals("mysql"))
+				setQueryMapper(new QueryMapperMysql());
+			else if (getDbType().equals("postgresql"))
+				setQueryMapper(new QueryMapperPostgresql());
+			else if (getDbType().equals("oracle"))
+				setQueryMapper(new QueryMapperOracle());
+			else if (getDbType().equals("db2"))
+				setQueryMapper(new QueryMapperDb2());
+			else if (getDbType().equals("sqlserver"))
+				setQueryMapper(new QueryMapperSqlserver());
 		}
 		if (!isSupported())
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
 
-		if (DBTYPE_SQLSERVER.equals(getDbType())) {
+		if ("sqlserver".equals(getDbType())) {
 			List<String> domainList = new ArrayList<String>(this.domainList.size());
 			for (String domain : this.domainList) {
 				if (domain.endsWith("."))
@@ -348,8 +343,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
-		if (query.getLock() != null && DBTYPE_SQLSERVER.equals(getDbType()))
-			buf.append(" with (updlock, rowlock)");
+		if (query.getLock() != null && queryMapper != null) {
+			String str = queryMapper.toLockForFrom(query.getLock());
+			if (!ValueUtils.isEmpty(str))
+				buf.append(" ").append(str);
+		}
 		if (!ValueUtils.isEmpty(relColMap)) {
 			for (Column col : relColMap.values()) {
 				Table subTab = col.getTable();
@@ -562,82 +560,24 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private void appendLock(StringBuffer buf, Lock lock) {
-		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))
+		if (lock == null)
 			return;
 		//		if (DBTYPE_DB2.equals(getDbType())) {
 		//			buf.append(" for read only with rs");
 		//			return;
 		//		}
-		buf.append(" for update");
-		int timeout = lock.getTimeout() == null ? defaultLockTimeout : lock.getTimeout();
-		if (timeout >= 0) {
-			if (isSupportedLockTimeout()) {
-				timeout /= 1000;
-				if (timeout == 0)
-					buf.append(" nowait");
-				else
-					buf.append(" wait " + timeout);
-			}
+		if (lock.getTimeout() == null) {
+			lock = new Lock();
+			lock.setTimeout(defaultLockTimeout);
 		}
+		String str = queryMapper.toLockForQuery(lock);
+		if (ValueUtils.isEmpty(str))
+			return;
+		buf.append(" ").append(str);
 	}
 
-	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList();
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
-		if (queryMapper != null)
-			return queryMapper.applyPagination(sql, paramMap, pageIndex, pageSize, firstResultIndex, maxResultSize);
-
-		boolean pagination = pageIndex >= 0 && pageSize > 0;
-		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
-		if (!pagination && !fragment)
-			return sql;
-		if (!pagination) {
-			pageIndex = 0;
-			pageSize = 0;
-		}
-		if (firstResultIndex < 0)
-			firstResultIndex = 0;
-		if (maxResultSize < 0)
-			maxResultSize = 0;
-		if (DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST.contains(getDbType())) {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
-			String subsql = null;
-			int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
-			if (forUpdateIndex > -1) {
-				subsql = sql.substring(forUpdateIndex - 1);
-				sql = sql.substring(0, forUpdateIndex - 1);
-			}
-
-			StringBuffer buf = new StringBuffer();
-			int pageFromIndex = pagination ? pageIndex * pageSize : 0;
-			if (DBTYPE_PAGINATION_BYLIMIT_LIST.contains(getDbType())) {
-				int offset = pageFromIndex + firstResultIndex;
-				long limit = 0;
-				if (pageSize > 0) {
-					limit = pageSize - firstResultIndex;
-					if (maxResultSize > 0)
-						limit = Math.min(limit, maxResultSize);
-				} else if (maxResultSize > 0) {
-					limit = maxResultSize;
-				} else if (limit == 0) {
-					limit = Long.MAX_VALUE;
-				}
-			}
-
-			if (subsql != null)
-				buf.append(subsql);
-			return buf.toString();
-		}
-		// SQLServer
-		else if (DBTYPE_SQLSERVER.equals(getDbType())) {
-			String lowerSql = sql.toLowerCase();
-			int selectIndex = lowerSql.indexOf("select");
-			int distinctIndex = lowerSql.indexOf("distinct");
-			int topIndex = distinctIndex > 0 && distinctIndex < selectIndex + 13 ? distinctIndex + 8 : selectIndex + 6;
-			int top = (pageIndex + 1) * pageSize + firstResultIndex;
-			return new StringBuffer(sql).insert(topIndex, " top " + top).toString();
-		}
-		return sql;
+		return queryMapper.applyPagination(sql, paramMap, pageIndex, pageSize, firstResultIndex, maxResultSize);
 	}
 
 	private <T> List<T> query(String sql, Map<String, ?> paramMap, final Class<T> requiredType, final Table table, int pageIndex, int pageSize,
@@ -1566,86 +1506,32 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 	}
 
-	private static final String DBFUNC_LOWERCASE_SQLSERVER = "lower";
-	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
-	static {
-		DBFUNC_LOWERCASE_MAP = new HashMap<String, String>();
-		DBFUNC_LOWERCASE_MAP.put(DBTYPE_SQLSERVER, DBFUNC_LOWERCASE_SQLSERVER);
-	}
 	private String getFunctionLowerCase() {
-		return queryMapper == null ? DBFUNC_LOWERCASE_MAP.get(getDbType()) : queryMapper.getFunctionLowerCase();
+		return queryMapper.getFunctionLowerCase();
 	}
 	private String applyEscapement(char escape) {
-		String str = queryMapper == null ? "escape '" + escape + "'" : queryMapper.applyEscapement(escape);
+		String str = queryMapper.toEscapementForFilter(escape);
 		if (ValueUtils.isEmpty(str))
 			return "";
 		return " " + str;
 	}
-
-	private static final String QUERY_COUNTTABLE_SQLSERVER = "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
-	private static final Map<String, String> QUERY_COUNTTABLE_MAP;
-	static {
-		QUERY_COUNTTABLE_MAP = new HashMap<String, String>();
-		QUERY_COUNTTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTTABLE_SQLSERVER);
-	}
 	private String getQueryCountTable() {
-		return queryMapper == null ? QUERY_COUNTTABLE_MAP.get(getDbType()) : queryMapper.getQueryCountTable();
-	}
-
-	private static final String QUERY_PKCOLUMNNAMES_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
-			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
-	private static final Map<String, String> QUERY_PKCOLUMNNAMES_MAP;
-	static {
-		QUERY_PKCOLUMNNAMES_MAP = new HashMap<String, String>();
-		QUERY_PKCOLUMNNAMES_MAP.put(DBTYPE_SQLSERVER, QUERY_PKCOLUMNNAMES_SQLSERVER);
+		return queryMapper.getQueryCountTable();
 	}
 	private String getQueryPkColumnNames() {
-		return queryMapper == null ? QUERY_PKCOLUMNNAMES_MAP.get(getDbType()) : queryMapper.getQueryPkColumnNames();
-	}
-
-	private static final String QUERY_COLUMNNAMES_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
-			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
-	private static final Map<String, String> QUERY_COLUMNNAMES_MAP;
-	static {
-		QUERY_COLUMNNAMES_MAP = new HashMap<String, String>();
-		QUERY_COLUMNNAMES_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNNAMES_SQLSERVER);
+		return queryMapper.getQueryPkColumnNames();
 	}
 	private String getQueryColumnNames() {
-		return queryMapper == null ? QUERY_COLUMNNAMES_MAP.get(getDbType()) : queryMapper.getQueryColumnNames();
-	}
-
-	// Column
-	private static final String QUERY_COLUMNNAME_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
-			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
-	private static final Map<String, String> QUERY_COLUMNNAME_MAP;
-	static {
-		QUERY_COLUMNNAME_MAP = new HashMap<String, String>();
-		QUERY_COLUMNNAME_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNNAME_SQLSERVER);
+		return queryMapper.getQueryColumnNames();
 	}
 	private String getQueryColumnName() {
-		return queryMapper == null ? QUERY_COLUMNNAME_MAP.get(getDbType()) : queryMapper.getQueryColumnName();
-	}
-
-	// Identity
-	private static final String QUERY_COUNTIDENTITY_SQLSERVER = "";
-	private static final Map<String, String> QUERY_COUNTIDENTITY_MAP;
-	static {
-		QUERY_COUNTIDENTITY_MAP = new HashMap<String, String>();
-		QUERY_COUNTIDENTITY_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTIDENTITY_SQLSERVER);
+		return queryMapper.getQueryColumnName();
 	}
 	private String getQueryCountIdentity() {
-		return queryMapper == null ? QUERY_COUNTIDENTITY_MAP.get(getDbType()) : queryMapper.getQueryCountIdentity();
-	}
-
-	// Sequence
-	private static final String QUERY_COUNTSEQUENCE_SQLSERVER = "";
-	private static final Map<String, String> QUERY_COUNTSEQUENCE_MAP;
-	static {
-		QUERY_COUNTSEQUENCE_MAP = new HashMap<String, String>();
-		QUERY_COUNTSEQUENCE_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTSEQUENCE_SQLSERVER);
+		return queryMapper.getQueryCountIdentity();
 	}
 	private String getQueryCountSequence() {
-		return queryMapper == null ? QUERY_COUNTSEQUENCE_MAP.get(getDbType()) : queryMapper.getQueryCountSequence();
+		return queryMapper.getQueryCountSequence();
 	}
 
 	static class TableColumnRowMapper implements RowMapper<TableColumn> {

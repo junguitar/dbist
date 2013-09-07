@@ -15,12 +15,39 @@
  */
 package org.dbist.dml.jdbc;
 
+import org.dbist.dml.Lock;
+
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
  */
 public abstract class AbstractQueryMapper implements QueryMapper {
-	public String applyEscapement(char escape) {
+
+	public String toEscapementForFilter(char escape) {
 		return "escape '" + escape + "'";
 	}
+
+	public String toLockForFrom(Lock lock) {
+		return null;
+	}
+
+	public String toLockForQuery(Lock lock) {
+		StringBuffer buf = new StringBuffer();
+		buf.append(" for update");
+
+		if (!isSupportedLockTimeout())
+			return buf.toString();
+
+		Integer timeout = lock.getTimeout();
+		if (timeout == null || timeout < 0)
+			return buf.toString();
+
+		timeout /= 1000;
+		if (timeout == 0)
+			buf.append(" nowait");
+		else
+			buf.append(" wait " + timeout);
+		return buf.toString();
+	}
+
 }

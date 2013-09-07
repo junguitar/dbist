@@ -138,7 +138,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>3.6.10.Final</version>
+			<version>3.5.6-Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -173,7 +173,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.2-1002-jdbc4</version>
+			<version>9.2-1003-jdbc4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle</groupId>

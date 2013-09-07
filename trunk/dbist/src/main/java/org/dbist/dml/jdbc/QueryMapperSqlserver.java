@@ -17,6 +17,8 @@ package org.dbist.dml.jdbc;
 
 import java.util.Map;
 
+import org.dbist.dml.Lock;
+
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
@@ -55,6 +57,10 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 		int topIndex = distinctIndex > 0 && distinctIndex < selectIndex + 13 ? distinctIndex + 8 : selectIndex + 6;
 		int top = (pageIndex + 1) * pageSize + firstResultIndex;
 		return new StringBuffer(sql).insert(topIndex, " top " + top).toString();
+	}
+
+	public String toLockForFrom(Lock lock) {
+		return "with (updlock, rowlock)";
 	}
 
 	public String getFunctionLowerCase() {

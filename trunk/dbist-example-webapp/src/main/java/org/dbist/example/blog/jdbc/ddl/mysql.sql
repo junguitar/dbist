@@ -17,15 +17,6 @@ CREATE TABLE `blog` (
 	PRIMARY KEY (`id`)
 )
 
-CREATE TABLE `comments` (
-	`id`         varchar(100) NOT NULL,
-	`post_id`    varchar(100),
-	`author`     varchar(100),
-	`created_at` date,
-	`content`    varchar(1000),
-	PRIMARY KEY (`id`)
-)
-
 CREATE TABLE `post` (
 	`id`         varchar(100) NOT NULL,
 	`blog_id`    varchar(100),
@@ -34,5 +25,14 @@ CREATE TABLE `post` (
 	`created_at` date,
 	`updated_at` date,
 	`content`    text,
+	PRIMARY KEY (`id`)
+)
+
+CREATE TABLE `comments` (
+	`id`         varchar(100) NOT NULL,
+	`post_id`    varchar(100),
+	`author`     varchar(100),
+	`created_at` date,
+	`content`    varchar(1000),
 	PRIMARY KEY (`id`)
 )

@@ -58,6 +58,7 @@ import org.dbist.dml.Lock;
 import org.dbist.dml.Order;
 import org.dbist.dml.Page;
 import org.dbist.dml.Query;
+import org.dbist.dml.querymapper.QueryMapper;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
@@ -107,6 +108,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private NamedParameterJdbcOperations namedParameterJdbcOperations;
 	private int maxSqlByPathCacheSize = 1000;
 	private int defaultLockTimeout = -1;
+	private QueryMapper queryMapper;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -125,7 +127,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			setDbType(DBTYPE_SQLSERVER);
 		else if (getDbType().startsWith("db2/"))
 			setDbType(DBTYPE_DB2);
-		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()))
+		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()) && getQueryMapper() == null)
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
 
 		if (DBTYPE_SQLSERVER.equals(getDbType())) {
@@ -559,6 +561,9 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 	}
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
+		if (queryMapper != null)
+			return queryMapper.applyPagination(sql, paramMap, pageIndex, pageSize, firstResultIndex, maxResultSize);
+
 		boolean pagination = pageIndex >= 0 && pageSize > 0;
 		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
 		if (!pagination && !fragment)
@@ -669,7 +674,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
 
 		List<T> list = null;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || (!pagination && !fragment)) {
+		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || (queryMapper != null && queryMapper.isPaginationQuerySupported())
+				|| (!pagination && !fragment)) {
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
 					return newInstance(rs, requiredType, table);
@@ -1232,6 +1238,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return executeByQl(getSqlByPath(qlPath), paramMap);
 	}
 
+	@Override
+	public String getDbType() {
+		return queryMapper == null ? super.getDbType() : queryMapper.getDbType();
+	}
 	public String getDomain() {
 		return domain;
 	}
@@ -1279,6 +1289,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 	public void setDefaultLockTimeout(int defaultLockTimeout) {
 		this.defaultLockTimeout = defaultLockTimeout;
+	}
+	public QueryMapper getQueryMapper() {
+		return queryMapper;
+	}
+	public void setQueryMapper(QueryMapper queryMapper) {
+		this.queryMapper = queryMapper;
 	}
 
 	private Map<String, Class<?>> classByTableNameCache = new ConcurrentHashMap<String, Class<?>>();

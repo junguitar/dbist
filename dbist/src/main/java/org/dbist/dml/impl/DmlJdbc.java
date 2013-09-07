@@ -136,7 +136,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				setDbType(DBTYPE_SQLSERVER);
 			} else if (getDbType().startsWith("db2/")) {
 				setDbType(DBTYPE_DB2);
-			} else if (getQueryMapper() == null) {
+			}
+			if (getQueryMapper() == null) {
 				if (getDbType().equals("mysql"))
 					setQueryMapper(new QueryMapperMysql());
 				else if (getDbType().equals("postgresql"))
@@ -1506,19 +1507,19 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final RowMapper<TableColumn> TABLECOLUMN_ROWMAPPER = new TableColumnRowMapper();
 
-	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
-	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
+	private static final String QUERY_COLUMNNAMES_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
+	private static final String QUERY_COLUMNNAMES_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
-	private static final String QUERY_COLUMNS_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
-	private static final Map<String, String> QUERY_COLUMNS_MAP;
+	private static final String QUERY_COLUMNNAMES_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
+	private static final Map<String, String> QUERY_COLUMNNAMES_MAP;
 	static {
-		QUERY_COLUMNS_MAP = new HashMap<String, String>();
-		QUERY_COLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNS_ORACLE);
-		QUERY_COLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNS_SQLSERVER);
-		QUERY_COLUMNS_MAP.put(DBTYPE_DB2, QUERY_COLUMNS_DB2);
+		QUERY_COLUMNNAMES_MAP = new HashMap<String, String>();
+		QUERY_COLUMNNAMES_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNNAMES_ORACLE);
+		QUERY_COLUMNNAMES_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNNAMES_SQLSERVER);
+		QUERY_COLUMNNAMES_MAP.put(DBTYPE_DB2, QUERY_COLUMNNAMES_DB2);
 	}
 	private String getQueryColumnNames() {
-		return queryMapper == null ? QUERY_COLUMNS_MAP.get(getDbType()) : queryMapper.getQueryColumnNames();
+		return queryMapper == null ? QUERY_COLUMNNAMES_MAP.get(getDbType()) : queryMapper.getQueryColumnNames();
 	}
 
 	private List<TableColumn> getTableColumnList(Table table) {

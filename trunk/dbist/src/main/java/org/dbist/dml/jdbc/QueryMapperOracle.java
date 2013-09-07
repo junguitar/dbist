@@ -21,10 +21,10 @@ import java.util.Map;
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
  */
-public class QueryMapperMysql extends AbstractQueryMapper {
+public class QueryMapperOracle extends AbstractQueryMapper {
 
 	public String getDbType() {
-		return "mysql";
+		return "oracle";
 	}
 
 	public boolean isSupportedPaginationQuery() {
@@ -32,7 +32,7 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 	}
 
 	public boolean isSupportedLockTimeout() {
-		return false;
+		return true;
 	}
 
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
@@ -60,25 +60,28 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 
 		StringBuffer buf = new StringBuffer();
 		int pageFromIndex = pagination ? pageIndex * pageSize : 0;
-		int offset = pageFromIndex + firstResultIndex;
-		long limit = 0;
+		int fromIndex = pageFromIndex + firstResultIndex;
+		int toIndex = 0;
 		if (pageSize > 0) {
-			limit = pageSize - firstResultIndex;
+			toIndex = pageFromIndex + pageSize;
 			if (maxResultSize > 0)
-				limit = Math.min(limit, maxResultSize);
+				toIndex = Math.min(toIndex, fromIndex + maxResultSize);
 		} else if (maxResultSize > 0) {
-			limit = maxResultSize;
-		} else if (limit == 0) {
-			limit = Long.MAX_VALUE;
+			toIndex = fromIndex + maxResultSize;
 		}
-		buf.append(sql);
-		if (offset > 0 && limit > 0) {
-			_paramMap.put("__offset", offset);
-			_paramMap.put("__limit", limit);
-			buf.append(" limit :__offset, :__limit");
-		} else if (limit > 0) {
-			_paramMap.put("__limit", limit);
-			buf.append(" limit :__limit");
+		if (fromIndex > 0 && toIndex > 0) {
+			_paramMap.put("__fromIndex", fromIndex);
+			_paramMap.put("__toIndex", toIndex);
+			buf.append("select * from (select pagetbl_.*, rownum rownum_ from (").append(sql)
+					.append(") pagetbl_ where rownum <= :__toIndex order by rownum) where rownum_ > :__fromIndex");
+		} else if (toIndex > 0) {
+			_paramMap.put("__toIndex", toIndex);
+			buf.append("select * from (").append(sql).append(") where rownum <= :__toIndex order by rownum");
+		} else if (fromIndex > 0) {
+			_paramMap.put("__fromIndex", fromIndex);
+			buf.append("select * from (").append(sql).append(") where rownum > :__fromIndex order by rownum");
+		} else {
+			buf.append(sql);
 		}
 
 		if (subsql != null)
@@ -86,28 +89,25 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		return buf.toString();
 	}
 
-	public String applyEscapement(char escape) {
-		return "";
-	}
-
 	public String getFunctionLowerCase() {
 		return "lower";
 	}
 
 	public String getQueryCountTable() {
-		return "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
+		return "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lower(column_name) name from information_schema.key_column_usage where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
+		return "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
+				+ " where cons.constraint_name = conscol.constraint_name and cons.owner = conscol.owner and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
 	}
 
 	public String getQueryColumnNames() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
+		return "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
 	}
 
 	public String getQueryColumnName() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+		return "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	}
 
 	public String getQueryCountIdentity() {
@@ -115,7 +115,7 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 	}
 
 	public String getQueryCountSequence() {
-		return "";
+		return "select count(*) from all_sequences where lower(sequence_owner) = '${domain}' and lower(sequence_name) = ?";
 	}
 
 }

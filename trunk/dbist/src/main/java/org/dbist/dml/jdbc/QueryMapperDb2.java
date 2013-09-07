@@ -21,10 +21,10 @@ import java.util.Map;
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
  */
-public class QueryMapperMysql extends AbstractQueryMapper {
+public class QueryMapperDb2 extends AbstractQueryMapper {
 
 	public String getDbType() {
-		return "mysql";
+		return "db2";
 	}
 
 	public boolean isSupportedPaginationQuery() {
@@ -32,7 +32,7 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 	}
 
 	public boolean isSupportedLockTimeout() {
-		return false;
+		return true;
 	}
 
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
@@ -49,8 +49,6 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		if (maxResultSize < 0)
 			maxResultSize = 0;
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
 		String subsql = null;
 		int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
 		if (forUpdateIndex > -1) {
@@ -71,14 +69,14 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		} else if (limit == 0) {
 			limit = Long.MAX_VALUE;
 		}
-		buf.append(sql);
 		if (offset > 0 && limit > 0) {
-			_paramMap.put("__offset", offset);
-			_paramMap.put("__limit", limit);
-			buf.append(" limit :__offset, :__limit");
+			buf.append("select * from (select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (")
+					.append(sql)
+					.append(" fetch first " + (offset + limit) + " rows only) pagetbl_) pagetbl__ where rownumber_ > " + offset
+							+ " order by rownumber_");
 		} else if (limit > 0) {
-			_paramMap.put("__limit", limit);
-			buf.append(" limit :__limit");
+			buf.append(sql);
+			buf.append(" fetch first " + limit + " rows only");
 		}
 
 		if (subsql != null)
@@ -86,36 +84,33 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		return buf.toString();
 	}
 
-	public String applyEscapement(char escape) {
-		return "";
-	}
-
 	public String getFunctionLowerCase() {
-		return "lower";
+		return "lcase";
 	}
 
 	public String getQueryCountTable() {
-		return "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
+		return "select count(*) from sysibm.systables where lcase(creator) = '${domain}' and type = 'T' and lcase(name) = ?";
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lower(column_name) name from information_schema.key_column_usage where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
+		return "select lcase(name) name from sysibm.syscolumns"
+				+ " where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
 	}
 
 	public String getQueryColumnNames() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
+		return "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
 	}
 
 	public String getQueryColumnName() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+		return "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
 	}
 
 	public String getQueryCountIdentity() {
-		return "";
+		return "select count(*) from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ? and identity = 'Y'";
 	}
 
 	public String getQueryCountSequence() {
-		return "";
+		return "select count(*) from sysibm.syssequences where lcase(seqschema) = '${domain}' and lcase(seqname) = ?";
 	}
 
 }

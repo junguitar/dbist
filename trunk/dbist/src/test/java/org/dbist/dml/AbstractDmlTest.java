@@ -108,7 +108,7 @@ public abstract class AbstractDmlTest {
 			Map<String, Object> data = (Map<String, Object>) dml.selectBySql("select id iD2 from blog where id = '1'", ValueUtils.toMap("id:1"),
 					Map.class);
 			for (String column : data.keySet())
-				Assert.assertEquals("ID2", column);
+				Assert.assertEquals("id2", column);
 		}
 
 		logger.info("case " + i++ + ": select by data object");

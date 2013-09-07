@@ -31,9 +31,13 @@ import org.dbist.util.ValueGenerator;
  * @since 2011. 7. 10 (version 0.0.1)
  */
 public class Table {
+	@Deprecated
 	public static final String DBTYPE_MYSQL = "mysql";
+	@Deprecated
 	public static final String DBTYPE_ORACLE = "oracle";
+	@Deprecated
 	public static final String DBTYPE_SQLSERVER = "sqlserver";
+	@Deprecated
 	public static final String DBTYPE_DB2 = "db2";
 
 	private String dbType;

@@ -58,7 +58,9 @@ import org.dbist.dml.Lock;
 import org.dbist.dml.Order;
 import org.dbist.dml.Page;
 import org.dbist.dml.Query;
-import org.dbist.dml.querymapper.QueryMapper;
+import org.dbist.dml.jdbc.QueryMapper;
+import org.dbist.dml.jdbc.QueryMapperMysql;
+import org.dbist.dml.jdbc.QueryMapperPostgresql;
 import org.dbist.exception.DataNotFoundException;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.metadata.Column;
@@ -89,15 +91,22 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final List<String> COLUMNALIASRULE_LIST = ValueUtils.toList(COLUMNALIASRULE_DEFAULT, COLUMNALIASRULE_UPPERCASE,
 			COLUMNALIASRULE_LOWERCASE, COLUMNALIASRULE_CAMELCASE);
 
-	private static final String DBTYPE_MYSQL = Table.DBTYPE_MYSQL;
 	private static final String DBTYPE_ORACLE = Table.DBTYPE_ORACLE;
 	private static final String DBTYPE_SQLSERVER = Table.DBTYPE_SQLSERVER;
 	private static final String DBTYPE_DB2 = Table.DBTYPE_DB2;
 
-	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_SQLSERVER, DBTYPE_DB2);
-	private static final List<String> DBTYPE_PAGINATIONQUERYSUPPORTED_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_ORACLE, DBTYPE_DB2);
-	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList(DBTYPE_MYSQL, DBTYPE_DB2);
-	//	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList("hsqldb", "mysql", "postgresql", "oracle", "sqlserver", "db2");
+	private static final List<String> DBTYPE_SUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE, DBTYPE_SQLSERVER, DBTYPE_DB2);
+	private boolean isSupported() {
+		return queryMapper != null || DBTYPE_SUPPORTED_LIST.contains(getDbType());
+	}
+	private static final List<String> DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST = ValueUtils.toList(DBTYPE_ORACLE, DBTYPE_DB2);
+	private boolean isSupportedPaginationQuery() {
+		return queryMapper == null ? DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST.contains(getDbType()) : queryMapper.isSupportedPaginationQuery();
+	}
+	private static final List<String> DBTYPE_SUPPORTED_LOCKTIMEOUT_LIST = ValueUtils.toList(DBTYPE_ORACLE, DBTYPE_DB2);
+	private boolean isSupportedLockTimeout() {
+		return queryMapper == null ? DBTYPE_SUPPORTED_LOCKTIMEOUT_LIST.contains(getDbType()) : queryMapper.isSupportedLockTimeout();
+	}
 
 	private String domain;
 	private List<String> domainList = new ArrayList<String>(2);
@@ -121,13 +130,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		ValueUtils.assertNotEmpty("namedParameterJdbcOperations", getNamedParameterJdbcOperations());
 
 		DatabaseMetaData metadata = dataSource.getConnection().getMetaData();
-		if (ValueUtils.isEmpty(getDbType()))
+		if (ValueUtils.isEmpty(getDbType())) {
 			setDbType(metadata.getDatabaseProductName().toLowerCase());
-		if (getDbType().startsWith("microsoft sql server"))
-			setDbType(DBTYPE_SQLSERVER);
-		else if (getDbType().startsWith("db2/"))
-			setDbType(DBTYPE_DB2);
-		if (!DBTYPE_SUPPORTED_LIST.contains(getDbType()) && getQueryMapper() == null)
+			if (getDbType().startsWith("microsoft sql server")) {
+				setDbType(DBTYPE_SQLSERVER);
+			} else if (getDbType().startsWith("db2/")) {
+				setDbType(DBTYPE_DB2);
+			} else if (getQueryMapper() == null) {
+				if (getDbType().equals("mysql"))
+					setQueryMapper(new QueryMapperMysql());
+				else if (getDbType().equals("postgresql"))
+					setQueryMapper(new QueryMapperPostgresql());
+			}
+		}
+		if (!isSupported())
 			throw new IllegalArgumentException("Unsupported dbType: " + getDbType());
 
 		if (DBTYPE_SQLSERVER.equals(getDbType())) {
@@ -540,7 +556,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return i;
 	}
 
-	private static final List<String> DBTYPE_LOCKTIMEOUTSUPPORTED_LIST = ValueUtils.toList(DBTYPE_ORACLE, DBTYPE_DB2);
 	private void appendLock(StringBuffer buf, Lock lock) {
 		if (lock == null || DBTYPE_SQLSERVER.equals(getDbType()))
 			return;
@@ -551,7 +566,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		buf.append(" for update");
 		int timeout = lock.getTimeout() == null ? defaultLockTimeout : lock.getTimeout();
 		if (timeout >= 0) {
-			if (DBTYPE_LOCKTIMEOUTSUPPORTED_LIST.contains(getDbType())) {
+			if (isSupportedLockTimeout()) {
 				timeout /= 1000;
 				if (timeout == 0)
 					buf.append(" nowait");
@@ -560,6 +575,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 		}
 	}
+
+	private static final List<String> DBTYPE_PAGINATION_BYLIMIT_LIST = ValueUtils.toList(DBTYPE_DB2);
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
 		if (queryMapper != null)
 			return queryMapper.applyPagination(sql, paramMap, pageIndex, pageSize, firstResultIndex, maxResultSize);
@@ -576,7 +593,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			firstResultIndex = 0;
 		if (maxResultSize < 0)
 			maxResultSize = 0;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType())) {
+		if (DBTYPE_SUPPORTED_PAGINATIONQUERY_LIST.contains(getDbType())) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
 			String subsql = null;
@@ -600,20 +617,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				} else if (limit == 0) {
 					limit = Long.MAX_VALUE;
 				}
-				// MySQL
-				if (DBTYPE_MYSQL.equals(getDbType())) {
-					buf.append(sql);
-					if (offset > 0 && limit > 0) {
-						_paramMap.put("__offset", offset);
-						_paramMap.put("__limit", limit);
-						buf.append(" limit :__offset, :__limit");
-					} else if (limit > 0) {
-						_paramMap.put("__limit", limit);
-						buf.append(" limit :__limit");
-					}
-				}
-				// DB2
-				else if (DBTYPE_DB2.equals(getDbType())) {
+				if (DBTYPE_DB2.equals(getDbType())) {
 					if (offset > 0 && limit > 0) {
 						buf.append("select * from (select pagetbl_.*, rownumber() over(order by order of pagetbl_) rownumber_ from (")
 								.append(sql)
@@ -674,8 +678,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
 
 		List<T> list = null;
-		if (DBTYPE_PAGINATIONQUERYSUPPORTED_LIST.contains(getDbType()) || (queryMapper != null && queryMapper.isPaginationQuerySupported())
-				|| (!pagination && !fragment)) {
+		if (isSupportedPaginationQuery() || (!pagination && !fragment)) {
 			list = this.namedParameterJdbcOperations.query(sql, paramMap, new RowMapper<T>() {
 				public T mapRow(ResultSet rs, int rowNum) throws SQLException {
 					return newInstance(rs, requiredType, table);
@@ -925,18 +928,26 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return rs.getObject(index);
 	}
 
-	private static final String DBFUNC_LOWERCASE_MYSQL = "lower";
 	private static final String DBFUNC_LOWERCASE_ORACLE = "lower";
 	private static final String DBFUNC_LOWERCASE_SQLSERVER = "lower";
 	private static final String DBFUNC_LOWERCASE_DB2 = "lcase";
 	private static final Map<String, String> DBFUNC_LOWERCASE_MAP;
 	static {
 		DBFUNC_LOWERCASE_MAP = new HashMap<String, String>();
-		DBFUNC_LOWERCASE_MAP.put(DBTYPE_MYSQL, DBFUNC_LOWERCASE_MYSQL);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_ORACLE, DBFUNC_LOWERCASE_ORACLE);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_SQLSERVER, DBFUNC_LOWERCASE_SQLSERVER);
 		DBFUNC_LOWERCASE_MAP.put(DBTYPE_DB2, DBFUNC_LOWERCASE_DB2);
 	}
+	private String getFunctionLowerCase() {
+		return queryMapper == null ? DBFUNC_LOWERCASE_MAP.get(getDbType()) : queryMapper.getFunctionLowerCase();
+	}
+	private String applyEscapement(char escape) {
+		String str = queryMapper == null ? "escape '" + escape + "'" : queryMapper.applyEscapement(escape);
+		if (ValueUtils.isEmpty(str))
+			return "";
+		return " " + str;
+	}
+
 	@SuppressWarnings("unchecked")
 	private static final List<?> CASECHECK_TYPELIST = ValueUtils.toList(String.class, Character.class, char.class);
 	private int appendWhere(StringBuffer buf, Table table, Filters filters, int i, Map<String, Object> paramMap) {
@@ -982,7 +993,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				// check and process case sensitive
 				List<Object> newRightOperand = new ArrayList<Object>(rightOperand.size());
 				if (!filter.isCaseSensitive() && CASECHECK_TYPELIST.contains(type)) {
-					columnName = DBFUNC_LOWERCASE_MAP.get(getDbType()) + "(" + columnName + ")";
+					columnName = getFunctionLowerCase() + "(" + columnName + ")";
 					for (Object ro : rightOperand) {
 						if (ro == null)
 							;
@@ -1012,9 +1023,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					String key = lo + i;
 					paramMap.put(key, value);
 					buf.append(columnName).append(" ").append(operator).append(" :").append(key);
-					if ("like".equals(operator) && !ValueUtils.isEmpty(filter.getEscape())
-							&& (!DBTYPE_MYSQL.equals(getDbType()) || !filter.getEscape().equals('\\')))
-						buf.append(" escape '").append(filter.getEscape()).append("'");
+					if ("like".equals(operator) && !ValueUtils.isEmpty(filter.getEscape()))
+						buf.append(applyEscapement(filter.getEscape()));
 					continue;
 				}
 
@@ -1418,34 +1428,35 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		});
 	}
 
-	private static final String QUERY_NUMBEROFTABLE_MYSQL = "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
-	private static final String QUERY_NUMBEROFTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
-	private static final String QUERY_NUMBEROFTABLE_SQLSERVER = "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
-	private static final String QUERY_NUMBEROFTABLE_DB2 = "select count(*) from sysibm.systables where lcase(creator) = '${domain}' and type = 'T' and lcase(name) = ?";
-	private static final Map<String, String> QUERY_NUMBEROFTABLE_MAP;
+	private static final String QUERY_COUNTTABLE_ORACLE = "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
+	private static final String QUERY_COUNTTABLE_SQLSERVER = "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
+	private static final String QUERY_COUNTTABLE_DB2 = "select count(*) from sysibm.systables where lcase(creator) = '${domain}' and type = 'T' and lcase(name) = ?";
+	private static final Map<String, String> QUERY_COUNTTABLE_MAP;
 	static {
-		QUERY_NUMBEROFTABLE_MAP = new HashMap<String, String>();
-		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_MYSQL, QUERY_NUMBEROFTABLE_MYSQL);
-		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_ORACLE, QUERY_NUMBEROFTABLE_ORACLE);
-		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_NUMBEROFTABLE_SQLSERVER);
-		QUERY_NUMBEROFTABLE_MAP.put(DBTYPE_DB2, QUERY_NUMBEROFTABLE_DB2);
+		QUERY_COUNTTABLE_MAP = new HashMap<String, String>();
+		QUERY_COUNTTABLE_MAP.put(DBTYPE_ORACLE, QUERY_COUNTTABLE_ORACLE);
+		QUERY_COUNTTABLE_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTTABLE_SQLSERVER);
+		QUERY_COUNTTABLE_MAP.put(DBTYPE_DB2, QUERY_COUNTTABLE_DB2);
+	}
+	private String getQueryCountTable() {
+		return queryMapper == null ? QUERY_COUNTTABLE_MAP.get(getDbType()) : queryMapper.getQueryCountTable();
 	}
 
-	private static final String QUERY_PKCOLUMNS_MYSQL = "select lower(column_name) name from information_schema.key_column_usage"
-			+ " where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
-	private static final String QUERY_PKCOLUMNS_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
+	private static final String QUERY_PKCOLUMNNAMES_ORACLE = "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
 			+ " where cons.constraint_name = conscol.constraint_name and cons.owner = conscol.owner and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
-	private static final String QUERY_PKCOLUMNS_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
+	private static final String QUERY_PKCOLUMNNAMES_SQLSERVER = "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
-	private static final String QUERY_PKCOLUMNS_DB2 = "select lcase(name) name from sysibm.syscolumns"
+	private static final String QUERY_PKCOLUMNNAMES_DB2 = "select lcase(name) name from sysibm.syscolumns"
 			+ " where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
-	private static final Map<String, String> QUERY_PKCOLUMNS_MAP;
+	private static final Map<String, String> QUERY_PKCOLUMNNAMES_MAP;
 	static {
-		QUERY_PKCOLUMNS_MAP = new HashMap<String, String>();
-		QUERY_PKCOLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_PKCOLUMNS_MYSQL);
-		QUERY_PKCOLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_PKCOLUMNS_ORACLE);
-		QUERY_PKCOLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_PKCOLUMNS_SQLSERVER);
-		QUERY_PKCOLUMNS_MAP.put(DBTYPE_DB2, QUERY_PKCOLUMNS_DB2);
+		QUERY_PKCOLUMNNAMES_MAP = new HashMap<String, String>();
+		QUERY_PKCOLUMNNAMES_MAP.put(DBTYPE_ORACLE, QUERY_PKCOLUMNNAMES_ORACLE);
+		QUERY_PKCOLUMNNAMES_MAP.put(DBTYPE_SQLSERVER, QUERY_PKCOLUMNNAMES_SQLSERVER);
+		QUERY_PKCOLUMNNAMES_MAP.put(DBTYPE_DB2, QUERY_PKCOLUMNNAMES_DB2);
+	}
+	private String getQueryPkColumnNames() {
+		return queryMapper == null ? QUERY_PKCOLUMNNAMES_MAP.get(getDbType()) : queryMapper.getQueryPkColumnNames();
 	}
 
 	private static final String MSG_QUERYNOTFOUND = "Couldn't find ${queryName} query of dbType: ${dbType}. this type maybe unsupported yet.";
@@ -1453,7 +1464,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	//	private static final
 	private <T> Table checkAndPopulateDomainAndName(Table table, String... tableNameCandidates) {
 		// Check table existence and populate
-		String sql = QUERY_NUMBEROFTABLE_MAP.get(getDbType());
+		String sql = getQueryCountTable();
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: number of table", "dbType:" + getDbType())));
@@ -1483,7 +1494,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		}
 
 		// populate PK name
-		sql = QUERY_PKCOLUMNS_MAP.get(getDbType());
+		sql = getQueryPkColumnNames();
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: primary key", "dbType:" + getDbType())));
@@ -1495,7 +1506,6 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final RowMapper<TableColumn> TABLECOLUMN_ROWMAPPER = new TableColumnRowMapper();
 
-	private static final String QUERY_COLUMNS_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
 	private static final String QUERY_COLUMNS_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
@@ -1503,13 +1513,16 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private static final Map<String, String> QUERY_COLUMNS_MAP;
 	static {
 		QUERY_COLUMNS_MAP = new HashMap<String, String>();
-		QUERY_COLUMNS_MAP.put(DBTYPE_MYSQL, QUERY_COLUMNS_MYSQL);
 		QUERY_COLUMNS_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNS_ORACLE);
 		QUERY_COLUMNS_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNS_SQLSERVER);
 		QUERY_COLUMNS_MAP.put(DBTYPE_DB2, QUERY_COLUMNS_DB2);
 	}
+	private String getQueryColumnNames() {
+		return queryMapper == null ? QUERY_COLUMNS_MAP.get(getDbType()) : queryMapper.getQueryColumnNames();
+	}
+
 	private List<TableColumn> getTableColumnList(Table table) {
-		String sql = QUERY_COLUMNS_MAP.get(getDbType());
+		String sql = getQueryColumnNames();
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: table columns", "dbType:" + getDbType())));
@@ -1521,46 +1534,51 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	// Column
-	private static final String QUERY_COLUMN_MYSQL = "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
-	private static final String QUERY_COLUMN_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
-	private static final String QUERY_COLUMN_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
+	private static final String QUERY_COLUMNNAME_ORACLE = "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	private static final String QUERY_COLUMNNAME_SQLSERVER = "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
 			+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
-	private static final String QUERY_COLUMN_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
-	private static final Map<String, String> QUERY_COLUMN_MAP;
+	private static final String QUERY_COLUMNNAME_DB2 = "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
+	private static final Map<String, String> QUERY_COLUMNNAME_MAP;
+	static {
+		QUERY_COLUMNNAME_MAP = new HashMap<String, String>();
+		QUERY_COLUMNNAME_MAP.put(DBTYPE_ORACLE, QUERY_COLUMNNAME_ORACLE);
+		QUERY_COLUMNNAME_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMNNAME_SQLSERVER);
+		QUERY_COLUMNNAME_MAP.put(DBTYPE_DB2, QUERY_COLUMNNAME_DB2);
+	}
+	private String getQueryColumnName() {
+		return queryMapper == null ? QUERY_COLUMNNAME_MAP.get(getDbType()) : queryMapper.getQueryColumnName();
+	}
 
 	// Identity
-	private static final String QUERY_IDENTITY_MYSQL = "";
-	private static final String QUERY_IDENTITY_ORACLE = "";
-	private static final String QUERY_IDENTITY_SQLSERVER = "";
-	private static final String QUERY_IDENTITY_DB2 = "select count(*) from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ? and identity = 'Y'";
-	private static final Map<String, String> QUERY_IDENTITY_MAP;
+	private static final String QUERY_COUNTIDENTITY_ORACLE = "";
+	private static final String QUERY_COUNTIDENTITY_SQLSERVER = "";
+	private static final String QUERY_COUNTIDENTITY_DB2 = "select count(*) from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ? and identity = 'Y'";
+	private static final Map<String, String> QUERY_COUNTIDENTITY_MAP;
+	static {
+		QUERY_COUNTIDENTITY_MAP = new HashMap<String, String>();
+		QUERY_COUNTIDENTITY_MAP.put(DBTYPE_ORACLE, QUERY_COUNTIDENTITY_ORACLE);
+		QUERY_COUNTIDENTITY_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTIDENTITY_SQLSERVER);
+		QUERY_COUNTIDENTITY_MAP.put(DBTYPE_DB2, QUERY_COUNTIDENTITY_DB2);
+	}
+	private String getQueryCountIdentity() {
+		return queryMapper == null ? QUERY_COUNTIDENTITY_MAP.get(getDbType()) : queryMapper.getQueryCountIdentity();
+	}
 
 	// Sequence
-	private static final String QUERY_SEQUENCE_MYSQL = "";
-	private static final String QUERY_SEQUENCE_ORACLE = "select count(*) from all_sequences where lower(sequence_owner) = '${domain}' and lower(sequence_name) = ?";
-	private static final String QUERY_SEQUENCE_SQLSERVER = "";
-	private static final String QUERY_SEQUENCE_DB2 = "select count(*) from sysibm.syssequences where lcase(seqschema) = '${domain}' and lcase(seqname) = ?";
-	private static final Map<String, String> QUERY_SEQUENCE_MAP;
-
+	private static final String QUERY_COUNTSEQUENCE_ORACLE = "select count(*) from all_sequences where lower(sequence_owner) = '${domain}' and lower(sequence_name) = ?";
+	private static final String QUERY_COUNTSEQUENCE_SQLSERVER = "";
+	private static final String QUERY_COUNTSEQUENCE_DB2 = "select count(*) from sysibm.syssequences where lcase(seqschema) = '${domain}' and lcase(seqname) = ?";
+	private static final Map<String, String> QUERY_COUNTSEQUENCE_MAP;
 	static {
-		QUERY_COLUMN_MAP = new HashMap<String, String>();
-		QUERY_COLUMN_MAP.put(DBTYPE_MYSQL, QUERY_COLUMN_MYSQL);
-		QUERY_COLUMN_MAP.put(DBTYPE_ORACLE, QUERY_COLUMN_ORACLE);
-		QUERY_COLUMN_MAP.put(DBTYPE_SQLSERVER, QUERY_COLUMN_SQLSERVER);
-		QUERY_COLUMN_MAP.put(DBTYPE_DB2, QUERY_COLUMN_DB2);
-
-		QUERY_IDENTITY_MAP = new HashMap<String, String>();
-		QUERY_IDENTITY_MAP.put(DBTYPE_MYSQL, QUERY_IDENTITY_MYSQL);
-		QUERY_IDENTITY_MAP.put(DBTYPE_ORACLE, QUERY_IDENTITY_ORACLE);
-		QUERY_IDENTITY_MAP.put(DBTYPE_SQLSERVER, QUERY_IDENTITY_SQLSERVER);
-		QUERY_IDENTITY_MAP.put(DBTYPE_DB2, QUERY_IDENTITY_DB2);
-
-		QUERY_SEQUENCE_MAP = new HashMap<String, String>();
-		QUERY_SEQUENCE_MAP.put(DBTYPE_MYSQL, QUERY_SEQUENCE_MYSQL);
-		QUERY_SEQUENCE_MAP.put(DBTYPE_ORACLE, QUERY_SEQUENCE_ORACLE);
-		QUERY_SEQUENCE_MAP.put(DBTYPE_SQLSERVER, QUERY_SEQUENCE_SQLSERVER);
-		QUERY_SEQUENCE_MAP.put(DBTYPE_DB2, QUERY_SEQUENCE_DB2);
+		QUERY_COUNTSEQUENCE_MAP = new HashMap<String, String>();
+		QUERY_COUNTSEQUENCE_MAP.put(DBTYPE_ORACLE, QUERY_COUNTSEQUENCE_ORACLE);
+		QUERY_COUNTSEQUENCE_MAP.put(DBTYPE_SQLSERVER, QUERY_COUNTSEQUENCE_SQLSERVER);
+		QUERY_COUNTSEQUENCE_MAP.put(DBTYPE_DB2, QUERY_COUNTSEQUENCE_DB2);
 	}
+	private String getQueryCountSequence() {
+		return queryMapper == null ? QUERY_COUNTSEQUENCE_MAP.get(getDbType()) : queryMapper.getQueryCountSequence();
+	}
+
 	private static final String MSG_COLUMNNOTFOUND = "Couldn't find column[${column}] of table[${table}].";
 	private void addColumn(Table table, Field field) {
 		Ignore ignoreAnn = field.getAnnotation(Ignore.class);
@@ -1602,7 +1620,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// Column
 		{
-			String sql = QUERY_COLUMN_MAP.get(getDbType());
+			String sql = getQueryColumnName();
 			if (sql == null)
 				throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 						ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
@@ -1655,7 +1673,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			column.setSequence(seq);
 
 			{
-				String sql = QUERY_IDENTITY_MAP.get(getDbType());
+				String sql = getQueryCountIdentity();
 				if (!ValueUtils.isEmpty(sql)) {
 					sql = StringUtils.replace(sql, "${domain}", table.getDomain());
 					if (jdbcOperations.queryForInt(sql, table.getName(), column.getName()) > 0)
@@ -1664,7 +1682,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			}
 
 			if (!seq.isAutoIncrement() && !ValueUtils.isEmpty(seqAnn.name())) {
-				String sql = QUERY_SEQUENCE_MAP.get(getDbType());
+				String sql = getQueryCountSequence();
 				if (ValueUtils.isEmpty(sql)) {
 					seq.setAutoIncrement(true);
 				} else {

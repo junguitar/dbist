@@ -23,6 +23,7 @@ import java.util.Map;
 
 import net.sf.common.util.ValueUtils;
 
+import org.dbist.dml.jdbc.QueryMapper;
 import org.dbist.exception.DbistRuntimeException;
 import org.dbist.util.ValueGenerator;
 
@@ -50,6 +51,7 @@ public class Table {
 	private List<String> titleColumnNameList;
 	private List<String> listedColumnNameList;
 	private List<Column> columnList = new ArrayList<Column>();
+	private QueryMapper queryMapper;
 	private String insertSql;
 	private String updateSql;
 	private String deleteSql;
@@ -190,6 +192,9 @@ public class Table {
 		return column == null ? null : column.getField().getName();
 	}
 
+	public void setQueryMapper(QueryMapper queryMapper) {
+		this.queryMapper = queryMapper;
+	}
 	public String getInsertSql(String... fieldNames) {
 		// Insert all fields
 		if (ValueUtils.isEmpty(fieldNames)) {
@@ -208,8 +213,7 @@ public class Table {
 					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 						valuesBuf.append(i == 0 ? ":" : ", :").append(column.getField().getName());
 					else
-						valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
-								.append(column.getSequence().getName()).append(".nextval");
+						valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
 					i++;
 				}
 				buf.append(")");
@@ -234,8 +238,7 @@ public class Table {
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
-						.append(column.getSequence().getName()).append(".nextval");
+				valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
 			i++;
 		}
 		for (String fieldName : fieldNames) {
@@ -250,8 +253,7 @@ public class Table {
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(ValueUtils.toString(column.getSequence().getDomain(), getDomain())).append(".")
-						.append(column.getSequence().getName()).append(".nextval");
+				valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
 			i++;
 		}
 		buf.append(")");

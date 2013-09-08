@@ -17,6 +17,8 @@ package org.dbist.dml.jdbc;
 
 import java.util.Map;
 
+import org.dbist.metadata.Sequence;
+
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
@@ -86,6 +88,12 @@ public class QueryMapperPostgresql extends AbstractQueryMapper {
 		return buf.toString();
 	}
 
+	public String toNextval(Sequence sequence) {
+		if (sequence.getName() == null || sequence.isAutoIncrement())
+			return null;
+		return "nextval('" + sequence.getName() + "')";
+	}
+
 	public String getFunctionLowerCase() {
 		return "lower";
 	}
@@ -111,7 +119,7 @@ public class QueryMapperPostgresql extends AbstractQueryMapper {
 	}
 
 	public String getQueryCountSequence() {
-		return "select count(*) from information_schema.sequences where lower(sequence_schema) = '${domain}' and lower(sequence_name) = ?";
+		return "";//"select count(*) from information_schema.sequences where lower(sequence_schema) = '${domain}' and lower(sequence_name) = ?";
 	}
 
 }

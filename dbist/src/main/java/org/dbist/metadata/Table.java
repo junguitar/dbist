@@ -209,11 +209,16 @@ public class Table {
 				for (Column column : getColumnList()) {
 					if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 						continue;
-					buf.append(i == 0 ? "" : ", ").append(column.getName());
-					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
+						buf.append(i == 0 ? "" : ", ").append(column.getName());
 						valuesBuf.append(i == 0 ? ":" : ", :").append(column.getField().getName());
-					else
-						valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
+					} else {
+						String str = queryMapper.toNextval(column.getSequence());
+						if (ValueUtils.isEmpty(str))
+							continue;
+						buf.append(i == 0 ? "" : ", ").append(column.getName());
+						valuesBuf.append(i == 0 ? "" : ", ").append(str);
+					}
 					i++;
 				}
 				buf.append(")");
@@ -234,11 +239,16 @@ public class Table {
 			Column column = getColumnByFieldName(fieldName);
 			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
-			buf.append(i == 0 ? "" : ", ").append(getColumnByFieldName(fieldName).getName());
-			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
+				buf.append(i == 0 ? "" : ", ").append(column.getName());
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
-			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
+			} else {
+				String str = queryMapper.toNextval(column.getSequence());
+				if (ValueUtils.isEmpty(str))
+					continue;
+				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				valuesBuf.append(i == 0 ? "" : ", ").append(str);
+			}
 			i++;
 		}
 		for (String fieldName : fieldNames) {
@@ -249,11 +259,16 @@ public class Table {
 				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
 			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
-			buf.append(i == 0 ? "" : ", ").append(column.getName());
-			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName()))
+			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
+				buf.append(i == 0 ? "" : ", ").append(column.getName());
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
-			else
-				valuesBuf.append(i == 0 ? "" : ", ").append(queryMapper.toNextval(column.getSequence()));
+			} else {
+				String str = queryMapper.toNextval(column.getSequence());
+				if (ValueUtils.isEmpty(str))
+					continue;
+				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				valuesBuf.append(i == 0 ? "" : ", ").append(str);
+			}
 			i++;
 		}
 		buf.append(")");

@@ -59,7 +59,7 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 		return new StringBuffer(sql).insert(topIndex, " top " + top).toString();
 	}
 
-	public String toLockForFrom(Lock lock) {
+	public String toWithLock(Lock lock) {
 		return "with (updlock, rowlock)";
 	}
 

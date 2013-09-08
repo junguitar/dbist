@@ -86,7 +86,7 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		return buf.toString();
 	}
 
-	public String toEscapementForFilter(char escape) {
+	public String toEscapement(char escape) {
 		return null;
 	}
 

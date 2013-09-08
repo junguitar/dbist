@@ -16,24 +16,30 @@
 package org.dbist.dml.jdbc;
 
 import org.dbist.dml.Lock;
+import org.dbist.metadata.Sequence;
 
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
  */
 public abstract class AbstractQueryMapper implements QueryMapper {
+	public String toNextval(Sequence sequence) {
+		if (sequence.getName() == null || sequence.isAutoIncrement())
+			return null;
+		return sequence.getDomain() + "." + sequence.getName() + ".nextval";
+	}
 
-	public String toEscapementForFilter(char escape) {
+	public String toEscapement(char escape) {
 		return "escape '" + escape + "'";
 	}
 
-	public String toLockForFrom(Lock lock) {
+	public String toWithLock(Lock lock) {
 		return null;
 	}
 
-	public String toLockForQuery(Lock lock) {
+	public String toForUpdate(Lock lock) {
 		StringBuffer buf = new StringBuffer();
-		buf.append(" for update");
+		buf.append("for update");
 
 		if (!isSupportedLockTimeout())
 			return buf.toString();

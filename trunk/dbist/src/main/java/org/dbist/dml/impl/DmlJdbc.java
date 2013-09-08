@@ -344,7 +344,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
 		if (query.getLock() != null && queryMapper != null) {
-			String str = queryMapper.toLockForFrom(query.getLock());
+			String str = queryMapper.toWithLock(query.getLock());
 			if (!ValueUtils.isEmpty(str))
 				buf.append(" ").append(str);
 		}
@@ -570,7 +570,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			lock = new Lock();
 			lock.setTimeout(defaultLockTimeout);
 		}
-		String str = queryMapper.toLockForQuery(lock);
+		String str = queryMapper.toForUpdate(lock);
 		if (ValueUtils.isEmpty(str))
 			return;
 		buf.append(" ").append(str);
@@ -1311,6 +1311,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				for (Field field : ReflectionUtils.getFieldList(clazz, false))
 					addColumn(table, field);
 
+				table.setQueryMapper(queryMapper);
+
 				return table;
 			}
 		});
@@ -1510,7 +1512,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return queryMapper.getFunctionLowerCase();
 	}
 	private String applyEscapement(char escape) {
-		String str = queryMapper.toEscapementForFilter(escape);
+		String str = queryMapper.toEscapement(escape);
 		if (ValueUtils.isEmpty(str))
 			return "";
 		return " " + str;

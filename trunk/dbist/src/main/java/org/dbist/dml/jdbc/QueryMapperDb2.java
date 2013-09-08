@@ -93,8 +93,7 @@ public class QueryMapperDb2 extends AbstractQueryMapper {
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lcase(name) name from sysibm.syscolumns"
-				+ " where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
+		return "select lcase(name) name from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
 	}
 
 	public String getQueryColumnNames() {

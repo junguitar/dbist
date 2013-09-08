@@ -95,15 +95,15 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 	}
 
 	public String getQueryCountTable() {
-		return "select count(*) from information_schema.tables where lcase(table_schema) = '${domain}' and lcase(table_name) = ?";
+		return "select count(*) from information_schema.tables where lower(table_schema) = '${domain}' and lower(table_name) = ?";
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lower(column_name) name from information_schema.key_column_usage where table_schema = '${domain}' and table_name = ? and constraint_name = 'PRIMARY' order by ordinal_position";
+		return "select lower(column_name) name from information_schema.key_column_usage where lower(table_schema) = '${domain}' and lower(table_name) = ? and constraint_name = 'PRIMARY' order by ordinal_position";
 	}
 
 	public String getQueryColumnNames() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ?";
+		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? order by ordinal_position";
 	}
 
 	public String getQueryColumnName() {

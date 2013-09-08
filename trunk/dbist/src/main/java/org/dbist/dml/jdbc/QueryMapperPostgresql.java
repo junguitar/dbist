@@ -17,7 +17,6 @@ package org.dbist.dml.jdbc;
 
 import java.util.Map;
 
-
 /**
  * @author Steve M. Jung
  * @since 2013. 9. 7. (version 2.0.3)
@@ -37,43 +36,82 @@ public class QueryMapperPostgresql extends AbstractQueryMapper {
 	}
 
 	public String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize) {
-		// TODO Auto-generated method stub
-		return null;
+		boolean pagination = pageIndex >= 0 && pageSize > 0;
+		boolean fragment = firstResultIndex > 0 || maxResultSize > 0;
+		if (!pagination && !fragment)
+			return sql;
+		if (!pagination) {
+			pageIndex = 0;
+			pageSize = 0;
+		}
+		if (firstResultIndex < 0)
+			firstResultIndex = 0;
+		if (maxResultSize < 0)
+			maxResultSize = 0;
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> _paramMap = (Map<String, Object>) paramMap;
+		String subsql = null;
+		int forUpdateIndex = sql.toLowerCase().lastIndexOf("for update");
+		if (forUpdateIndex > -1) {
+			subsql = sql.substring(forUpdateIndex - 1);
+			sql = sql.substring(0, forUpdateIndex - 1);
+		}
+
+		StringBuffer buf = new StringBuffer();
+		int pageFromIndex = pagination ? pageIndex * pageSize : 0;
+		int offset = pageFromIndex + firstResultIndex;
+		long limit = 0;
+		if (pageSize > 0) {
+			limit = pageSize - firstResultIndex;
+			if (maxResultSize > 0)
+				limit = Math.min(limit, maxResultSize);
+		} else if (maxResultSize > 0) {
+			limit = maxResultSize;
+		} else if (limit == 0) {
+			limit = Long.MAX_VALUE;
+		}
+		buf.append(sql);
+		if (offset > 0 && limit > 0) {
+			_paramMap.put("__offset", offset);
+			_paramMap.put("__limit", limit);
+			buf.append(" limit :__limit offset :__offset");
+		} else if (limit > 0) {
+			_paramMap.put("__limit", limit);
+			buf.append(" limit :__limit");
+		}
+
+		if (subsql != null)
+			buf.append(subsql);
+		return buf.toString();
 	}
 
 	public String getFunctionLowerCase() {
-		// TODO Auto-generated method stub
-		return null;
+		return "lower";
 	}
 
 	public String getQueryCountTable() {
-		// TODO Auto-generated method stub
-		return null;
+		return "select count(*) from information_schema.tables where lower(table_schema) = '${domain}' and lower(table_name) = ?";
 	}
 
 	public String getQueryPkColumnNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return "select lower(column_name) as name from information_schema.key_column_usage where lower(constraint_schema) = '${domain}' and lower(table_name) = ? order by ordinal_position";
 	}
 
 	public String getQueryColumnNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return "select lower(column_name) as name, data_type as dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? order by ordinal_position";
 	}
 
 	public String getQueryColumnName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "select lower(column_name) as name, data_type as dataType from information_schema.columns where lower(table_schema) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	}
 
 	public String getQueryCountIdentity() {
-		// TODO Auto-generated method stub
-		return null;
+		return "";
 	}
 
 	public String getQueryCountSequence() {
-		// TODO Auto-generated method stub
-		return null;
+		return "select count(*) from information_schema.sequences where lower(sequence_schema) = '${domain}' and lower(sequence_name) = ?";
 	}
 
 }

@@ -195,6 +195,17 @@ public class Table {
 	public void setQueryMapper(QueryMapper queryMapper) {
 		this.queryMapper = queryMapper;
 	}
+
+	public StringBuffer appendName(StringBuffer buf, String name) {
+		if (!queryMapper.getReservedWords().contains(name)) {
+			buf.append(name);
+			return buf;
+		}
+
+		buf.append(queryMapper.getReservedWordEscapingBraceOpen()).append(name).append(queryMapper.getReservedWordEscapingBraceClose());
+		return buf;
+	}
+
 	public String getInsertSql(String... fieldNames) {
 		// Insert all fields
 		if (ValueUtils.isEmpty(fieldNames)) {
@@ -203,20 +214,23 @@ public class Table {
 			synchronized (this) {
 				if (insertSql != null)
 					return insertSql;
-				StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+				StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".");
+				appendName(buf, getName()).append("(");
 				StringBuffer valuesBuf = new StringBuffer(" values(");
 				int i = 0;
 				for (Column column : getColumnList()) {
 					if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 						continue;
 					if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
-						buf.append(i == 0 ? "" : ", ").append(column.getName());
+						buf.append(i == 0 ? "" : ", ");
+						appendName(buf, column.getName());
 						valuesBuf.append(i == 0 ? ":" : ", :").append(column.getField().getName());
 					} else {
 						String str = queryMapper.toNextval(column.getSequence());
 						if (ValueUtils.isEmpty(str))
 							continue;
-						buf.append(i == 0 ? "" : ", ").append(column.getName());
+						buf.append(i == 0 ? "" : ", ");
+						appendName(buf, column.getName());
 						valuesBuf.append(i == 0 ? "" : ", ").append(str);
 					}
 					i++;
@@ -231,7 +245,8 @@ public class Table {
 		}
 
 		// Insert some fields
-		StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".").append(getName()).append("(");
+		StringBuffer buf = new StringBuffer("insert into ").append(getDomain()).append(".");
+		appendName(buf, getName()).append("(");
 		StringBuffer valuesBuf = new StringBuffer(" values(");
 		int i = 0;
 		List<String> pkFieldNameList = ValueUtils.toList(getPkFieldNames());
@@ -240,13 +255,15 @@ public class Table {
 			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
-				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				buf.append(i == 0 ? "" : ", ");
+				appendName(buf, column.getName());
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			} else {
 				String str = queryMapper.toNextval(column.getSequence());
 				if (ValueUtils.isEmpty(str))
 					continue;
-				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				buf.append(i == 0 ? "" : ", ");
+				appendName(buf, column.getName());
 				valuesBuf.append(i == 0 ? "" : ", ").append(str);
 			}
 			i++;
@@ -260,13 +277,15 @@ public class Table {
 			if (column.getRelation() != null || (column.getSequence() != null && column.getSequence().isAutoIncrement()))
 				continue;
 			if (column.getSequence() == null || ValueUtils.isEmpty(column.getSequence().getName())) {
-				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				buf.append(i == 0 ? "" : ", ");
+				appendName(buf, column.getName());
 				valuesBuf.append(i == 0 ? ":" : ", :").append(fieldName);
 			} else {
 				String str = queryMapper.toNextval(column.getSequence());
 				if (ValueUtils.isEmpty(str))
 					continue;
-				buf.append(i == 0 ? "" : ", ").append(column.getName());
+				buf.append(i == 0 ? "" : ", ");
+				appendName(buf, column.getName());
 				valuesBuf.append(i == 0 ? "" : ", ").append(str);
 			}
 			i++;
@@ -286,7 +305,8 @@ public class Table {
 			synchronized (this) {
 				if (updateSql != null)
 					return updateSql;
-				StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
+				StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".");
+				appendName(buf, getName()).append(" set ");
 				StringBuffer whereBuf = new StringBuffer();
 				int i = 0;
 				int j = 0;
@@ -294,11 +314,12 @@ public class Table {
 					if (column.getRelation() != null)
 						continue;
 					if (column.isPrimaryKey()) {
-						whereBuf.append(j++ == 0 ? " where " : " and ").append(column.getName()).append(" = ").append(":")
-								.append(column.getField().getName());
+						whereBuf.append(j++ == 0 ? " where " : " and ");
+						appendName(whereBuf, column.getName()).append(" = ").append(":").append(column.getField().getName());
 						continue;
 					}
-					buf.append(i++ == 0 ? "" : ", ").append(column.getName()).append(" = :").append(column.getField().getName());
+					buf.append(i++ == 0 ? "" : ", ");
+					appendName(buf, column.getName()).append(" = :").append(column.getField().getName());
 				}
 				updateSql = buf.append(whereBuf).toString();
 			}
@@ -306,7 +327,8 @@ public class Table {
 		}
 
 		// Update some fields
-		StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".").append(getName()).append(" set ");
+		StringBuffer buf = new StringBuffer("update ").append(getDomain()).append(".");
+		appendName(buf, getName()).append(" set ");
 		int i = 0;
 		int j = 0;
 		for (String fieldName : fieldNames) {
@@ -315,7 +337,8 @@ public class Table {
 				throw new DbistRuntimeException("Invalid fieldName: " + getClazz().getName() + "." + fieldName);
 			if (column.isPrimaryKey())
 				throw new DbistRuntimeException("Updating primary key is not supported. " + getDomain() + "." + getName() + getPkColumnNameList());
-			buf.append(i++ == 0 ? "" : ", ").append(toColumnName(fieldName)).append(" = :").append(fieldName);
+			buf.append(i++ == 0 ? "" : ", ");
+			appendName(buf, toColumnName(fieldName)).append(" = :").append(fieldName);
 		}
 		StringBuffer whereBuf = new StringBuffer();
 		for (String columnName : getPkColumnNameList())
@@ -329,7 +352,8 @@ public class Table {
 		synchronized (this) {
 			if (deleteSql != null)
 				return deleteSql;
-			StringBuffer buf = new StringBuffer("delete from ").append(getDomain()).append(".").append(getName());
+			StringBuffer buf = new StringBuffer("delete from ").append(getDomain()).append(".");
+			appendName(buf, getName());
 			int i = 0;
 			for (String columnName : getPkColumnNameList())
 				buf.append(i++ == 0 ? " where " : " and ").append(columnName).append(" = :").append(getColumn(columnName).getField().getName());

@@ -118,4 +118,12 @@ public class QueryMapperMysql extends AbstractQueryMapper {
 		return "";
 	}
 
+	public char getReservedWordEscapingBraceOpen() {
+		return '`';
+	}
+
+	public char getReservedWordEscapingBraceClose() {
+		return '`';
+	}
+
 }

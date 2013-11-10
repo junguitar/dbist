@@ -94,4 +94,12 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 		return "";
 	}
 
+	public char getReservedWordEscapingBraceOpen() {
+		return '[';
+	}
+
+	public char getReservedWordEscapingBraceClose() {
+		return ']';
+	}
+
 }

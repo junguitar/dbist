@@ -302,6 +302,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
+	private StringBuffer appendName(StringBuffer buf, String name) {
+		if (!queryMapper.getReservedWords().contains(name)) {
+			buf.append(name);
+			return buf;
+		}
+
+		buf.append(queryMapper.getReservedWordEscapingBraceOpen()).append(name).append(queryMapper.getReservedWordEscapingBraceClose());
+		return buf;
+	}
 	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
 		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();
 		for (T data : list)
@@ -342,7 +351,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			populateRelColMap(table, query, relColMap);
 
 		// From
-		buf.append(" from ").append(table.getDomain()).append(".").append(table.getName());
+		buf.append(" from ").append(table.getDomain()).append(".");
+		appendName(buf, table.getName());
 		if (query.getLock() != null && queryMapper != null) {
 			String str = queryMapper.toWithLock(query.getLock());
 			if (!ValueUtils.isEmpty(str))
@@ -351,15 +361,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (!ValueUtils.isEmpty(relColMap)) {
 			for (Column col : relColMap.values()) {
 				Table subTab = col.getTable();
-				buf.append(" left outer join ").append(subTab.getDomain()).append(".").append(subTab.getName());
-				if (!subTab.getName().equals(col.getName()))
-					buf.append(" " + col.getName());
+				buf.append(" left outer join ").append(subTab.getDomain()).append(".");
+				appendName(buf, subTab.getName());
+				if (!subTab.getName().equals(col.getName())) {
+					buf.append(" ");
+					appendName(buf, col.getName());
+				}
 				buf.append(" on ");
 				Relation relation = col.getRelation();
 				int i = 0;
-				for (String key : subTab.getPkColumnNameList())
-					buf.append(table.getName()).append(".").append(toColumnName(table, relation.field()[i++])).append(" = ").append(col.getName())
-							.append(".").append(key);
+				for (String key : subTab.getPkColumnNameList()) {
+					appendName(buf, table.getName()).append(".");
+					appendName(buf, toColumnName(table, relation.field()[i++])).append(" = ");
+					appendName(buf, col.getName()).append(".").append(key);
+				}
 			}
 		}
 
@@ -479,8 +494,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (String group : query.getGroup()) {
 				buf.append(i++ == 0 ? " " : ", ");
 				if (joined)
-					buf.append(table.getName()).append(".");
-				buf.append(toColumnName(table, group));
+					appendName(buf, table.getName()).append(".");
+				appendName(buf, toColumnName(table, group));
 			}
 		}
 		// All fields
@@ -520,8 +535,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (String group : query.getGroup()) {
 				buf.append(i++ == 0 ? " " : ", ");
 				if (joined)
-					buf.append(table.getName()).append(".");
-				buf.append(toColumnName(table, group));
+					appendName(buf, table.getName()).append(".");
+				appendName(buf, toColumnName(table, group));
 			}
 		}
 
@@ -533,8 +548,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ",")) {
 					buf.append(i++ == 0 ? " " : ", ");
 					if (joined)
-						buf.append(table.getName()).append(".");
-					buf.append(toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+						appendName(buf, table.getName()).append(".");
+					appendName(buf, toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
 				}
 			}
 		}
@@ -545,17 +560,20 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (column.getRelation() == null) {
 			buf.append(i++ == 0 ? " " : ", ");
 			if (table.containsLinkedTable())
-				buf.append(table.getName()).append(".");
-			buf.append(column.getName());
+				appendName(buf, table.getName()).append(".");
+			appendName(buf, column.getName());
 			return i;
 		} else if (ValueUtils.isEmpty(column.getColumnList())) {
 			return i;
 		}
 		if (relColMap != null && !relColMap.containsKey(column.getName()))
 			relColMap.put(column.getName(), column);
-		for (Column subCol : column.getColumnList())
-			buf.append(i++ == 0 ? " " : ", ").append(column.getName()).append(".").append(subCol.getName()).append(" ").append(column.getName())
-					.append("__").append(subCol.getName());
+		for (Column subCol : column.getColumnList()) {
+			buf.append(i++ == 0 ? " " : ", ");
+			appendName(buf, column.getName()).append(".");
+			appendName(buf, subCol.getName()).append(" ");
+			buf.append(column.getName()).append("__").append(subCol.getName());
+		}
 		return i;
 	}
 
@@ -867,7 +885,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				buf.append(i++ == 0 ? " where " : j == 0 ? "" : logicalOperator);
 				j++;
 
-				String columnName = alias == null ? column.getName() : alias + "." + column.getName();
+				String columnName;
+				if (alias == null) {
+					columnName = appendName(new StringBuffer(), column.getName()).toString();
+				} else {
+					StringBuffer colBuf = new StringBuffer();
+					appendName(colBuf, alias).append(".");
+					appendName(colBuf, column.getName());
+					columnName = colBuf.toString();
+				}
 				List<?> rightOperand = filter.getRightOperand();
 
 				// case: 'is null' or 'is not null'
@@ -976,7 +1002,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		StringBuffer buf = new StringBuffer("Undeclared column/field: ").append(name);
 		buf.append(" of table").append(table.getClazz() == null ? "" : "(class)").append(": ");
-		buf.append(table.getDomain()).append(".").append(table.getName());
+		buf.append(table.getDomain()).append(".");
+		table.appendName(buf, table.getName());
 		if (table.getClazz() != null)
 			buf.append("(").append(table.getClazz().getName()).append(")");
 		throw new DbistRuntimeException(buf.toString());
@@ -1439,8 +1466,15 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					table.getValueGeneratorByFieldMap().put(field, getValueGenerator(columnAnn.generator()));
 			}
 			if (tabColumn == null) {
-				String[] columnNameCandidates = new String[] { ValueUtils.toDelimited(field.getName(), '_').toLowerCase(),
-						ValueUtils.toDelimited(field.getName(), '_', true).toLowerCase(), field.getName().toLowerCase() };
+				List<String> columnNameCandidates = new ArrayList<String>(3);
+				String candidate1 = ValueUtils.toDelimited(field.getName(), '_').toLowerCase();
+				columnNameCandidates.add(candidate1);
+				String candidate2 = ValueUtils.toDelimited(field.getName(), '_', true);
+				if (!columnNameCandidates.contains(candidate2))
+					columnNameCandidates.add(candidate2);
+				String candidate3 = field.getName().toLowerCase();
+				if (!columnNameCandidates.contains(candidate3))
+					columnNameCandidates.add(candidate3);
 				Set<String> checkedSet = new HashSet<String>();
 				for (String columnName : columnNameCandidates) {
 					if (checkedSet.contains(columnName))

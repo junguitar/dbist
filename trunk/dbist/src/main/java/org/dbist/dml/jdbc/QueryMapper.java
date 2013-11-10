@@ -16,6 +16,7 @@
 package org.dbist.dml.jdbc;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.dbist.dml.Lock;
 import org.dbist.metadata.Sequence;
@@ -40,4 +41,7 @@ public interface QueryMapper {
 	String getQueryColumnName();
 	String getQueryCountIdentity();
 	String getQueryCountSequence();
+	Set<String> getReservedWords();
+	char getReservedWordEscapingBraceOpen();
+	char getReservedWordEscapingBraceClose();
 }

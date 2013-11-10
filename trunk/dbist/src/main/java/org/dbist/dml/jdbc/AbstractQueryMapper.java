@@ -132,7 +132,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("automatic");
 
 					set.add("avg");
-					// oracle
+					// oracle, sqlserver
 					set.add("backup");
 					// oracle
 					set.add("become");
@@ -164,8 +164,14 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("boolean");
 
 					set.add("both");
+					// sqlserver
+					set.add("break");
 
 					set.add("breath");
+					// sqlserver
+					set.add("browse");
+					// sqlserver
+					set.add("bulk");
 
 					set.add("by");
 
@@ -206,7 +212,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("character_length");
 
 					set.add("check");
-					// oracle
+					// oracle, sqlserver
 					set.add("checkpoint");
 					// oracle
 					set.add("choose");
@@ -224,6 +230,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("close_cached_open_cursors");
 					// oracle
 					set.add("cluster");
+					// sqlserver
+					set.add("clustered");
 
 					set.add("coalesce");
 
@@ -250,7 +258,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("composit_limit");
 					// oracle
 					set.add("compress");
-					// oracle
+					// oracle, sqlserver
 					set.add("compute");
 
 					set.add("condition");
@@ -268,6 +276,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("constructure");
 
 					set.add("contains");
+					// sqlserver
+					set.add("containstable");
 					// oracle
 					set.add("contents");
 
@@ -292,12 +302,12 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("cross");
 
 					set.add("cube");
-					// oracle
+					// oracle, sqlserver
 					set.add("current");
-					// oracle
-					set.add("current_schema");
 
 					set.add("current_date");
+					// oracle
+					set.add("current_schema");
 
 					set.add("current_default_transform_group");
 
@@ -320,7 +330,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("dangling");
 
 					set.add("data");
-					// mysql, oracle
+					// mysql, oracle, sqlserver
 					set.add("database");
 					// mysql
 					set.add("databases");
@@ -342,6 +352,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("day_second");
 					// oracle
 					set.add("dba");
+					// sqlserver
+					set.add("dbcc");
 					// oracle
 					set.add("dbhigh");
 					// oracle
@@ -370,6 +382,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("delayed");
 
 					set.add("delete");
+					// sqlserver
+					set.add("deny");
 
 					set.add("depth");
 
@@ -393,13 +407,15 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("disable");
 					// oracle
 					set.add("disconnect");
+					// sqlserver
+					set.add("disk");
 					// oracle
 					set.add("dismount");
 
 					set.add("distinct");
 					// mysql
 					set.add("distinctrow");
-					// oracle
+					// oracle, sqlserver
 					set.add("distributed");
 					// mysql
 					set.add("div");
@@ -417,7 +433,9 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("dynamic");
 					// mysql
 					set.add("dual");
-					// oracle
+					// sqlserver
+					set.add("dummy");
+					// oracle, sqlserver
 					set.add("dump");
 
 					set.add("each");
@@ -437,6 +455,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("enforce");
 					// oracle
 					set.add("entry");
+					// sqlserver
+					set.add("errlvl");
 
 					set.add("escape");
 					// mysql
@@ -473,6 +493,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("extent");
 					// oracle
 					set.add("extents");
+					// sqlserver
+					set.add("external");
 					// oracle
 					set.add("externally");
 					// oracle
@@ -483,8 +505,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("fast");
 
 					set.add("fetch");
-					// oracle
+					// oracle, sqlserver
 					set.add("file");
+					// sqlserver
+					set.add("filfactor");
 
 					set.add("filter");
 
@@ -517,6 +541,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("freelist");
 					// oracle
 					set.add("freelists");
+					// sqlserver
+					set.add("freetext");
+					// sqlserver
+					set.add("freetextable");
 
 					set.add("from");
 
@@ -563,6 +591,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("high_priority");
 
 					set.add("hold");
+					// sqlserver
+					set.add("holdlock");
 
 					set.add("hour");
 					// mysql
@@ -575,6 +605,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("identified");
 
 					set.add("identity");
+					// sqlserver
+					set.add("identity_insert");
+					// sqlserver
+					set.add("identitycol");
 					// oracle
 					set.add("idgenerators");
 					// oracle
@@ -591,7 +625,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("including");
 					// oracle
 					set.add("increment");
-					// mysql, oracle
+					// mysql, oracle, sqlserver
 					set.add("index");
 					// oracle
 					set.add("indexed");
@@ -661,36 +695,54 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("iterate");
 
 					set.add("join");
+					// oracle
+					set.add("keep");
 
 					set.add("key");
 					// mysql
 					set.add("keys");
-					// mysql
+					// mysql, oracle, sqlserver
 					set.add("kill");
+					// oracle
+					set.add("label");
 
 					set.add("language");
 
 					set.add("large");
 
 					set.add("last");
+					// oracle
+					set.add("layer");
 
 					set.add("leading");
 
 					set.add("leave");
 
 					set.add("left");
+					// oracle
+					set.add("less");
 
 					set.add("level");
+					// oracle
+					set.add("library");
 
 					set.add("like");
-					// mysql
+					// mysql, oracle
 					set.add("limit");
 					//mysql
 					set.add("linear");
+					// sqlserver
+					set.add("lineno");
 					// mysql
 					set.add("lines");
-					// mysql
+					// oracle
+					set.add("link");
+					// oracle
+					set.add("list");
+					// mysql, sqlserver
 					set.add("load");
+					// oracle
+					set.add("lob");
 
 					set.add("local");
 
@@ -699,9 +751,21 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("localtimestamp");
 
 					set.add("locator");
-					// mysql
+					// mysql, oracle
 					set.add("lock");
-					// mysql
+					// oracle
+					set.add("locked");
+					// oracle
+					set.add("log");
+					// oracle
+					set.add("logfile");
+					// oracle
+					set.add("logging");
+					// oracle
+					set.add("logical_reads_per_call");
+					// oracle
+					set.add("logical_reads_per_session");
+					// mysql, oracle
 					set.add("long");
 					// mysql
 					set.add("longlob");
@@ -713,8 +777,12 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("lower");
 					// mysql
 					set.add("low_priority");
+					// oracle
+					set.add("manage");
 
 					set.add("map");
+					// oracle
+					set.add("master");
 					// mysql
 					set.add("master_bind");
 					// mysql
@@ -723,7 +791,25 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("match");
 
 					set.add("max");
-					// mysql
+					// oracle
+					set.add("maxarchlogs");
+					// oracle
+					set.add("maxdatafiles");
+					// oracle
+					set.add("maxextents");
+					// oracle
+					set.add("maxinstances");
+					// oracle
+					set.add("maxlogfiles");
+					// oracle
+					set.add("maxloghistory");
+					// oracle
+					set.add("maxlogmembers");
+					// oracle
+					set.add("maxsize");
+					// oracle
+					set.add("maxtrans");
+					// mysql, oracle
 					set.add("maxvalue");
 					// mysql
 					set.add("mediumblob");
@@ -741,20 +827,44 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("middleint");
 
 					set.add("min");
+					// oracle
+					set.add("minimum");
+					// oracle
+					set.add("minextents");
+					// oracle
+					set.add("minus");
 
 					set.add("minute");
 					// mysql
 					set.add("minute_microsecond");
 					// mysql
 					set.add("minute_second");
+					// oracle
+					set.add("minvalue");
+					// oracle
+					set.add("mlslabel");
+					// oracle
+					set.add("mls_label_format");
 					// mysql
 					set.add("mod");
+					// oracle
+					set.add("mode");
 
 					set.add("modifies");
+					// oracle
+					set.add("modify");
 
 					set.add("module");
 
 					set.add("month");
+					// oracle
+					set.add("mount");
+					// oracle
+					set.add("move");
+					// oracle
+					set.add("mts_dispatchers");
+					// oracle
+					set.add("multiset");
 
 					set.add("names");
 
@@ -763,42 +873,122 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("natural");
 
 					set.add("nchar");
+					// oracle
+					set.add("nchar_cs");
 
 					set.add("nclob");
+					// oracle
+					set.add("needed");
+					// oracle
+					set.add("nested");
+					// oracle
+					set.add("network");
 
 					set.add("new");
 
 					set.add("next");
 
 					set.add("no");
+					// oracle
+					set.add("noarchivelog");
+					// oracle
+					set.add("noaudit");
+					// oracle
+					set.add("nocache");
+					// sqlserver
+					set.add("nocheck");
+					// oracle
+					set.add("nocompress");
+					// oracle
+					set.add("nocycle");
+					// oracle
+					set.add("noforce");
+					// oracle
+					set.add("nologging");
+					// oracle
+					set.add("nomaxvalue");
+					// oracle
+					set.add("nominvalue");
+					// sqlserver
+					set.add("nonclustered");
 
 					set.add("none");
+					// oracle
+					set.add("noorder");
+					// oracle
+					set.add("nooverride");
+					// oracle
+					set.add("noparallel");
+					// oracle
+					set.add("noreverse");
+					// oracle
+					set.add("normal");
+					// oracle
+					set.add("nosort");
 
 					set.add("not");
+					// oracle
+					set.add("nothing");
+					// oracle
+					set.add("nowait");
 					// mysql
 					set.add("no_write_to_binlog");
 
 					set.add("null");
 
 					set.add("nullif");
+					// oracle
+					set.add("number");
 
 					set.add("numeric");
+					// oracle
+					set.add("nvarchar2");
 
 					set.add("object");
+					// oracle
+					set.add("objno");
+					// oracle
+					set.add("objno_reuse");
 
 					set.add("octet_length");
 
 					set.add("of");
+					// oracle, sqlserver
+					set.add("off");
+					// oracle
+					set.add("offline");
+					// sqlserver
+					set.add("offsets");
+					// oracle
+					set.add("oid");
+					// oracle
+					set.add("oidindex");
 
 					set.add("old");
 
 					set.add("on");
+					// oracle
+					set.add("online");
 
 					set.add("only");
+					// oracle
+					set.add("opcode");
 
 					set.add("open");
+					// sqlserver
+					set.add("opendatasource");
+					// sqlserver
+					set.add("openquery");
+					// sqlserver
+					set.add("openrowset");
+					// sqlserver
+					set.add("openxml");
+					// oracle
+					set.add("optimal");
 					// mysql
 					set.add("optimize");
+					// oracle
+					set.add("optimizer_goal");
 
 					set.add("option");
 					// mysql
@@ -809,6 +999,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("order");
 
 					set.add("ordinality");
+					// oracle
+					set.add("organization");
+					// oracle
+					set.add("oslabel");
 
 					set.add("out");
 
@@ -819,20 +1013,62 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("outfile");
 
 					set.add("over");
+					// oracle
+					set.add("overflow");
 
 					set.add("overlaps");
+					// oracle
+					set.add("own");
+					// oracle
+					set.add("package");
 
 					set.add("pad");
+					// oracle
+					set.add("parallel");
 
 					set.add("parameter");
 
 					set.add("partial");
 
 					set.add("partition");
+					// oracle
+					set.add("password");
+					// oracle
+					set.add("password_grace_time");
+					// oracle
+					set.add("password_life_time");
+					// oracle
+					set.add("password_lock_time");
+					// oracle
+					set.add("password_reuse_max");
+					// oracle
+					set.add("password_reuse_time");
+					// oracle
+					set.add("password_verify_function");
 
 					set.add("path");
+					// oracle
+					set.add("pctfree");
+					// oracle
+					set.add("pctincrease");
+					// oracle
+					set.add("pctthreshold");
+					// oracle
+					set.add("pctused");
+					// oracle
+					set.add("pctversion");
+					// oracle, sqlserver
+					set.add("percent");
+					// oracle
+					set.add("permanent");
+					// oracle, sqlserver
+					set.add("plan");
+					// oracle
+					set.add("plsql_debug");
 
 					set.add("position");
+					// oracle
+					set.add("post_transaction");
 
 					set.add("precesion");
 
@@ -841,26 +1077,62 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("preserve");
 
 					set.add("primary");
+					// sqlserver
+					set.add("print");
 
 					set.add("prior");
+					// oracle
+					set.add("private");
+					// oracle
+					set.add("private_sga");
+					// oracle
+					set.add("privilege");
 
 					set.add("privileges");
+					// sqlserver
+					set.add("proc");
 
 					set.add("procedure");
+					// oracle
+					set.add("profile");
 
 					set.add("public");
-					// mysql
+					// mysql, oracle
 					set.add("purge");
+					// oracle
+					set.add("queue");
+					// oracle
+					set.add("quota");
+					// sqlserver
+					set.add("raiserror");
 
 					set.add("range");
+					// oracle
+					set.add("raw");
+					// oracle
+					set.add("rba");
 
 					set.add("read");
 
 					set.add("reads");
+					// sqlserver
+					set.add("readtext");
+					// oracle
+					set.add("readup");
 					// mysql
 					set.add("read_write");
 
 					set.add("real");
+					// oracle
+					set.add("rebuild");
+					// sqlserver
+					set.add("reconfigure");
+					// oracle
+					set.add("recover");
+					// oracle
+					set.add("recoverable");
+					// oracle
+					set.add("recovery");
 
 					set.add("recursive");
 
@@ -869,80 +1141,453 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("references");
 
 					set.add("referencing");
+					// oracle
+					set.add("refresh");
 					// mysql
 					set.add("regexp");
 
 					set.add("relative");
 
 					set.add("release");
-					// mysql
+					// mysql, oracle
 					set.add("rename");
+
 					set.add("repeat");
+					// mysql, oracle
 					set.add("replace");
+					// sqlserver
+					set.add("replication");
+					// mysql
 					set.add("require");
+					// oracle
+					set.add("reset");
+					// oracle
+					set.add("resetlogs");
+
 					set.add("resignal");
+					// oracle
+					set.add("resize");
+					// oracle
+					set.add("resource");
+					// sqlserver
+					set.add("restore");
+
 					set.add("restrict");
+					// oracle
+					set.add("restricted");
+
+					set.add("result");
+
 					set.add("return");
+					// oracle
+					set.add("returning");
+
+					set.add("returns");
+					// oracle
+					set.add("reuse");
+					// oracle
+					set.add("reverse");
+
 					set.add("revoke");
+
 					set.add("right");
+					// mysql
 					set.add("rlike");
+
+					set.add("role");
+					// oracle
+					set.add("roles");
+
+					set.add("rollback");
+
+					set.add("rollup");
+
+					set.add("routine");
+					// oracle
+					set.add("row");
+					// sqlserver
+					set.add("rowcount");
+					// sqlserver
+					set.add("rowguidcol");
+					// oracle
+					set.add("rowid");
+					// oracle
+					set.add("rownum");
+
+					set.add("rows");
+					// oracle, sqlserver
+					set.add("rule");
+					// oracle
+					set.add("sample");
+					// sqlserver
+					set.add("save");
+
+					set.add("savepoint");
+					// oracle
+					set.add("sb4");
+					// oracle
+					set.add("scan_instances");
+
 					set.add("schema");
+					// mysql
 					set.add("schemas");
+					// oracle
+					set.add("scn");
+
+					set.add("scope");
+
+					set.add("scroll");
+					// oracle
+					set.add("sd_all");
+					// oracle
+					set.add("sd_inhibit");
+					// oracle
+					set.add("sd_show");
+
+					set.add("search");
+
+					set.add("second");
+					// mysql
 					set.add("second_microsecond");
+
+					set.add("section");
+					// oracle
+					set.add("segment");
+					// oracle
+					set.add("seg_block");
+					// oracle
+					set.add("seg_file");
+
 					set.add("select");
+
 					set.add("sensitive");
+					// mysql
 					set.add("separator");
+					// oracle
+					set.add("sequence");
+					// oracle
+					set.add("serializable");
+
+					set.add("session");
+					// oracle
+					set.add("session_cached_cursors");
+					// oracle
+					set.add("sessions_per_user");
+
+					set.add("session_user");
+
 					set.add("set");
+
+					set.add("sets");
+					// sqlserver
+					set.add("setuser");
+					// oracle
+					set.add("share");
+					// oracle
+					set.add("shared");
+					// oracle
+					set.add("shared_pool");
+					// mysql
 					set.add("show");
+					// oracle
+					set.add("shrink");
+					// sqlserver
+					set.add("shutdown");
+
 					set.add("signal");
+
+					set.add("similar");
+
+					set.add("size");
+					// oracle
+					set.add("skip");
+					// oracle
+					set.add("skip_unusable_indexes");
+
 					set.add("smallint");
+					// oracle
+					set.add("snapshot");
+
+					set.add("some");
+					// oracle
+					set.add("sort");
+
+					set.add("space");
+					// mysql
 					set.add("spatial");
+
 					set.add("specific");
+					// oracle
+					set.add("specification");
+
+					set.add("specifictype");
+					// oracle
+					set.add("split");
+
 					set.add("sql");
+
+					set.add("sqlcode");
+
+					set.add("sqlerror");
+
 					set.add("sqlexception");
+
 					set.add("sqlstate");
+
 					set.add("sqlwarning");
+					// mysql
 					set.add("sql_big_result");
+					// mysql
 					set.add("sql_calc_found_rows");
+					// mysql
 					set.add("sql_small_result");
+					// oracle
+					set.add("sql_trace");
+					// mysql
 					set.add("ssl");
+					// oracle
+					set.add("standby");
+
+					set.add("start");
+					// mysql
 					set.add("starting");
+
+					set.add("state");
+					// oracle
+					set.add("statement_id");
+
+					set.add("static");
+					// oracle, sqlserver
+					set.add("statistics");
+					// oracle
+					set.add("stop");
+					// oracle
+					set.add("storage");
+					// oracle
+					set.add("store");
+					// mysql
 					set.add("straight_join");
+					// oracle
+					set.add("structure");
+
+					set.add("submultiset");
+
+					set.add("substring");
+					// oracle
+					set.add("successful");
+
+					set.add("sum");
+					// oracle
+					set.add("switch");
+
+					set.add("symmetric");
+					// oracle
+					set.add("synonym");
+					// oracle
+					set.add("sysdate");
+					// oracle
+					set.add("sysdba");
+					// oracle
+					set.add("sysoper");
+
+					set.add("system");
+
+					set.add("system_user");
+
 					set.add("table");
+					// oracle
+					set.add("tables");
+
+					set.add("tablesample");
+					// oracle
+					set.add("tablespace");
+					// oracle
+					set.add("tablesapce_no");
+					// oracle
+					set.add("tabno");
+
+					set.add("temporary");
+					// mysql
 					set.add("terminated");
+					// sqlserver
+					set.add("textsize");
+					// oracle
+					set.add("than");
+					// oracle
+					set.add("the");
+
 					set.add("then");
+					// oracle
+					set.add("thread");
+
+					set.add("time");
+
+					set.add("timestamp");
+
+					set.add("timezone_hour");
+
+					set.add("timezone_minute");
+					// mysql
 					set.add("tinyblob");
+					// mysql
 					set.add("tinyint");
+					// mysql
 					set.add("tinytext");
+
 					set.add("to");
+					// sqlserver
+					set.add("top");
+					// oracle
+					set.add("toplevel");
+					// oracle
+					set.add("trace");
+					// oracle
+					set.add("tracing");
+					// sqlserver
+					set.add("tran");
+
 					set.add("trailing");
+
+					set.add("transaction");
+
+					set.add("translate");
+
+					set.add("translation");
+					// oracle
+					set.add("transactional");
+
+					set.add("treat");
+
 					set.add("trigger");
+					// oracle
+					set.add("triggers");
+
+					set.add("trim");
+
 					set.add("true");
+					// oracle, sqlserver
+					set.add("truncate");
+					// sqlserver
+					set.add("tsequal");
+					// oracle
+					set.add("tx");
+					// oracle
+					set.add("type");
+					// oracle
+					set.add("ub2");
+					// oracle
+					set.add("uba");
+					// oracle
+					set.add("uid");
+					// oracle
+					set.add("unarchived");
+
 					set.add("undo");
+
 					set.add("union");
+
 					set.add("unique");
+
+					set.add("unknown");
+					// oracle
+					set.add("unlimited");
+					// mysql, oracle
 					set.add("unlock");
+					// oracle
+					set.add("unrecoverable");
+
+					set.add("unnest");
+					// mysql
 					set.add("unsigned");
+
+					set.add("until");
+					// oracle
+					set.add("unusable");
+					// oracle
+					set.add("unused");
+					// oracle
+					set.add("updatable");
+
 					set.add("update");
+					// sqlserver
+					set.add("updatetext");
+
+					set.add("upper");
+
 					set.add("usage");
+					// mysql, oracle, sqlserver
 					set.add("use");
+
+					set.add("user");
+
 					set.add("using");
+					// mysql
 					set.add("utc_date");
+					// mysql
 					set.add("utc_time");
+					// mysql
 					set.add("utc_timestamp");
+					// oracle
+					set.add("validate");
+					// oracle
+					set.add("validation");
+
+					set.add("value");
+
 					set.add("values");
+					// mysql
 					set.add("varbinary");
+
 					set.add("varchar");
+					// oracle
+					set.add("varchar2");
+					// mysql
 					set.add("varcharacter");
+
 					set.add("varying");
+
+					set.add("view");
+					// sqlserver
+					set.add("waitfor");
+
 					set.add("when");
+
+					set.add("whenever");
+
 					set.add("where");
+
 					set.add("while");
+
+					set.add("window");
+
 					set.add("with");
+
+					set.add("within");
+
+					set.add("without");
+
+					set.add("work");
+
 					set.add("write");
+					// oracle
+					set.add("writedown");
+					// sqlserver
+					set.add("writetext");
+					// oracle
+					set.add("writeup");
+					// oracle
+					set.add("xid");
+					// mysql
 					set.add("xor");
+
+					set.add("year");
+					// mysql
 					set.add("year_month");
+					// mysql
 					set.add("zerofill");
+
+					set.add("zone");
+
 					reservedWords = set;
 				}
 			}

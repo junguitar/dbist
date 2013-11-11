@@ -110,6 +110,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private NamedParameterJdbcOperations namedParameterJdbcOperations;
 	private int maxSqlByPathCacheSize = 1000;
 	private int defaultLockTimeout = -1;
+	private boolean reservedWordTolerated;
 	private QueryMapper queryMapper;
 
 	@SuppressWarnings("unchecked")
@@ -302,13 +303,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		return this.namedParameterJdbcOperations.batchUpdate(sql, paramMapList.toArray(new Map[paramMapList.size()]));
 	}
 
-	private StringBuffer appendName(StringBuffer buf, String name) {
-		if (!queryMapper.getReservedWords().contains(name)) {
-			buf.append(name);
-			return buf;
-		}
-
-		buf.append(queryMapper.getReservedWordEscapingBraceOpen()).append(name).append(queryMapper.getReservedWordEscapingBraceClose());
+	private StringBuffer appendName(Table table, StringBuffer buf, String name) {
+		buf.append(table.isReservedWordTolerated() ? queryMapper.toReservedWordEscapedName(name) : name);
 		return buf;
 	}
 	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
@@ -352,7 +348,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// From
 		buf.append(" from ").append(table.getDomain()).append(".");
-		appendName(buf, table.getName());
+		appendName(table, buf, table.getName());
 		if (query.getLock() != null && queryMapper != null) {
 			String str = queryMapper.toWithLock(query.getLock());
 			if (!ValueUtils.isEmpty(str))
@@ -362,18 +358,18 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (Column col : relColMap.values()) {
 				Table subTab = col.getTable();
 				buf.append(" left outer join ").append(subTab.getDomain()).append(".");
-				appendName(buf, subTab.getName());
+				appendName(subTab, buf, subTab.getName());
 				if (!subTab.getName().equals(col.getName())) {
 					buf.append(" ");
-					appendName(buf, col.getName());
+					appendName(subTab, buf, col.getName());
 				}
 				buf.append(" on ");
 				Relation relation = col.getRelation();
 				int i = 0;
 				for (String key : subTab.getPkColumnNameList()) {
-					appendName(buf, table.getName()).append(".");
-					appendName(buf, toColumnName(table, relation.field()[i++])).append(" = ");
-					appendName(buf, col.getName()).append(".").append(key);
+					appendName(table, buf, table.getName()).append(".");
+					appendName(table, buf, toColumnName(table, relation.field()[i++])).append(" = ");
+					appendName(subTab, buf, col.getName()).append(".").append(key);
 				}
 			}
 		}
@@ -494,8 +490,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (String group : query.getGroup()) {
 				buf.append(i++ == 0 ? " " : ", ");
 				if (joined)
-					appendName(buf, table.getName()).append(".");
-				appendName(buf, toColumnName(table, group));
+					appendName(table, buf, table.getName()).append(".");
+				appendName(table, buf, toColumnName(table, group));
 			}
 		}
 		// All fields
@@ -535,8 +531,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			for (String group : query.getGroup()) {
 				buf.append(i++ == 0 ? " " : ", ");
 				if (joined)
-					appendName(buf, table.getName()).append(".");
-				appendName(buf, toColumnName(table, group));
+					appendName(table, buf, table.getName()).append(".");
+				appendName(table, buf, toColumnName(table, group));
 			}
 		}
 
@@ -548,8 +544,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				for (String fieldName : StringUtils.tokenizeToStringArray(order.getField(), ",")) {
 					buf.append(i++ == 0 ? " " : ", ");
 					if (joined)
-						appendName(buf, table.getName()).append(".");
-					appendName(buf, toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
+						appendName(table, buf, table.getName()).append(".");
+					appendName(table, buf, toColumnName(table, fieldName)).append(order.isAscending() ? " asc" : " desc");
 				}
 			}
 		}
@@ -560,8 +556,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (column.getRelation() == null) {
 			buf.append(i++ == 0 ? " " : ", ");
 			if (table.containsLinkedTable())
-				appendName(buf, table.getName()).append(".");
-			appendName(buf, column.getName());
+				appendName(table, buf, table.getName()).append(".");
+			appendName(table, buf, column.getName());
 			return i;
 		} else if (ValueUtils.isEmpty(column.getColumnList())) {
 			return i;
@@ -570,8 +566,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			relColMap.put(column.getName(), column);
 		for (Column subCol : column.getColumnList()) {
 			buf.append(i++ == 0 ? " " : ", ");
-			appendName(buf, column.getName()).append(".");
-			appendName(buf, subCol.getName()).append(" ");
+			appendName(table, buf, column.getName()).append(".");
+			appendName(table, buf, subCol.getName()).append(" ");
 			buf.append(column.getName()).append("__").append(subCol.getName());
 		}
 		return i;
@@ -887,11 +883,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 				String columnName;
 				if (alias == null) {
-					columnName = appendName(new StringBuffer(), column.getName()).toString();
+					columnName = appendName(table, new StringBuffer(), column.getName()).toString();
 				} else {
 					StringBuffer colBuf = new StringBuffer();
-					appendName(colBuf, alias).append(".");
-					appendName(colBuf, column.getName());
+					appendName(table, colBuf, alias).append(".");
+					appendName(table, colBuf, column.getName());
 					columnName = colBuf.toString();
 				}
 				List<?> rightOperand = filter.getRightOperand();
@@ -1215,6 +1211,12 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	public void setDefaultLockTimeout(int defaultLockTimeout) {
 		this.defaultLockTimeout = defaultLockTimeout;
 	}
+	public boolean isReservedWordTolerated() {
+		return reservedWordTolerated;
+	}
+	public void setReservedWordTolerated(boolean reservedWordTolerated) {
+		this.reservedWordTolerated = reservedWordTolerated;
+	}
 	public QueryMapper getQueryMapper() {
 		return queryMapper;
 	}
@@ -1319,6 +1321,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 				Table table = new Table();
 				table.setClazz(clazz);
 				table.setDbType(getDbType());
+				table.setReservedWordTolerated(isReservedWordTolerated());
 
 				// Domain and Name
 				org.dbist.annotation.Table tableAnn = clazz.getAnnotation(org.dbist.annotation.Table.class);
@@ -1327,6 +1330,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 						table.setDomain(tableAnn.domain().toLowerCase());
 					if (!ValueUtils.isEmpty(tableAnn.name()))
 						table.setName(tableAnn.name().toLowerCase());
+					if (tableAnn.reservedWordTolerated())
+						table.setReservedWordTolerated(true);
 				}
 
 				String simpleName = clazz.getSimpleName();

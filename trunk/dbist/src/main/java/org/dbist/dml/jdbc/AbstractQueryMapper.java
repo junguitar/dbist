@@ -15,7 +15,9 @@
  */
 package org.dbist.dml.jdbc;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.dbist.dml.Lock;
@@ -26,6 +28,22 @@ import org.dbist.metadata.Sequence;
  * @since 2013. 9. 7. (version 2.0.3)
  */
 public abstract class AbstractQueryMapper implements QueryMapper {
+	private Map<String, String> reservedWordMap;
+	public String toReservedWordEscapedName(String name) {
+		if (reservedWordMap == null) {
+			synchronized (this) {
+				if (reservedWordMap == null) {
+					Map<String, String> map = new HashMap<String, String>();
+					for (String word : getReservedWords())
+						map.put(word, getReservedWordEscapingBraceOpen() + word + getReservedWordEscapingBraceClose());
+					reservedWordMap = map;
+				}
+			}
+		}
+
+		return reservedWordMap.containsKey(name) ? reservedWordMap.get(name) : name;
+	}
+
 	public String toNextval(Sequence sequence) {
 		if (sequence.getName() == null || sequence.isAutoIncrement())
 			return null;

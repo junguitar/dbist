@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ public class Table {
 	private String name;
 	private Class<?> clazz;
 	private boolean containsLinkedTable;
+	private boolean reservedWordTolerated;
 	private List<String> pkColumnNameList;
 	private String[] pkFieldNames;
 	private List<String> titleColumnNameList;
@@ -86,6 +87,12 @@ public class Table {
 	}
 	public void setContainsLinkedTable(boolean containsLinkedTable) {
 		this.containsLinkedTable = containsLinkedTable;
+	}
+	public boolean isReservedWordTolerated() {
+		return reservedWordTolerated;
+	}
+	public void setReservedWordTolerated(boolean reservedWordTolerated) {
+		this.reservedWordTolerated = reservedWordTolerated;
 	}
 	public List<String> getPkColumnNameList() {
 		return pkColumnNameList;
@@ -197,12 +204,7 @@ public class Table {
 	}
 
 	public StringBuffer appendName(StringBuffer buf, String name) {
-		if (!queryMapper.getReservedWords().contains(name)) {
-			buf.append(name);
-			return buf;
-		}
-
-		buf.append(queryMapper.getReservedWordEscapingBraceOpen()).append(name).append(queryMapper.getReservedWordEscapingBraceClose());
+		buf.append(reservedWordTolerated ? queryMapper.toReservedWordEscapedName(name) : name);
 		return buf;
 	}
 

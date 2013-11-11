@@ -15,6 +15,7 @@
  */
 package org.dbist.dml.jdbc;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -87,6 +88,23 @@ public class QueryMapperOracle extends AbstractQueryMapper {
 		if (subsql != null)
 			buf.append(subsql);
 		return buf.toString();
+	}
+
+	private Map<String, String> reservedWordMap;
+	@Override
+	public String toReservedWordEscapedName(String name) {
+		if (reservedWordMap == null) {
+			synchronized (this) {
+				if (reservedWordMap == null) {
+					Map<String, String> map = new HashMap<String, String>();
+					for (String word : getReservedWords())
+						map.put(word, getReservedWordEscapingBraceOpen() + word.toUpperCase() + getReservedWordEscapingBraceClose());
+					reservedWordMap = map;
+				}
+			}
+		}
+
+		return reservedWordMap.containsKey(name) ? reservedWordMap.get(name) : name;
 	}
 
 	public String getFunctionLowerCase() {

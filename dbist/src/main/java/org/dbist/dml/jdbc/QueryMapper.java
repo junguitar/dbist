@@ -30,6 +30,7 @@ public interface QueryMapper {
 	boolean isSupportedPaginationQuery();
 	boolean isSupportedLockTimeout();
 	String applyPagination(String sql, Map<String, ?> paramMap, int pageIndex, int pageSize, int firstResultIndex, int maxResultSize);
+	String toReservedWordEscapedName(String name);
 	String toNextval(Sequence sequence);
 	String toEscapement(char escape);
 	String toWithLock(Lock lock);

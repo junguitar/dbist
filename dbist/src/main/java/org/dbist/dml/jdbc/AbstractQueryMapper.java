@@ -110,7 +110,9 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("allocate");
 
 					set.add("alter");
-					// mysql, oracle
+					// postgresql
+					set.add("analyze");
+					// mysql, postgresql, oracle
 					set.add("analyze");
 
 					set.add("and");
@@ -132,13 +134,17 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("asensitive");
 
 					set.add("assertion");
+					// db2
+					set.add("associate");
+					// db2
+					set.add("asutime");
 
 					set.add("asymmetric");
 					// oracle
 					set.add("at");
 
 					set.add("atomic");
-					// oracle
+					// oracle, db2
 					set.add("audit");
 					// oracle
 					set.add("authenticated");
@@ -148,6 +154,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("autoextend");
 					// oracle
 					set.add("automatic");
+					// db2
+					set.add("aux");
+					// db2
+					set.add("auxiliary");
 
 					set.add("avg");
 					// oracle, sqlserver
@@ -188,6 +198,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("breath");
 					// sqlserver
 					set.add("browse");
+					// db2
+					set.add("bufferpool");
 					// sqlserver
 					set.add("bulk");
 
@@ -202,6 +214,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("call");
 					// oracle
 					set.add("cancel");
+					// db2
+					set.add("capture");
 
 					set.add("cascade");
 
@@ -212,6 +226,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("cast");
 
 					set.add("catalog");
+					// db2
+					set.add("ccsid");
 					// oracle
 					set.add("cfile");
 					// oracle
@@ -256,11 +272,15 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("collate");
 
 					set.add("collation");
+					// db2
+					set.add("collection");
+					// db2
+					set.add("collid");
 
 					set.add("column");
 					// oracle
 					set.add("columns");
-					// oracle
+					// oracle, db2
 					set.add("comment");
 
 					set.add("commit");
@@ -278,6 +298,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("compress");
 					// oracle, sqlserver
 					set.add("compute");
+					// db2
+					set.add("concat");
 
 					set.add("condition");
 
@@ -296,6 +318,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("contains");
 					// sqlserver
 					set.add("containstable");
+					// db2
+					set.add("content");
 					// oracle
 					set.add("contents");
 
@@ -320,18 +344,20 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("cross");
 
 					set.add("cube");
-					// oracle, sqlserver
+					// oracle, sqlserver, db2
 					set.add("current");
 
 					set.add("current_date");
-					// oracle
-					set.add("current_schema");
 
 					set.add("current_default_transform_group");
+					// db2
+					set.add("current_lc_ctype");
 
 					set.add("current_path");
 
 					set.add("current_role");
+					// oracle
+					set.add("current_schema");
 
 					set.add("current_time");
 
@@ -360,6 +386,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("date");
 
 					set.add("day");
+					// db2
+					set.add("days");
 					// mysql
 					set.add("day_hour");
 					// mysql
@@ -374,6 +402,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("dbcc");
 					// oracle
 					set.add("dbhigh");
+					// db2
+					set.add("dbinfo");
 					// oracle
 					set.add("dblow");
 					// oracle
@@ -421,8 +451,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 
 					// oracle
 					set.add("directory");
-					// oracle
+					// oracle, db2
 					set.add("disable");
+					// db2
+					set.add("disallow");
 					// oracle
 					set.add("disconnect");
 					// sqlserver
@@ -441,6 +473,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("dml");
 
 					set.add("do");
+					// db2
+					set.add("document");
 
 					set.add("domain");
 
@@ -457,6 +491,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("dump");
 
 					set.add("each");
+					// db2
+					set.add("editproc");
 
 					set.add("else");
 
@@ -465,14 +501,22 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("enable");
 					// mysql
 					set.add("enclosed");
+					// db2
+					set.add("encoding");
+					// db2
+					set.add("encryption");
 
 					set.add("end");
+					// db2
+					set.add("ending");
 
 					set.add("equals");
 					// oracle
 					set.add("enforce");
 					// oracle
 					set.add("entry");
+					// db2
+					set.add("erase");
 					// sqlserver
 					set.add("errlvl");
 
@@ -511,7 +555,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("extent");
 					// oracle
 					set.add("extents");
-					// sqlserver
+					// db2
 					set.add("external");
 					// oracle
 					set.add("externally");
@@ -521,14 +565,20 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("false");
 					// oracle
 					set.add("fast");
+					// db2
+					set.add("fenced");
 
 					set.add("fetch");
+					// db2
+					set.add("fieldproc");
 					// oracle, sqlserver
 					set.add("file");
 					// sqlserver
 					set.add("filfactor");
 
 					set.add("filter");
+					// db2
+					set.add("final");
 
 					set.add("first");
 					// oracle
@@ -573,6 +623,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("function");
 
 					set.add("general");
+					// db2
+					set.add("generated");
 
 					set.add("get");
 
@@ -613,6 +665,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("holdlock");
 
 					set.add("hour");
+					// db2
+					set.add("hours");
 					// mysql
 					set.add("hour_microsecond");
 					// mysql
@@ -631,6 +685,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("idgenerators");
 					// oracle
 					set.add("idle_time");
+					// postgresql
+					set.add("ilike");
 
 					set.add("if");
 					// mysql
@@ -641,9 +697,11 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("in");
 					// oracle
 					set.add("including");
+					// db2
+					set.add("inclusive");
 					// oracle
 					set.add("increment");
-					// mysql, oracle, sqlserver
+					// mysql, oracle, sqlserver, db2
 					set.add("index");
 					// oracle
 					set.add("indexed");
@@ -653,6 +711,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("indicator");
 					// oracle
 					set.add("ind_partition");
+					// db2
+					set.add("inherit");
 					// oracle
 					set.add("initial");
 
@@ -705,12 +765,18 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("io_before_gtids");
 
 					set.add("is");
+					// postgresql
+					set.add("isnull");
+					// db2
+					set.add("isobid");
 
 					set.add("isolation");
 					// oracle
 					set.add("isolation_level");
 
 					set.add("iterate");
+					// db2
+					set.add("jar");
 
 					set.add("join");
 					// oracle
@@ -731,6 +797,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("last");
 					// oracle
 					set.add("layer");
+					// db2
+					set.add("lc_ctype");
 
 					set.add("leading");
 
@@ -763,16 +831,24 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("lob");
 
 					set.add("local");
+					// db2
+					set.add("locale");
 
 					set.add("localtime");
 
 					set.add("localtimestamp");
 
 					set.add("locator");
+					// db2
+					set.add("locators");
 					// mysql, oracle
 					set.add("lock");
 					// oracle
 					set.add("locked");
+					// db2
+					set.add("lockmax");
+					// db2
+					set.add("locksize");
 					// oracle
 					set.add("log");
 					// oracle
@@ -783,7 +859,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("logical_reads_per_call");
 					// oracle
 					set.add("logical_reads_per_session");
-					// mysql, oracle
+					// mysql, oracle, db2
 					set.add("long");
 					// mysql
 					set.add("longlob");
@@ -795,6 +871,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("lower");
 					// mysql
 					set.add("low_priority");
+					// db2
+					set.add("maintained");
 					// oracle
 					set.add("manage");
 
@@ -807,6 +885,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("master_ssl_verify_server_cert");
 
 					set.add("match");
+					// db2
+					set.add("materialized");
 
 					set.add("max");
 					// oracle
@@ -841,6 +921,10 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("merge");
 
 					set.add("method");
+					// db2
+					set.add("microsecond");
+					// db2
+					set.add("microseconds");
 					// mysql
 					set.add("middleint");
 
@@ -853,6 +937,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("minus");
 
 					set.add("minute");
+					// db2
+					set.add("minutes");
 					// mysql
 					set.add("minute_microsecond");
 					// mysql
@@ -875,6 +961,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("module");
 
 					set.add("month");
+					// db2
+					set.add("months");
 					// oracle
 					set.add("mount");
 					// oracle
@@ -905,6 +993,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("new");
 
 					set.add("next");
+					// db2
+					set.add("nextval");
 
 					set.add("no");
 					// oracle
@@ -955,12 +1045,18 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("null");
 
 					set.add("nullif");
+					// db2
+					set.add("nulls");
 					// oracle
 					set.add("number");
 
 					set.add("numeric");
+					// db2
+					set.add("numparts");
 					// oracle
 					set.add("nvarchar2");
+					// db2
+					set.add("obid");
 
 					set.add("object");
 					// oracle
@@ -1003,7 +1099,9 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("openxml");
 					// oracle
 					set.add("optimal");
-					// mysql
+					// db2
+					set.add("optimization");
+					// mysql, db2
 					set.add("optimize");
 					// oracle
 					set.add("optimizer_goal");
@@ -1017,7 +1115,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("order");
 
 					set.add("ordinality");
-					// oracle
+					// oracle, db2
 					set.add("organization");
 					// oracle
 					set.add("oslabel");
@@ -1037,18 +1135,26 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("overlaps");
 					// oracle
 					set.add("own");
-					// oracle
+					// oracle, db2
 					set.add("package");
 
 					set.add("pad");
+					// db2
+					set.add("padded");
 					// oracle
 					set.add("parallel");
 
 					set.add("parameter");
+					// db2
+					set.add("part");
 
 					set.add("partial");
 
 					set.add("partition");
+					// db2
+					set.add("partitioned");
+					// db2
+					set.add("partitioning");
 					// oracle
 					set.add("password");
 					// oracle
@@ -1077,9 +1183,17 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("pctversion");
 					// oracle, sqlserver
 					set.add("percent");
+					// db2
+					set.add("period");
 					// oracle
 					set.add("permanent");
-					// oracle, sqlserver
+					// db2
+					set.add("piecesize");
+					// sqlserver
+					set.add("pivot");
+					// postgresql
+					set.add("placing");
+					// oracle, sqlserver, db2
 					set.add("plan");
 					// oracle
 					set.add("plsql_debug");
@@ -1093,12 +1207,16 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("prepare");
 
 					set.add("preserve");
+					// db2
+					set.add("prevval");
 
 					set.add("primary");
 					// sqlserver
 					set.add("print");
 
 					set.add("prior");
+					// db2
+					set.add("priqty");
 					// oracle
 					set.add("private");
 					// oracle
@@ -1113,12 +1231,20 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("procedure");
 					// oracle
 					set.add("profile");
+					// db2
+					set.add("program");
+					// db2
+					set.add("psid");
 
 					set.add("public");
 					// mysql, oracle
 					set.add("purge");
 					// oracle
 					set.add("queue");
+					// db2
+					set.add("query");
+					// db2
+					set.add("queryno");
 					// oracle
 					set.add("quota");
 					// sqlserver
@@ -1159,7 +1285,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("references");
 
 					set.add("referencing");
-					// oracle
+					// oracle, db2
 					set.add("refresh");
 					// mysql
 					set.add("regexp");
@@ -1167,7 +1293,9 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("relative");
 
 					set.add("release");
-					// mysql, oracle
+					// db2
+					set.add("resignal");
+					// mysql, oracle, db2
 					set.add("rename");
 
 					set.add("repeat");
@@ -1195,9 +1323,11 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("restricted");
 
 					set.add("result");
+					// db2
+					set.add("result_set_locator");
 
 					set.add("return");
-					// oracle
+					// oracle, postgresql
 					set.add("returning");
 
 					set.add("returns");
@@ -1205,6 +1335,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("reuse");
 					// oracle
 					set.add("reverse");
+					// sqlserver
+					set.add("revert");
 
 					set.add("revoke");
 
@@ -1221,6 +1353,20 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("rollup");
 
 					set.add("routine");
+					// db2
+					set.add("round_ceiling");
+					// db2
+					set.add("round_down");
+					// db2
+					set.add("round_floor");
+					// db2
+					set.add("round_half_down");
+					// db2
+					set.add("round_half_even");
+					// db2
+					set.add("round_half_up");
+					// db2
+					set.add("round_up");
 					// oracle
 					set.add("row");
 					// sqlserver
@@ -1233,8 +1379,12 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("rownum");
 
 					set.add("rows");
+					// db2
+					set.add("rowset");
 					// oracle, sqlserver
 					set.add("rule");
+					// db2
+					set.add("run");
 					// oracle
 					set.add("sample");
 					// sqlserver
@@ -1253,6 +1403,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("scn");
 
 					set.add("scope");
+					// db2
+					set.add("scratchpad");
 
 					set.add("scroll");
 					// oracle
@@ -1265,10 +1417,16 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("search");
 
 					set.add("second");
+					// db2
+					set.add("seconds");
 					// mysql
 					set.add("second_microsecond");
+					// sqlserver
+					set.add("securityaudit");
 
 					set.add("section");
+					// db2
+					set.add("security");
 					// oracle
 					set.add("segment");
 					// oracle
@@ -1277,11 +1435,17 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("seg_file");
 
 					set.add("select");
+					// sqlserver
+					set.add("semantickeyphrasetable");
+					// sqlserver
+					set.add("semanticsimilaritydetailstable");
+					// sqlserver
+					set.add("semanticsimilaritytable");
 
 					set.add("sensitive");
 					// mysql
 					set.add("separator");
-					// oracle
+					// oracle, db2
 					set.add("sequence");
 					// oracle
 					set.add("serializable");
@@ -1315,6 +1479,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("signal");
 
 					set.add("similar");
+					// db2
+					set.add("simple");
 
 					set.add("size");
 					// oracle
@@ -1327,6 +1493,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("snapshot");
 
 					set.add("some");
+					// db2
+					set.add("source");
 					// oracle
 					set.add("sort");
 
@@ -1363,6 +1531,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("sql_trace");
 					// mysql
 					set.add("ssl");
+					// db2
+					set.add("standard");
 					// oracle
 					set.add("standby");
 
@@ -1371,22 +1541,32 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("starting");
 
 					set.add("state");
+					// db2
+					set.add("statement");
 					// oracle
 					set.add("statement_id");
 
 					set.add("static");
 					// oracle, sqlserver
 					set.add("statistics");
+					// db2
+					set.add("stay");
+					// db2
+					set.add("stogroup");
 					// oracle
 					set.add("stop");
 					// oracle
 					set.add("storage");
 					// oracle
 					set.add("store");
+					// db2
+					set.add("stores");
 					// mysql
 					set.add("straight_join");
 					// oracle
 					set.add("structure");
+					// db2
+					set.add("style");
 
 					set.add("submultiset");
 
@@ -1395,13 +1575,15 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("successful");
 
 					set.add("sum");
+					// db2
+					set.add("summary");
 					// oracle
 					set.add("switch");
 
 					set.add("symmetric");
-					// oracle
+					// oracle, db2
 					set.add("synonym");
-					// oracle
+					// oracle, db2
 					set.add("sysdate");
 					// oracle
 					set.add("sysdba");
@@ -1411,13 +1593,15 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("system");
 
 					set.add("system_user");
+					// db2
+					set.add("systimestamp");
 
 					set.add("table");
 					// oracle
 					set.add("tables");
 
 					set.add("tablesample");
-					// oracle
+					// oracle, db2
 					set.add("tablespace");
 					// oracle
 					set.add("tablesapce_no");
@@ -1483,13 +1667,15 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("trim");
 
 					set.add("true");
-					// oracle, sqlserver
+					// oracle, sqlserver, db2
 					set.add("truncate");
+					// sqlserver
+					set.add("try_convert");
 					// sqlserver
 					set.add("tsequal");
 					// oracle
 					set.add("tx");
-					// oracle
+					// oracle, db2
 					set.add("type");
 					// oracle
 					set.add("ub2");
@@ -1511,6 +1697,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("unlimited");
 					// mysql, oracle
 					set.add("unlock");
+					// sqlserver
+					set.add("unpivot");
 					// oracle
 					set.add("unrecoverable");
 
@@ -1549,12 +1737,20 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("validate");
 					// oracle
 					set.add("validation");
+					// db2
+					set.add("validproc");
 
 					set.add("value");
 
 					set.add("values");
 					// mysql
 					set.add("varbinary");
+					// db2
+					set.add("variable");
+					// postgresql
+					set.add("variadic");
+					// db2
+					set.add("variant");
 
 					set.add("varchar");
 					// oracle
@@ -1563,8 +1759,14 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("varcharacter");
 
 					set.add("varying");
+					// db2
+					set.add("vcat");
 
 					set.add("view");
+					// db2
+					set.add("volatile");
+					// db2
+					set.add("volumes");
 					// sqlserver
 					set.add("waitfor");
 
@@ -1583,6 +1785,8 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("within");
 
 					set.add("without");
+					// db2
+					set.add("wlm");
 
 					set.add("work");
 
@@ -1595,10 +1799,18 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 					set.add("writeup");
 					// oracle
 					set.add("xid");
+					// db2
+					set.add("xmlexists");
+					// db2
+					set.add("xmlnamespaces");
+					// db2
+					set.add("xmlcast");
 					// mysql
 					set.add("xor");
 
 					set.add("year");
+					// db2
+					set.add("years");
 					// mysql
 					set.add("year_month");
 					// mysql

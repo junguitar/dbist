@@ -63,6 +63,11 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 		return "with (updlock, rowlock)";
 	}
 
+	@Override
+	public String toForUpdate(Lock lock) {
+		return "";
+	}
+
 	public String getFunctionLowerCase() {
 		return "lower";
 	}

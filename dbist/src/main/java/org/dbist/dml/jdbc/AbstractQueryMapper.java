@@ -28,14 +28,25 @@ import org.dbist.metadata.Sequence;
  * @since 2013. 9. 7. (version 2.0.3)
  */
 public abstract class AbstractQueryMapper implements QueryMapper {
+
+	private String reservedWordEscapingRule = "uppercase";
+	public void setReservedWordEscapingRule(String reservedWordEscapingRule) {
+		this.reservedWordEscapingRule = reservedWordEscapingRule;
+	}
+
 	private Map<String, String> reservedWordMap;
 	public String toReservedWordEscapedName(String name) {
 		if (reservedWordMap == null) {
 			synchronized (this) {
 				if (reservedWordMap == null) {
 					Map<String, String> map = new HashMap<String, String>();
-					for (String word : getReservedWords())
-						map.put(word, getReservedWordEscapingBraceOpen() + word.toUpperCase() + getReservedWordEscapingBraceClose());
+					if ("uppercase".equals(reservedWordEscapingRule)) {
+						for (String word : getReservedWords())
+							map.put(word, getReservedWordEscapingBraceOpen() + word.toUpperCase() + getReservedWordEscapingBraceClose());
+					} else {
+						for (String word : getReservedWords())
+							map.put(word, getReservedWordEscapingBraceOpen() + word + getReservedWordEscapingBraceClose());
+					}
 					reservedWordMap = map;
 				}
 			}

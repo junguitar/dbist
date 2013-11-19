@@ -304,8 +304,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	}
 
 	private StringBuffer appendName(Table table, StringBuffer buf, String name) {
-		buf.append(table.isReservedWordTolerated() ? queryMapper.toReservedWordEscapedName(name) : name);
-		return buf;
+		return table.appendName(buf, name);
 	}
 	private <T> List<Map<String, ?>> toParamMapList(Table table, List<T> list, String... fieldNames) throws Exception {
 		List<Map<String, ?>> paramMapList = new ArrayList<Map<String, ?>>();

@@ -35,7 +35,7 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 				if (reservedWordMap == null) {
 					Map<String, String> map = new HashMap<String, String>();
 					for (String word : getReservedWords())
-						map.put(word, getReservedWordEscapingBraceOpen() + word + getReservedWordEscapingBraceClose());
+						map.put(word, getReservedWordEscapingBraceOpen() + word.toUpperCase() + getReservedWordEscapingBraceClose());
 					reservedWordMap = map;
 				}
 			}

@@ -1364,7 +1364,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		boolean populated = false;
 		for (String domainName : domainNameList) {
 			domainName = domainName.toLowerCase();
-			String _sql = StringUtils.replace(sql, "${domain}", domainName);
+			String _domainName = domainName;
+			if (_domainName.endsWith("."))
+				_domainName = _domainName.substring(0, _domainName.length() - 1);
+			String _sql = StringUtils.replace(sql, "${domain}", _domainName);
 			for (String tableName : tableNameCandidates) {
 				if (jdbcOperations.queryForInt(_sql, tableName) > 0) {
 					table.setDomain(domainName);
@@ -1388,7 +1391,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: primary key", "dbType:" + getDbType())));
-		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+
+		String domainName = table.getDomain();
+		if (domainName.endsWith("."))
+			domainName = domainName.substring(0, domainName.length() - 1);
+		sql = StringUtils.replace(sql, "${domain}", domainName);
 		table.setPkColumnNameList(jdbcOperations.queryForList(sql, String.class, table.getName()));
 
 		return table;
@@ -1400,7 +1407,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: table columns", "dbType:" + getDbType())));
-		sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+
+		String domainName = table.getDomain();
+		if (domainName.endsWith("."))
+			domainName = domainName.substring(0, domainName.length() - 1);
+		sql = StringUtils.replace(sql, "${domain}", domainName);
 
 		String tableName = table.getName();
 
@@ -1452,7 +1463,11 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			if (sql == null)
 				throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 						ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
-			sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+
+			String domainName = table.getDomain();
+			if (domainName.endsWith("."))
+				domainName = domainName.substring(0, domainName.length() - 1);
+			sql = StringUtils.replace(sql, "${domain}", domainName);
 			org.dbist.annotation.Column columnAnn = field.getAnnotation(org.dbist.annotation.Column.class);
 			TableColumn tabColumn = null;
 
@@ -1510,7 +1525,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 			{
 				String sql = getQueryCountIdentity();
 				if (!ValueUtils.isEmpty(sql)) {
-					sql = StringUtils.replace(sql, "${domain}", table.getDomain());
+					String domainName = table.getDomain();
+					if (domainName.endsWith("."))
+						domainName = domainName.substring(0, domainName.length() - 1);
+					sql = StringUtils.replace(sql, "${domain}", domainName);
 					if (jdbcOperations.queryForInt(sql, table.getName(), column.getName()) > 0)
 						seq.setAutoIncrement(true);
 				}
@@ -1527,7 +1545,10 @@ public class DmlJdbc extends AbstractDml implements Dml {
 					boolean populated = false;
 					for (String domainName : domainNameList) {
 						domainName = domainName.toLowerCase();
-						String _sql = StringUtils.replace(sql, "${domain}", domainName);
+						String _domainName = domainName;
+						if (_domainName.endsWith("."))
+							_domainName = _domainName.substring(0, _domainName.length() - 1);
+						String _sql = StringUtils.replace(sql, "${domain}", _domainName);
 						if (jdbcOperations.queryForInt(_sql, name) > 0) {
 							seq.setDomain(domainName);
 							seq.setName(name);

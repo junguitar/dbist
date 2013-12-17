@@ -73,22 +73,20 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 	}
 
 	public String getQueryCountTable() {
-		return "select count(*) from ${domain}.sysobjects where xtype = 'U' and lower(name) = ?";
+		return "select count(*) from information_schema.tables where lower(table_catalog) = '${domain}' and lower(table_name) = ?";
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lower(col.name) name from ${domain}.sysobjects tbl, ${domain}.syscolumns col"
-				+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.typestat = 3 order by colorder";
+		return "select lower(col.column_name) name from information_schema.table_constraints tbl, information_schema.constraint_column_usage col"
+				+ " where lower(tbl.table_catalog) = '${domain}' and lower(tbl.table_name) = ? and tbl.constraint_type = 'PRIMARY KEY' and col.table_name = tbl.table_name and col.constraint_name = tbl.constraint_name";
 	}
 
 	public String getQueryColumnNames() {
-		return "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
-				+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype";
+		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? order by ordinal_position";
 	}
 
 	public String getQueryColumnName() {
-		return "select lower(col.name) name, lower(type.name) dataType from ${domain}.sysobjects tbl, ${domain}.syscolumns col, ${domain}.systypes type"
-				+ " where tbl.xtype = 'U' and lower(tbl.name) = ? and col.id = tbl.id and col.xusertype = type.xusertype and lower(col.name) = ?";
+		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	}
 
 	public String getQueryCountIdentity() {

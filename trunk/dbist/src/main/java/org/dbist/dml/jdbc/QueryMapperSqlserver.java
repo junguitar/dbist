@@ -77,8 +77,11 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 	}
 
 	public String getQueryPkColumnNames() {
-		return "select lower(col.column_name) name from information_schema.table_constraints tbl, information_schema.constraint_column_usage col"
-				+ " where lower(tbl.table_catalog) = '${domain}' and lower(tbl.table_name) = ? and tbl.constraint_type = 'PRIMARY KEY' and col.table_name = tbl.table_name and col.constraint_name = tbl.constraint_name";
+		return "select lower(col.column_name) name from information_schema.table_constraints tbl, information_schema.constraint_column_usage col, information_schema.columns cols"
+				+ " where lower(tbl.table_catalog) = '${domain}' and lower(tbl.table_name) = ? and tbl.constraint_type = 'PRIMARY KEY'"
+				+ " and col.constraint_name = tbl.constraint_name and col.table_name = tbl.table_name and col.table_catalog = tbl.table_catalog and col.table_schema = tbl.table_schema"
+				+ " and col.table_name = cols.table_name and col.table_catalog = cols.table_catalog and col.table_schema = cols.table_schema and col.column_name = cols.column_name"
+				+ " order by cols.ordinal_position";
 	}
 
 	public String getQueryColumnNames() {

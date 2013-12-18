@@ -219,12 +219,66 @@ public abstract class AbstractDmlTest {
 			}
 		}
 
+		logger.info("case " + i++ + ": select ordered list");
+		{
+			for (Blog data : dml.selectList(Blog.class, new Query(0, 10).addOrder("updatedAt", false).addOrder("name, owner", true)))
+				logger.debug("selected data: " + data.getId());
+			for (Blog data : dml.selectListWithLock(Blog.class, new Query().addOrder("updatedAt", false).addOrder("name, owner", true)))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, new Query(0, 10).addOrder("updatedAt", false).addOrder("name, owner", true)))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+			for (Blog data : dml.selectList(Blog.class, new Query(1, 10).addOrder("updatedAt", false).addOrder("name, owner", true)))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, new Query(1, 10).addOrder("updatedAt", false).addOrder("name, owner", true)))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+		}
+
 		logger.info("case " + i++ + ": select list by subfilters");
 		{
 			Query query = new Query("or", 0, 10);
 			query.addFilter("owner", "!=", "junguita@hotmail.com");
 			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
 			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			query.setPageSize(0);
+			for (Blog data : dml.selectListWithLock(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			try {
+				query.setPageSize(10);
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+			query.setPageIndex(1);
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+		}
+
+		logger.info("case " + i++ + ": select ordered list by subfilters");
+		{
+			Query query = new Query("or", 0, 10);
+			query.addFilter("owner", "!=", "junguita@hotmail.com");
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			query.addOrder("updatedAt", false).addOrder("name, owner", true);
 			for (Blog data : dml.selectList(Blog.class, query))
 				logger.debug("selected data: " + data.getId());
 			query.setPageSize(0);
@@ -278,13 +332,57 @@ public abstract class AbstractDmlTest {
 			}
 		}
 
-		logger.info("case " + i++ + ": select group by list");
+		logger.info("case " + i++ + ": select ordered list by subfilters only");
+		{
+			Query query = new Query("or", 0, 10);
+			query.addFilters(new Filters("and").addFilter("name", "test").addFilter("name", "1"));
+			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
+			query.addOrder("updatedAt", false).addOrder("name, owner", true);
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			query.setPageSize(0);
+			for (Blog data : dml.selectListWithLock(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			query.setPageSize(10);
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+			query.setPageIndex(1);
+			for (Blog data : dml.selectList(Blog.class, query))
+				logger.debug("selected data: " + data.getId());
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, query))
+					logger.debug("selected data: " + data.getId());
+				Assert.fail("pageIndex 1 query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+		}
+
+		logger.info("case " + i++ + ": select grouped list");
 		{
 			for (Blog data : dml.selectList(Blog.class, new Query().addGroup("owner", "name")))
 				logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
 			logger.debug("selected count: " + dml.selectSize(Blog.class, new Query().addGroup("owner", "name")));
 			try {
 				for (Blog data : dml.selectListWithLock(Blog.class, new Query().addGroup("owner", "name")))
+					logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
+				Assert.fail("Grouping query was executed but with lock?");
+			} catch (DbistRuntimeException e) {
+				logger.info(e.getMessage());
+			}
+		}
+
+		logger.info("case " + i++ + ": select grouped and ordered list");
+		{
+			for (Blog data : dml.selectList(Blog.class, new Query().addGroup("owner", "name").addOrder("name, owner", true)))
+				logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
+			logger.debug("selected count: " + dml.selectSize(Blog.class, new Query().addGroup("owner", "name")));
+			try {
+				for (Blog data : dml.selectListWithLock(Blog.class, new Query().addGroup("owner", "name").addOrder("name, owner", true)))
 					logger.debug("selected data: " + data.getOwner() + ", " + data.getName());
 				Assert.fail("Grouping query was executed but with lock?");
 			} catch (DbistRuntimeException e) {
@@ -303,7 +401,19 @@ public abstract class AbstractDmlTest {
 			}
 		}
 
-		logger.info("case " + i++ + ": select group by sql");
+		logger.info("case " + i++ + ": select ordered list by sql");
+		{
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("name", "test");
+			for (Map<String, Object> map : dml.selectListBySql(
+					"select * from blog where name <> :name order by updated_at desc, name asc, owner asc", paramMap, Map.class, 0, 10)) {
+				logger.debug("\r\n\r\nselected data: ");
+				for (String key : map.keySet())
+					logger.debug("\t" + map.get(key));
+			}
+		}
+
+		logger.info("case " + i++ + ": select grouped sql");
 		{
 			List<Map> list = dml.selectListBySqlPath("org/dbist/dml/test.sql", null, Map.class, 0, 10);
 			for (Map<String, Object> map : list) {
@@ -353,6 +463,8 @@ public abstract class AbstractDmlTest {
 			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
 			query.setPageIndex(1);
 			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+			logger.debug("selected size (with ordering): "
+					+ dml.selectSize(Blog.class, query.addOrder("updatedAt", false).addOrder("name, owner", true)));
 		}
 
 		logger.info("case " + i++ + ": select size by subfilters only");
@@ -362,12 +474,16 @@ public abstract class AbstractDmlTest {
 			query.addFilters(new Filters("and").addFilter("name", "test2").addFilter("name", "2"));
 			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
 			query.setPageIndex(1);
-			logger.debug("selected size: " + dml.selectSize(Blog.class, query));
+			logger.debug("selected size (with pagination): " + dml.selectSize(Blog.class, query));
+			logger.debug("selected size (with ordering): "
+					+ dml.selectSize(Blog.class, query.addOrder("updatedAt", false).addOrder("name, owner", true)));
 		}
 
 		logger.info("case " + i++ + ": select size group by list");
 		{
 			logger.debug("selected count: " + dml.selectSize(Blog.class, new Query().addGroup("owner", "name")));
+			logger.debug("selected count (with ordering): "
+					+ dml.selectSize(Blog.class, new Query().addGroup("owner", "name").addOrder("name, owner", true)));
 		}
 
 		logger.info("case " + i++ + ": select size by sql");
@@ -375,6 +491,7 @@ public abstract class AbstractDmlTest {
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			paramMap.put("name", "test");
 			logger.debug("selected size: " + dml.selectSizeBySql("select * from blog where name <> :name", paramMap));
+			logger.debug("selected size (with ordering): " + dml.selectSizeBySql("select * from blog where name <> :name order by updated_at desc, name asc, owner asc", paramMap));
 		}
 
 		logger.info("case " + i++ + ": select size group by sql");

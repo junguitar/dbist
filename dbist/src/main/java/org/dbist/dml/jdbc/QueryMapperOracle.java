@@ -15,7 +15,6 @@
  */
 package org.dbist.dml.jdbc;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**

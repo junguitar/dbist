@@ -1073,14 +1073,16 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	public int selectSizeByQl(String ql, Map<String, ?> paramMap) throws Exception {
 		paramMap = paramMap == null ? new HashMap<String, Object>() : paramMap;
+
 		String lowerQl = ql.toLowerCase();
 		int orderByIndex = lowerQl.lastIndexOf("order by");
-		boolean substringByOrderBy = orderByIndex > -1 && orderByIndex > lowerQl.lastIndexOf(')');
-		if (substringByOrderBy)
-			ql = ql.substring(0, orderByIndex - 1);
 		int forUpdateIndex = lowerQl.lastIndexOf("for update");
+		boolean substringByOrderBy = orderByIndex > -1 && orderByIndex > lowerQl.lastIndexOf(')');
 		if (forUpdateIndex > -1 && (!substringByOrderBy || forUpdateIndex < orderByIndex))
 			ql = ql.substring(0, forUpdateIndex - 1);
+		else if (substringByOrderBy)
+			ql = ql.substring(0, orderByIndex - 1);
+
 		ql = "select count(*) from (" + ql + ") cnttbl_";
 		return selectByQl(ql, paramMap, Integer.class);
 	}

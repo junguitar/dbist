@@ -5,7 +5,7 @@
 The Dbist is an easy Java programming framework to manage dababase.<br>
 This is truly the easiest way to do database programming.<br>
 You may already know about many other ORM Frameworks (Hibernate, mybatis, Active Record ...).<br>
-But it's easier than them.
+But it is easier than them.
 
 Now, you can see why we must use Dbist instead of them.
 
@@ -16,7 +16,7 @@ Now, you can see why we must use Dbist instead of them.
 
 == Example ==
 
-A "POST" is a DB table.<br>
+"POST" is a DB table.<br>
 The DB table has four columns "title", "author", "content", "created_at" and a primary key "id".<br>
 
 ||column    ||data type||
@@ -37,9 +37,9 @@ class Post {
     ...
 }
 }}}
-The mapping does not need any more.<br>
-How...? It is automatically mapped, because it is enough to be inferred.<br>
-Now you can start DB programming right now.
+The mapping configuration is not needed any more.<br>
+How...? It is mapped automatically, because it is enough to be inferred.<br>
+Now you can start DB programming right away.
 
 === If you want to...<br> ===
 

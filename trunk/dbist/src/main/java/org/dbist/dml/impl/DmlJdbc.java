@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import net.sf.common.util.ValueUtils;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.collections.map.ListOrderedMap;
 import org.dbist.annotation.Ignore;
+import org.dbist.annotation.PrimaryKey;
 import org.dbist.annotation.Relation;
 import org.dbist.dml.AbstractDml;
 import org.dbist.dml.Dml;
@@ -1365,6 +1366,8 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: number of table", "dbType:" + getDbType())));
+		String vsql = getQueryCountView();
+		boolean checkView = !ValueUtils.isEmpty(vsql) && !sql.equals(vsql);
 
 		List<String> domainNameList = ValueUtils.isEmpty(table.getDomain()) ? this.domainList : ValueUtils.toList(table.getDomain());
 
@@ -1372,10 +1375,19 @@ public class DmlJdbc extends AbstractDml implements Dml {
 		for (String domainName : domainNameList) {
 			domainName = domainName.toLowerCase();
 			String _sql = StringUtils.replace(sql, "${domain}", toFirstDomainName(domainName));
+			String _vsql = checkView ? StringUtils.replace(vsql, "${domain}", toFirstDomainName(domainName)) : null;
 			for (String tableName : tableNameCandidates) {
 				if (jdbcOperations.queryForInt(_sql, tableName) > 0) {
 					table.setDomain(domainName);
 					table.setName(tableName);
+					table.setType("table");
+					populated = true;
+					break;
+				}
+				if (checkView && jdbcOperations.queryForInt(_vsql, tableName) > 0) {
+					table.setDomain(domainName);
+					table.setName(tableName);
+					table.setType("view");
 					populated = true;
 					break;
 				}
@@ -1398,6 +1410,16 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		sql = StringUtils.replace(sql, "${domain}", toFirstDomainName(table.getDomain()));
 		table.setPkColumnNameList(jdbcOperations.queryForList(sql, String.class, table.getName()));
+		if (ValueUtils.isEmpty(table.getPkColumnNameList())) {
+			List<String> list = new ArrayList<String>();
+			for (Field field : ReflectionUtils.getFieldList(table.getClazz(), false)) {
+				if (field.getAnnotation(PrimaryKey.class) == null)
+					continue;
+				list.add(field.getName());
+			}
+			if (!list.isEmpty())
+				table.setPkFieldNames(list.toArray(new String[list.size()]));
+		}
 
 		return table;
 	}
@@ -1408,7 +1430,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 	private static final RowMapper<TableColumn> TABLECOLUMN_ROWMAPPER = new TableColumnRowMapper();
 	private List<TableColumn> getTableColumnList(Table table) {
-		String sql = getQueryColumnNames();
+		String sql = "view".equals(table.getType()) ? getQueryViewColumns() : getQueryColumns();
 		if (sql == null)
 			throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 					ValueUtils.toMap("queryName: table columns", "dbType:" + getDbType())));
@@ -1460,7 +1482,7 @@ public class DmlJdbc extends AbstractDml implements Dml {
 
 		// Column
 		{
-			String sql = getQueryColumnName();
+			String sql = "view".equals(table.getType()) ? getQueryViewColumn() : getQueryColumn();
 			if (sql == null)
 				throw new IllegalArgumentException(ValueUtils.populate(MSG_QUERYNOTFOUND,
 						ValueUtils.toMap("queryName: table column", "dbType:" + getDbType())));
@@ -1571,14 +1593,23 @@ public class DmlJdbc extends AbstractDml implements Dml {
 	private String getQueryCountTable() {
 		return queryMapper.getQueryCountTable();
 	}
+	private String getQueryCountView() {
+		return queryMapper.getQueryCountView();
+	}
 	private String getQueryPkColumnNames() {
 		return queryMapper.getQueryPkColumnNames();
 	}
-	private String getQueryColumnNames() {
-		return queryMapper.getQueryColumnNames();
+	private String getQueryColumns() {
+		return queryMapper.getQueryColumns();
 	}
-	private String getQueryColumnName() {
-		return queryMapper.getQueryColumnName();
+	private String getQueryViewColumns() {
+		return queryMapper.getQueryViewColumns();
+	}
+	private String getQueryColumn() {
+		return queryMapper.getQueryColumn();
+	}
+	private String getQueryViewColumn() {
+		return queryMapper.getQueryViewColumn();
 	}
 	private String getQueryCountIdentity() {
 		return queryMapper.getQueryCountIdentity();

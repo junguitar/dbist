@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,22 @@ public interface QueryMapper {
 	String toForUpdate(Lock lock);
 	String getFunctionLowerCase();
 	String getQueryCountTable();
+	String getQueryCountView();
 	String getQueryPkColumnNames();
+	String getQueryColumns();
+	@Deprecated
+	/**
+	 * @deprecated Use getQueryColumns() method instead.
+	 */
 	String getQueryColumnNames();
+	String getQueryViewColumns();
+	String getQueryColumn();
+	@Deprecated
+	/**
+	 * @deprecated Use getQueryColumn() method instead.
+	 */
 	String getQueryColumnName();
+	String getQueryViewColumn();
 	String getQueryCountIdentity();
 	String getQueryCountSequence();
 	Set<String> getReservedWords();

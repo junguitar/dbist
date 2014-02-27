@@ -156,6 +156,9 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 				return (Query) condition;
 			Table table = getTable(clazz);
 			if (ValueUtils.isPrimitive(condition)) {
+				String[] pkFieldNames = table.getPkFieldNames();
+				if (ValueUtils.isEmpty(pkFieldNames))
+					throw new DbistRuntimeException("Couln't find primary key of table " + table.getName());
 				query.addFilter(table.getPkFieldNames()[0], condition);
 				return query;
 			} else if (condition instanceof Object[]) {
@@ -165,6 +168,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 				if (ValueUtils.isPrimitive(array[0])) {
 					int i = 0;
 					String[] pkFieldNames = table.getPkFieldNames();
+					if (ValueUtils.isEmpty(pkFieldNames))
+						throw new DbistRuntimeException("Couln't find primary key of table " + table.getName());
 					int pkFieldSize = pkFieldNames.length;
 					for (Object item : array) {
 						query.addFilter(pkFieldNames[i++], item);
@@ -181,6 +186,8 @@ public abstract class AbstractDml implements Dml, ApplicationContextAware, BeanN
 				if (ValueUtils.isPrimitive(list.get(0))) {
 					int i = 0;
 					String[] pkFieldNames = table.getPkFieldNames();
+					if (ValueUtils.isEmpty(pkFieldNames))
+						throw new DbistRuntimeException("Couln't find primary key of table " + table.getName());
 					int pkFieldSize = pkFieldNames.length;
 					for (Object item : list) {
 						query.addFilter(pkFieldNames[i++], item);

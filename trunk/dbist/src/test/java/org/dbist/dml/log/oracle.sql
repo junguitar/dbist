@@ -1,6 +1,0 @@
-CREATE TABLE "LOG" (
-	"ID"		number(18, 0) NOT NULL,
-	"TEXT"		varchar(1000),
-	PRIMARY KEY ("ID")
-);
-CREATE SEQUENCE "SQ_LOG";

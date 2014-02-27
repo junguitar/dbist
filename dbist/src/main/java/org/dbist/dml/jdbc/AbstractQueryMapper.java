@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1842,6 +1842,34 @@ public abstract class AbstractQueryMapper implements QueryMapper {
 
 	public char getReservedWordEscapingBraceClose() {
 		return '\"';
+	}
+
+	public String getQueryColumns() {
+		return getQueryColumnNames();
+	}
+
+	public String getQueryColumn() {
+		return getQueryColumnName();
+	}
+
+	public String getQueryColumnNames() {
+		return "Must implement getQueryColumns() for " + getDbType();
+	}
+
+	public String getQueryColumnName() {
+		return "Must implement getQueryColumn() for " + getDbType();
+	}
+
+	public String getQueryCountView() {
+		return getQueryCountTable();
+	}
+
+	public String getQueryViewColumns() {
+		return getQueryColumns();
+	}
+
+	public String getQueryViewColumn() {
+		return getQueryColumn();
 	}
 
 }

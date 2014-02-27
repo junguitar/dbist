@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,17 +97,21 @@ public class QueryMapperOracle extends AbstractQueryMapper {
 		return "select count(*) from all_tables where lower(owner) = '${domain}' and lower(table_name) = ?";
 	}
 
+	public String getQueryCountView() {
+		return "select count(*) from all_views where lower(owner) = '${domain}' and lower(view_name) = ?";
+	}
+
 	public String getQueryPkColumnNames() {
 		return "select lower(conscol.column_name) name from all_constraints cons, all_cons_columns conscol"
 				+ " where cons.constraint_name = conscol.constraint_name and cons.owner = conscol.owner and lower(conscol.owner) = '${domain}' and lower(conscol.table_name) = ? and cons.constraint_type = 'P' order by conscol.position";
 	}
 
-	public String getQueryColumnNames() {
-		return "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
+	public String getQueryColumns() {
+		return "select lower(column_name) name, lower(data_type) datatype from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ?";
 	}
 
-	public String getQueryColumnName() {
-		return "select lower(column_name) name, lower(data_type) dataType from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	public String getQueryColumn() {
+		return "select lower(column_name) name, lower(data_type) datatype from all_tab_columns where lower(owner) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	}
 
 	public String getQueryCountIdentity() {

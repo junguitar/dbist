@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,12 +84,12 @@ public class QueryMapperSqlserver extends AbstractQueryMapper {
 				+ " order by cols.ordinal_position";
 	}
 
-	public String getQueryColumnNames() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? order by ordinal_position";
+	public String getQueryColumns() {
+		return "select lower(column_name) name, data_type datatype from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? order by ordinal_position";
 	}
 
-	public String getQueryColumnName() {
-		return "select lower(column_name) name, data_type dataType from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
+	public String getQueryColumn() {
+		return "select lower(column_name) name, data_type datatype from information_schema.columns where lower(table_catalog) = '${domain}' and lower(table_name) = ? and lower(column_name) = ?";
 	}
 
 	public String getQueryCountIdentity() {

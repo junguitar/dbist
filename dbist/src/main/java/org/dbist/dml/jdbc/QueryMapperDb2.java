@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,12 +96,12 @@ public class QueryMapperDb2 extends AbstractQueryMapper {
 		return "select lcase(name) name from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and keyseq is not null order by keyseq";
 	}
 
-	public String getQueryColumnNames() {
-		return "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
+	public String getQueryColumns() {
+		return "select lcase(name) name, lcase(typename) datatype from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? order by colno";
 	}
 
-	public String getQueryColumnName() {
-		return "select lcase(name) name, lcase(typename) dataType from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
+	public String getQueryColumn() {
+		return "select lcase(name) name, lcase(typename) datatype from sysibm.syscolumns where lcase(tbcreator) = '${domain}' and lcase(tbname) = ? and lcase(name) = ?";
 	}
 
 	public String getQueryCountIdentity() {

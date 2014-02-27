@@ -44,6 +44,7 @@ public class Table {
 	private String dbType;
 	private String domain;
 	private String name;
+	private String type;
 	private Class<?> clazz;
 	private boolean containsLinkedTable;
 	private boolean reservedWordTolerated;
@@ -76,6 +77,12 @@ public class Table {
 	public void setName(String name) {
 		this.name = name;
 	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
 	public Class<?> getClazz() {
 		return clazz;
 	}
@@ -95,10 +102,24 @@ public class Table {
 		this.reservedWordTolerated = reservedWordTolerated;
 	}
 	public List<String> getPkColumnNameList() {
+		if (ValueUtils.isEmpty(pkColumnNameList) && !ValueUtils.isEmpty(pkFieldNames)) {
+			synchronized (this) {
+				if (ValueUtils.isEmpty(pkColumnNameList) && !ValueUtils.isEmpty(pkFieldNames)) {
+					List<String> list = new ArrayList<String>();
+					for (String fieldName : pkFieldNames) {
+						String name = toColumnName(fieldName);
+						if (ValueUtils.isEmpty(name))
+							continue;
+						list.add(name);
+					}
+					pkColumnNameList = list;
+				}
+			}
+		}
 		return pkColumnNameList;
 	}
-	public void setPkColumnNameList(List<String> pkColumnName) {
-		this.pkColumnNameList = pkColumnName;
+	public void setPkColumnNameList(List<String> pkColumnNameList) {
+		this.pkColumnNameList = pkColumnNameList;
 	}
 	public boolean isPkColmnName(String name) {
 		return getPkColumnNameList().contains(name);
@@ -106,6 +127,9 @@ public class Table {
 	public String[] getPkFieldNames() {
 		populate();
 		return pkFieldNames;
+	}
+	public void setPkFieldNames(String[] pkFieldNames) {
+		this.pkFieldNames = pkFieldNames;
 	}
 	public boolean isPkFieldName(String name) {
 		String columnName = toColumnName(name);
@@ -125,6 +149,7 @@ public class Table {
 		synchronized (this) {
 			if (this.titleColumnNameList != null)
 				return;
+
 			List<String> titleColumnNameList = new ArrayList<String>(0);
 			listedColumnNameList = new ArrayList<String>(0);
 			String titleCandidate = null;
@@ -139,11 +164,14 @@ public class Table {
 			}
 			if (titleColumnNameList.isEmpty() && titleCandidate != null)
 				titleColumnNameList.add(titleCandidate);
-			List<String> pkFieldNameList = new ArrayList<String>();
-			for (String columnName : pkColumnNameList)
-				pkFieldNameList.add(toFieldName(columnName));
-			pkFieldNames = pkFieldNameList.toArray(new String[pkFieldNameList.size()]);
 			this.titleColumnNameList = titleColumnNameList;
+
+			if (ValueUtils.isEmpty(pkFieldNames)) {
+				List<String> pkFieldNameList = new ArrayList<String>();
+				for (String columnName : pkColumnNameList)
+					pkFieldNameList.add(toFieldName(columnName));
+				pkFieldNames = pkFieldNameList.toArray(new String[pkFieldNameList.size()]);
+			}
 		}
 	}
 	public List<Column> getColumnList() {

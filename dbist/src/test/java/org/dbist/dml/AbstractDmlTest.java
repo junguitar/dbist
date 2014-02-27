@@ -61,6 +61,21 @@ public abstract class AbstractDmlTest {
 			logger.warn(e.getMessage(), e);
 		}
 
+		try {
+			User user = dml.select(User.class, "junguitar@gmail.com");
+			if (user == null) {
+				user = new User();
+				user.setUsername("junguitar@gmail.com");
+				user.setPwd("test");
+				user.setFirstName("Steve");
+				user.setLastName("Jung");
+				user.setEmail("junguitar@gmail.com");
+				dml.insert(user);
+			}
+		} catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		}
+
 		Log log = new Log();
 		log.setText("sequence test.");
 		dml.insert(log);
@@ -86,6 +101,7 @@ public abstract class AbstractDmlTest {
 		try {
 			dml.delete(Blog.class, "1");
 			dml.delete(Blog.class, "2");
+			dml.delete(User.class, "junguitar@gmail.com");
 			dml.deleteList(Log.class, new Query());
 			dml.delete(Post.class, "1");
 		} catch (Exception e) {
@@ -101,6 +117,9 @@ public abstract class AbstractDmlTest {
 		{
 			dml.select(Blog.class, "1");
 			dml.selectWithLock(Blog.class, "1");
+
+			dml.select(BlogOwner.class, "1");
+			dml.selectWithLock(BlogOwner.class, "1");
 		}
 		logger.info("case " + i++ + ": select by sql to Map");
 		{
@@ -117,24 +136,38 @@ public abstract class AbstractDmlTest {
 			blog.setId("1");
 			blog = dml.select(blog);
 			blog = dml.selectWithLock(blog);
+
+			BlogOwner blogOwner = new BlogOwner();
+			blogOwner.setId("1");
+			blogOwner = dml.select(blogOwner);
+			blogOwner = dml.selectWithLock(blogOwner);
 		}
 
 		logger.info("case " + i++ + ": select by Filter");
 		{
 			dml.select(Blog.class, new Filter("id", "1"));
 			dml.selectWithLock(Blog.class, new Filter("id", "1"));
+
+			dml.select(BlogOwner.class, new Filter("id", "1"));
+			dml.selectWithLock(BlogOwner.class, new Filter("id", "1"));
 		}
 
 		logger.info("case " + i++ + ": select by Filter[]");
 		{
 			dml.select(Blog.class, new Object[] { new Filter("id", "1") });
 			dml.selectWithLock(Blog.class, new Object[] { new Filter("id", "1") });
+
+			dml.select(BlogOwner.class, new Object[] { new Filter("id", "1") });
+			dml.selectWithLock(BlogOwner.class, new Object[] { new Filter("id", "1") });
 		}
 
 		logger.info("case " + i++ + ": select by Query object");
 		{
 			dml.select(Blog.class, new Query().addFilter("id", "1"));
 			dml.selectWithLock(Blog.class, new Query().addFilter("id", "1"));
+
+			dml.select(BlogOwner.class, new Query().addFilter("id", "1"));
+			dml.selectWithLock(BlogOwner.class, new Query().addFilter("id", "1"));
 		}
 
 		logger.info("case " + i++ + ": select by Map");
@@ -143,6 +176,9 @@ public abstract class AbstractDmlTest {
 			id.put("id", "1");
 			dml.select(Blog.class, id);
 			dml.selectWithLock(Blog.class, id);
+
+			dml.select(BlogOwner.class, id);
+			dml.selectWithLock(BlogOwner.class, id);
 		}
 
 		logger.info("case " + i++ + ": select by another object");
@@ -151,6 +187,9 @@ public abstract class AbstractDmlTest {
 			id.setId("1");
 			dml.select(Blog.class, id);
 			dml.selectWithLock(Blog.class, id);
+
+			dml.select(BlogOwner.class, id);
+			dml.selectWithLock(BlogOwner.class, id);
 		}
 
 		logger.info("case " + i++ + ": select by tableName");
@@ -491,7 +530,8 @@ public abstract class AbstractDmlTest {
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			paramMap.put("name", "test");
 			logger.debug("selected size: " + dml.selectSizeBySql("select * from blog where name <> :name", paramMap));
-			logger.debug("selected size (with ordering): " + dml.selectSizeBySql("select * from blog where name <> :name order by updated_at desc, name asc, owner asc", paramMap));
+			logger.debug("selected size (with ordering): "
+					+ dml.selectSizeBySql("select * from blog where name <> :name order by updated_at desc, name asc, owner asc", paramMap));
 		}
 
 		logger.info("case " + i++ + ": select size group by sql");

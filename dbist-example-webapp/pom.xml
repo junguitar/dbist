@@ -165,6 +165,7 @@
 			<artifactId>velocity</artifactId>
 			<version>1.7</version>
 		</dependency>
+		<!-- 
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -189,7 +190,7 @@
 			<groupId>com.ibm.db2</groupId>
 			<artifactId>db2jcc4</artifactId>
 			<version>9.7.0.6</version>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 
 	<distributionManagement>

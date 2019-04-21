@@ -15,23 +15,17 @@
  */
 package org.dbist.dml;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * @author Steve M. Jung
  * @since 2012. 4. 29. (version 1.0.10)
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Lock {
 	private Integer timeout;
-	public Lock() {
-		super();
-	}
-	public Lock(int timeout) {
-		super();
-		this.timeout = timeout;
-	}
-	public Integer getTimeout() {
-		return timeout;
-	}
-	public void setTimeout(Integer timeout) {
-		this.timeout = timeout;
-	}
 }

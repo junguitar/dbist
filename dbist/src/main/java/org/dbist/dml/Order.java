@@ -15,27 +15,16 @@
  */
 package org.dbist.dml;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 /**
  * @author Steve M. Jung
  * @since 2011. 6. 2. (version 0.0.1)
  */
+@Data
+@AllArgsConstructor
 public class Order {
 	private String field;
 	private boolean ascending;
-	public Order(String field, boolean ascending) {
-		this.field = field;
-		this.ascending = ascending;
-	}
-	public String getField() {
-		return field;
-	}
-	public void setField(String field) {
-		this.field = field;
-	}
-	public boolean isAscending() {
-		return ascending;
-	}
-	public void setAscending(boolean ascending) {
-		this.ascending = ascending;
-	}
 }

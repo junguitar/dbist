@@ -1,4 +1,4 @@
 rootProject.name = 'dbist-projects'
 
-include 'dbist-parent'
-include 'dbist'
+include('dbist-parent')
+include('dbist')

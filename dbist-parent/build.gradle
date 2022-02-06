@@ -19,8 +19,6 @@ repositories {
 }
 
 dependencies {
-	implementation project(':dbist-parent')
-	
 	//implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	compileOnly 'org.projectlombok:lombok'
